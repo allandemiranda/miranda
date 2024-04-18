@@ -1,5 +1,6 @@
 package lu.forex.system.enums;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -19,5 +20,6 @@ public enum Currency {
   SEK("SEK");
   //@formatter:on
 
-  private final String currency;
+  @NotBlank
+  private final String code;
 }
