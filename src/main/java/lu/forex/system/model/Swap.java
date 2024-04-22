@@ -36,16 +36,11 @@ public class Swap implements Serializable {
   @Column(nullable = false)
   private double shortTax;
   @Column(nullable = false)
-  private DayOfWeek rateTriple = DayOfWeek.WEDNESDAY;
+  private DayOfWeek rateTriple;
 
   public Swap(final double longTax, final double shortTax, final DayOfWeek rateTriple) {
     this.longTax = longTax;
     this.shortTax = shortTax;
     this.rateTriple = rateTriple;
-  }
-
-  public Swap(final double longTax, final double shortTax) {
-    this.longTax = longTax;
-    this.shortTax = shortTax;
   }
 }

@@ -51,12 +51,4 @@ public class Candlestick implements Serializable {
     this.close = close;
     this.symbol = symbol;
   }
-
-  public Candlestick(final double open, final Symbol symbol) {
-    this.high = open;
-    this.low = open;
-    this.open = open;
-    this.close = open;
-    this.symbol = symbol;
-  }
 }
