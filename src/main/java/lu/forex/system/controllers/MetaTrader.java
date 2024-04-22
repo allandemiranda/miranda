@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller()
 @RequestMapping(value = "/metatrader")
@@ -16,7 +15,6 @@ public class MetaTrader {
   @PostMapping(value = "/info")
   public ResponseEntity<String> postData(@RequestBody TickDto tick) {
 
-    System.out.println(tick.toString());
     return ResponseEntity.ok(tick.toString());
   }
 

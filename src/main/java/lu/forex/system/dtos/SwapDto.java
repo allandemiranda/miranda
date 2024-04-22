@@ -4,11 +4,13 @@ import java.time.DayOfWeek;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
+@ToString
 public class SwapDto {
 
   //@formatter:off

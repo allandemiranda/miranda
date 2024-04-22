@@ -4,12 +4,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lu.forex.system.enums.Currency;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 @Getter
+@ToString
 public class SymbolDto {
 
   //@formatter:off
