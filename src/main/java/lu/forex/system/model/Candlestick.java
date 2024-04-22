@@ -32,6 +32,9 @@ public class Candlestick implements Serializable {
   @Column(unique = true, nullable = false)
   @Setter(AccessLevel.PROTECTED)
   private UUID id;
+  @JoinColumn(nullable = false)
+  @ManyToOne
+  private Symbol symbol;
   @Column(nullable = false)
   private double high;
   @Column(nullable = false)
@@ -40,15 +43,12 @@ public class Candlestick implements Serializable {
   private double open;
   @Column(nullable = false)
   private double close;
-  @JoinColumn(nullable = false)
-  @ManyToOne
-  private Symbol symbol;
 
-  public Candlestick(final double high, final double low, final double open, final double close, final Symbol symbol) {
+  private Candlestick(final Symbol symbol, final double high, final double low, final double open, final double close) {
+    this.symbol = symbol;
     this.high = high;
     this.low = low;
     this.open = open;
     this.close = close;
-    this.symbol = symbol;
   }
 }

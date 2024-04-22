@@ -37,7 +37,7 @@ public class Symbol implements Serializable {
   private UUID id;
   @Column(unique = true, nullable = false)
   @NotBlank
-  private String value;
+  private String name;
   @Column(nullable = false)
   private Currency margin;
   @Column(nullable = false)
@@ -48,8 +48,8 @@ public class Symbol implements Serializable {
   @OneToOne
   private Swap swap;
 
-  public Symbol(final String value, final Currency margin, final Currency profit, final int digits, final Swap swap) {
-    this.value = value;
+  public Symbol(final String name, final Currency margin, final Currency profit, final int digits, final Swap swap) {
+    this.name = name;
     this.margin = margin;
     this.profit = profit;
     this.digits = digits;

@@ -20,16 +20,25 @@ void OnTick() {
    const string bid = DoubleToString(SymbolInfoDouble(currentSymbol,SYMBOL_BID), digits);
    const string timeFrame = TimeFrameDescription(TimeFrame);
    
-   const string url = StringFormat("%s?dataTime=%s&pair=%s&ask=%s&bid=%s&timeFrame=%s&digits=%d", Address, dateTime, pair, ask, bid, timeFrame, digits);
-   
-   string cookie=NULL,headers;
-   char   post[],result[];   
+   string cookie=NULL, result_headers;
+   string headers="Content-Type: application/json\r\n";
+   char   post[],result[];
+
+
+   string s = "{\n\t\"dateTime\": \"2007-12-03T10:15:30\",\n\t\"bid\": 1.12345,\n\t\"ask\": 2.12345,\n\t\"symbol\": {\n\t\t\"value\": \"EURUSD\",\n\t\t\"margin\": \"EUR\",\n\t\t\"profit\": \"USD\",\n\t\t\"swap\": {\n\t\t\t\"longTax\": -1.2,\n\t\t\t\"shortTax\": 3.3,\n\t\t\t\"rateTriple\": \"WEDNESDAY\"\n\t\t}\n\t}\n}";
+
+
+
+   StringToCharArray(s, post);
+
+
+
    ResetLastError();
-   int res = WebRequest(Method,url,cookie,NULL,500,post,0,result,headers);
+   int res = WebRequest(Method,Address,headers,500,post,result,result_headers);
    if(res==200) {
       Print(CharArrayToString(result));
-   } else {      
-      PrintFormat("Bad reqeust, error code %d, url %s", res, url);
+   } else {
+      PrintFormat("Bad reqeust, error code %d, url %s", res, Address);
    }
 
 }

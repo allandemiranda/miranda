@@ -1,26 +1,28 @@
 package lu.forex.system.controllers;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
+import lu.forex.system.dtos.TickDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller()
 @RequestMapping(value = "/metatrader")
 public class MetaTrader {
 
-  @RequestMapping(value = "/info", method = RequestMethod.POST)
-  public ResponseEntity<List<String>> postData(@RequestParam("dataTime") LocalDateTime dateTime,
-      @RequestParam("pair") String pair, @RequestParam("ask") double ask,
-      @RequestParam("bid") double bid, @RequestParam("timeFrame") String timeFrame, @RequestParam("digits") int digits) {
+  @PostMapping(value = "/info")
+  public ResponseEntity<String> postData(@RequestBody TickDto tick) {
 
-      final List<String> open = Arrays.asList("OPEN", dateTime.toString(), pair, String.valueOf(bid),
-          String.valueOf(ask), timeFrame, String.valueOf(digits));
-      System.out.println(Arrays.toString(open.toArray()));
-      return ResponseEntity.ok(open);
+    System.out.println(tick.toString());
+    return ResponseEntity.ok(tick.toString());
+  }
+
+  @GetMapping(value = "/novo")
+  public ResponseEntity<String> getData() {
+    System.out.println("OK");
+    return ResponseEntity.ok("OK");
   }
 }

@@ -21,5 +21,5 @@ public enum Currency {
   //@formatter:on
 
   @NotBlank
-  private final String code;
+  private final String name;
 }
