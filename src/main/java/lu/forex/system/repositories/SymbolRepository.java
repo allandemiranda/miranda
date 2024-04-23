@@ -9,4 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface SymbolRepository extends JpaRepository<Symbol, UUID> {
 
   Symbol findByName(String name);
+
+  void deleteSymbolByName(String name);
 }

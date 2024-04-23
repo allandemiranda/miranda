@@ -3,12 +3,12 @@ package lu.forex.system.controllers;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.List;
-import java.util.UUID;
+import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lu.forex.system.models.SymbolDto;
+import lu.forex.system.models.SymbolUpdateDto;
 import lu.forex.system.services.SymbolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,7 +35,7 @@ public class SymbolController {
   }
 
   @GetMapping
-  public List<SymbolDto> getSymbols() {
+  public Collection<SymbolDto> getSymbols() {
     return this.getSymbolService().findAll();
   }
 
@@ -48,20 +47,20 @@ public class SymbolController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto addSymbol(@RequestBody @Valid final SymbolDto symbol) {
-    return this.getSymbolService().save(symbol);
+  public SymbolDto addSymbol(@RequestBody @Valid final SymbolDto symbolDto) {
+    return this.getSymbolService().save(symbolDto);
   }
 
-  @PutMapping
+  @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto updateSymbol(@RequestBody @Valid final SymbolDto symbol) {
-    return this.getSymbolService().save(symbol);
+  public SymbolDto updateSymbol(@PathVariable("name") @NonNull final String name, @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
+    return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name);
   }
 
-  @DeleteMapping
+  @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public void deleteSymbol(final @RequestParam UUID id) {
-    this.getSymbolService().delete(id);
+  public void deleteSymbol(@PathVariable("name") @NonNull final String name) {
+    this.getSymbolService().deleteByName(name);
   }
 
 }
