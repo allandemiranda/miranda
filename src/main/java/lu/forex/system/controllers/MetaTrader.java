@@ -1,6 +1,6 @@
 package lu.forex.system.controllers;
 
-import lu.forex.system.dtos.TickDto;
+import lu.forex.system.models.TickDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

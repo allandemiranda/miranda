@@ -1,14 +1,13 @@
-package lu.forex.system.model;
+package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.DayOfWeek;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -22,33 +21,26 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class Candlestick implements Serializable {
+public class Swap implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 3707234909834765373L;
+  private static final long serialVersionUID = 5616569054693168805L;
 
   @Id
   @GeneratedValue()
   @Column(unique = true, nullable = false)
   @Setter(AccessLevel.PROTECTED)
   private UUID id;
-  @JoinColumn(nullable = false)
-  @ManyToOne
-  private Symbol symbol;
   @Column(nullable = false)
-  private double high;
+  private double longTax;
   @Column(nullable = false)
-  private double low;
+  private double shortTax;
   @Column(nullable = false)
-  private double open;
-  @Column(nullable = false)
-  private double close;
+  private DayOfWeek rateTriple;
 
-  private Candlestick(final Symbol symbol, final double high, final double low, final double open, final double close) {
-    this.symbol = symbol;
-    this.high = high;
-    this.low = low;
-    this.open = open;
-    this.close = close;
+  public Swap(final double longTax, final double shortTax, final DayOfWeek rateTriple) {
+    this.longTax = longTax;
+    this.shortTax = shortTax;
+    this.rateTriple = rateTriple;
   }
 }

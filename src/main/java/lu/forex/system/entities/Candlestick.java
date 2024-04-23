@@ -1,4 +1,4 @@
-package lu.forex.system.model;
+package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,7 +9,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,30 +22,33 @@ import lombok.ToString;
 @Setter
 @NoArgsConstructor
 @ToString
-public class Tick implements Serializable {
+public class Candlestick implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 8689684652979027409L;
+  private static final long serialVersionUID = 3707234909834765373L;
 
   @Id
   @GeneratedValue()
   @Column(unique = true, nullable = false)
   @Setter(AccessLevel.PROTECTED)
   private UUID id;
-  @Column(nullable = false)
-  private LocalDateTime dateTime;
-  @Column(nullable = false)
-  private double bid;
-  @Column(nullable = false)
-  private double ask;
   @JoinColumn(nullable = false)
   @ManyToOne
   private Symbol symbol;
+  @Column(nullable = false)
+  private double high;
+  @Column(nullable = false)
+  private double low;
+  @Column(nullable = false)
+  private double open;
+  @Column(nullable = false)
+  private double close;
 
-  public Tick(final LocalDateTime dateTime, final double bid, final double ask, final Symbol symbol) {
-    this.dateTime = dateTime;
-    this.bid = bid;
-    this.ask = ask;
+  public Candlestick(final Symbol symbol, final double high, final double low, final double open, final double close) {
     this.symbol = symbol;
+    this.high = high;
+    this.low = low;
+    this.open = open;
+    this.close = close;
   }
 }
