@@ -7,6 +7,7 @@ import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.models.SymbolDto;
 import lu.forex.system.models.SymbolUpdateDto;
 import lu.forex.system.services.SymbolService;
@@ -41,8 +42,8 @@ public class SymbolController {
 
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public SymbolDto getSymbol(@PathVariable("name") @NonNull @NotBlank @Size(max = 6, min = 6) final String name) {
-    return this.getSymbolService().findByName(name);
+  public SymbolDto getSymbol(@PathVariable @NonNull @NotBlank @Size(max = 6, min = 6) final String name) {
+    return this.getSymbolService().findByName(name).orElseThrow(() -> new SymbolNotFoundException(name.concat(" not exist!")));
   }
 
   @PostMapping
@@ -53,13 +54,13 @@ public class SymbolController {
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto updateSymbol(@PathVariable("name") @NonNull final String name, @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
+  public SymbolDto updateSymbol(@PathVariable @NonNull final String name, @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
     return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name);
   }
 
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public void deleteSymbol(@PathVariable("name") @NonNull final String name) {
+  public void deleteSymbol(@PathVariable @NonNull final String name) {
     this.getSymbolService().deleteByName(name);
   }
 

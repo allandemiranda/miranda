@@ -3,6 +3,8 @@ package lu.forex.system.services;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -32,9 +34,13 @@ public class SymbolService {
     return this.getSymbolRepository().findAll().stream().map(this.getSymbolMapper()::toDto).toList();
   }
 
-  public SymbolDto findByName(final @NonNull @NotBlank String name) {
+  public Optional<SymbolDto> findByName(final @NonNull @NotBlank String name) {
     final Symbol symbol = this.getSymbolRepository().findByName(name);
-    return this.getSymbolMapper().toDto(symbol);
+    if (Objects.isNull(symbol)) {
+      return Optional.empty();
+    } else {
+      return Optional.of(this.getSymbolMapper().toDto(symbol));
+    }
   }
 
   @Transactional
