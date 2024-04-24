@@ -2,17 +2,17 @@ package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.UUID;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -28,12 +28,13 @@ public class Candlestick implements Serializable {
   private static final long serialVersionUID = 3707234909834765373L;
 
   @Id
-  @GeneratedValue()
   @Column(unique = true, nullable = false)
   @Setter(AccessLevel.PROTECTED)
-  private UUID id;
+  @NonNull
+  private LocalDateTime dateTime;
   @JoinColumn(nullable = false)
   @ManyToOne
+  @NonNull
   private Symbol symbol;
   @Column(nullable = false)
   private double high;
@@ -44,7 +45,7 @@ public class Candlestick implements Serializable {
   @Column(nullable = false)
   private double close;
 
-  public Candlestick(final Symbol symbol, final double high, final double low, final double open, final double close) {
+  public Candlestick(final @NonNull Symbol symbol, final double high, final double low, final double open, final double close) {
     this.symbol = symbol;
     this.high = high;
     this.low = low;

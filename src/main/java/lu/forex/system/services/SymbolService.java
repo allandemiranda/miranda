@@ -2,13 +2,14 @@ package lu.forex.system.services;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lu.forex.system.entities.Swap;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.models.SymbolDto;
@@ -22,16 +23,14 @@ import org.springframework.stereotype.Service;
 public class SymbolService {
 
   private final SymbolRepository symbolRepository;
-  private final SymbolMapper symbolMapper;
 
   @Autowired
-  public SymbolService(final SymbolRepository symbolRepository, final SymbolMapper symbolMapper) {
+  public SymbolService(final SymbolRepository symbolRepository) {
     this.symbolRepository = symbolRepository;
-    this.symbolMapper = symbolMapper;
   }
 
-  public List<SymbolDto> findAll() {
-    return this.getSymbolRepository().findAll().stream().map(this.getSymbolMapper()::toDto).toList();
+  public Collection<SymbolDto> findAll() {
+    return this.getSymbolRepository().findAll().stream().map(SymbolMapper::toDto).collect(Collectors.toCollection(ArrayList::new));
   }
 
   public Optional<SymbolDto> findByName(final @NonNull @NotBlank String name) {
@@ -39,36 +38,32 @@ public class SymbolService {
     if (Objects.isNull(symbol)) {
       return Optional.empty();
     } else {
-      return Optional.of(this.getSymbolMapper().toDto(symbol));
+      return Optional.of(SymbolMapper.toDto(symbol));
     }
   }
 
   @Transactional
   public SymbolDto save(final @NonNull SymbolDto symbolDto) {
-    final Symbol symbolTmp = this.getSymbolMapper().toEntity(symbolDto);
+    final Symbol symbolTmp = SymbolMapper.toEntity(symbolDto);
     final Symbol symbol = this.getSymbolRepository().save(symbolTmp);
-    return this.getSymbolMapper().toDto(symbol);
+    return SymbolMapper.toDto(symbol);
   }
 
   @Transactional
-  public SymbolDto updateSymbolByName(final @NonNull SymbolUpdateDto symbolUpdateDto, final @NonNull String name) {
-    final Swap swap = this.getSymbolRepository().findByName(name).getSwap();
-    swap.setLongTax(symbolUpdateDto.swap().longTax());
-    swap.setShortTax(symbolUpdateDto.swap().shortTax());
-    swap.setRateTriple(symbolUpdateDto.swap().rateTriple());
-
+  public Optional<SymbolDto> updateSymbolByName(final @NonNull SymbolUpdateDto symbolUpdateDto, final @NonNull @NotBlank String name) {
     final Symbol symbol = this.getSymbolRepository().findByName(name);
-    symbol.setMargin(symbolUpdateDto.margin());
-    symbol.setProfit(symbolUpdateDto.profit());
-    symbol.setDigits(symbolUpdateDto.digits());
-    symbol.setSwap(swap);
-
-    return this.getSymbolMapper().toDto(symbol);
+    if (Objects.nonNull(symbol)) {
+      symbol.setDigits(symbolUpdateDto.digits());
+      return Optional.of(SymbolMapper.toDto(symbol));
+    } else {
+      return Optional.empty();
+    }
   }
 
   @Transactional
-  public void deleteByName(final @NonNull String name) {
+  public boolean deleteByName(final @NonNull @NotBlank String name) {
     this.getSymbolRepository().deleteSymbolByName(name);
+    return Optional.ofNullable(this.getSymbolRepository().findByName(name)).isPresent();
   }
 
 }

@@ -1,12 +1,12 @@
 package lu.forex.system.controllers;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lu.forex.system.exceptions.SymbolNotDeletedException;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.models.SymbolDto;
 import lu.forex.system.models.SymbolUpdateDto;
@@ -42,8 +42,8 @@ public class SymbolController {
 
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public SymbolDto getSymbol(@PathVariable @NonNull @NotBlank @Size(max = 6, min = 6) final String name) {
-    return this.getSymbolService().findByName(name).orElseThrow(() -> new SymbolNotFoundException(name.concat(" not exist!")));
+  public SymbolDto getSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
+    return this.getSymbolService().findByName(name).orElseThrow(SymbolNotFoundException::new);
   }
 
   @PostMapping
@@ -54,14 +54,17 @@ public class SymbolController {
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto updateSymbol(@PathVariable @NonNull final String name, @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
-    return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name);
+  public SymbolDto updateSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name,
+      @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
+    return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name).orElseThrow(SymbolNotFoundException::new);
   }
 
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public void deleteSymbol(@PathVariable @NonNull final String name) {
-    this.getSymbolService().deleteByName(name);
+  public void deleteSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
+    if (!this.getSymbolService().deleteByName(name)) {
+      throw new SymbolNotDeletedException();
+    }
   }
 
 }

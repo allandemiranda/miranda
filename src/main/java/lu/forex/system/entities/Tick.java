@@ -14,6 +14,7 @@ import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -34,6 +35,7 @@ public class Tick implements Serializable {
   @Setter(AccessLevel.PROTECTED)
   private UUID id;
   @Column(nullable = false)
+  @NonNull
   private LocalDateTime dateTime;
   @Column(nullable = false)
   private double bid;
@@ -41,9 +43,10 @@ public class Tick implements Serializable {
   private double ask;
   @JoinColumn(nullable = false)
   @ManyToOne
+  @NonNull
   private Symbol symbol;
 
-  public Tick(final LocalDateTime dateTime, final double bid, final double ask, final Symbol symbol) {
+  public Tick(final @NonNull LocalDateTime dateTime, final double bid, final double ask, final @NonNull Symbol symbol) {
     this.dateTime = dateTime;
     this.bid = bid;
     this.ask = ask;

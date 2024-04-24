@@ -1,8 +1,9 @@
 package lu.forex.system.models;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.NonNull;
-import lu.forex.system.enums.Currency;
 
-public record SymbolUpdateDto(@NonNull Currency margin, @NonNull Currency profit, int digits, @NonNull SwapDto swap) {
+public record SymbolUpdateDto(@NonNull @NotBlank String description, @NonNull @NotBlank String margin, @NonNull @NotBlank String profit, int digits,
+                              double swapLong, double swapShort) {
 
 }
