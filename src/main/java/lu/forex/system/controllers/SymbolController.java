@@ -54,8 +54,7 @@ public class SymbolController {
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto updateSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name,
-      @RequestBody @Valid final SymbolUpdateDto symbolUpdateDto) {
+  public SymbolDto updateSymbol(@RequestBody @Valid final SymbolUpdateDto symbolUpdateDto, @PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
     return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name).orElseThrow(SymbolNotFoundException::new);
   }
 

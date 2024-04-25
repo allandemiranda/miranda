@@ -18,7 +18,7 @@ public class SymbolMapper {
 
   // To Entity
   public static @NonNull Symbol toEntity(final @NonNull SymbolDto symbolDto) {
-    return new Symbol(symbolDto.description(), symbolDto.margin(), symbolDto.profit(), symbolDto.digits(), symbolDto.swapLong(),
+    return new Symbol(symbolDto.name(), symbolDto.description(), symbolDto.margin(), symbolDto.profit(), symbolDto.digits(), symbolDto.swapLong(),
         symbolDto.swapShort());
   }
 

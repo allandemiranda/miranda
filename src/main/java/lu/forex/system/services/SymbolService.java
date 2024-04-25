@@ -54,7 +54,10 @@ public class SymbolService {
     final Symbol symbol = this.getSymbolRepository().findByName(name);
     if (Objects.nonNull(symbol)) {
       symbol.setDigits(symbolUpdateDto.digits());
-      return Optional.of(SymbolMapper.toDto(symbol));
+      symbol.setSwapLong(symbolUpdateDto.swapLong());
+      symbol.setSwapShort(symbolUpdateDto.swapShort());
+      final Symbol updatedSymbol = this.getSymbolRepository().save(symbol);
+      return Optional.of(SymbolMapper.toDto(updatedSymbol));
     } else {
       return Optional.empty();
     }

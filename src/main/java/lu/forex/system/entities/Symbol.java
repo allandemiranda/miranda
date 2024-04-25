@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -20,6 +21,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString
 public class Symbol implements Serializable {
 
@@ -54,13 +56,4 @@ public class Symbol implements Serializable {
   @Column(nullable = false)
   private double swapShort;
 
-  public Symbol(final @NonNull @NotBlank String description, final @NonNull @NotBlank String margin, final @NonNull @NotBlank String profit,
-      final int digits, final double swapLong, final double swapShort) {
-    this.description = description;
-    this.margin = margin;
-    this.profit = profit;
-    this.digits = digits;
-    this.swapLong = swapLong;
-    this.swapShort = swapShort;
-  }
 }
