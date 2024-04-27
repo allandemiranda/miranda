@@ -1,28 +1,29 @@
 package lu.forex.system.mappers;
 
-import lombok.NonNull;
-import lu.forex.system.entities.Symbol;
+import lu.forex.system.dtos.TickCreateDto;
+import lu.forex.system.dtos.TickDto;
 import lu.forex.system.entities.Tick;
-import lu.forex.system.models.SymbolDto;
-import lu.forex.system.models.TickDto;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants.ComponentModel;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 
-public class TickMapper {
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {SymbolMapper.class})
+public interface TickMapper {
 
-  private TickMapper() {
-    throw new IllegalStateException("TickMapper class");
-  }
+  Tick toEntity(TickDto tickDto);
 
-  // To DTO
-  public static @NonNull TickDto toDto(final @NonNull Tick tick) {
-    final SymbolDto symbolDto = SymbolMapper.toDto(tick.getSymbol());
-    return new TickDto(tick.getDateTime(), tick.getBid(), tick.getAsk(), symbolDto);
-  }
+  TickDto toDto(Tick tick);
 
-  // To Entity
-  public static @NonNull Tick toEntity(final @NonNull TickDto tickDto) {
-    final SymbolDto symbolDto = tickDto.symbol();
-    return new Tick(tickDto.dateTime(), tickDto.bid(), tickDto.ask(),
-        new Symbol(symbolDto.name(), symbolDto.description(), symbolDto.margin(), symbolDto.profit(), symbolDto.digits(), symbolDto.swapLong(),
-            symbolDto.swapShort()));
-  }
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Tick partialUpdate(TickDto tickDto, @MappingTarget Tick tick);
+
+  Tick toEntity(TickCreateDto tickCreateDto);
+
+  TickCreateDto toDto1(Tick tick);
+
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Tick partialUpdate(TickCreateDto tickCreateDto, @MappingTarget Tick tick);
 }

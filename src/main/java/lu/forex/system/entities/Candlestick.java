@@ -1,55 +1,74 @@
 package lu.forex.system.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.io.Serial;
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
+import java.util.UUID;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
+import lu.forex.system.enums.TimeFrame;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-@Entity
-@Table
 @Getter
 @Setter
-@NoArgsConstructor
-@ToString
-public class Candlestick implements Serializable {
-
-  @Serial
-  private static final long serialVersionUID = 3707234909834765373L;
+@Entity
+@Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick_symbol_id", columnList = "symbol_id"),
+    @Index(name = "idx_candlestick_time_frame", columnList = "time_frame, symbol_id")})
+public class Candlestick {
 
   @Id
-  @Column(unique = true, nullable = false)
-  @Setter(AccessLevel.PROTECTED)
-  @NonNull
-  private LocalDateTime dateTime;
-  @JoinColumn(nullable = false)
-  @ManyToOne
-  @NonNull
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id", nullable = false)
+  private UUID id;
+
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "time_frame", nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  private TimeFrame timeFrame;
+
+  @NotNull
+  @Column(name = "timestamp", nullable = false)
+  @JdbcTypeCode(SqlTypes.TIMESTAMP)
+  private LocalDateTime timestamp;
+
+  @NotNull
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = false)
+  @JoinColumn(name = "symbol_id", nullable = false)
   private Symbol symbol;
-  @Column(nullable = false)
+
+  @Positive
+  @Column(name = "high", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double high;
-  @Column(nullable = false)
+
+  @Positive
+  @Column(name = "low", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double low;
-  @Column(nullable = false)
+
+  @Positive
+  @Column(name = "open", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double open;
-  @Column(nullable = false)
+
+  @Positive
+  @Column(name = "close", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double close;
 
-  public Candlestick(final @NonNull Symbol symbol, final double high, final double low, final double open, final double close) {
-    this.symbol = symbol;
-    this.high = high;
-    this.low = low;
-    this.open = open;
-    this.close = close;
-  }
 }
