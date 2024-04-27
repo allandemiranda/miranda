@@ -1,17 +1,12 @@
 package lu.forex.system.controllers;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lu.forex.system.exceptions.SymbolNotDeletedException;
-import lu.forex.system.exceptions.SymbolNotFoundException;
-import lu.forex.system.models.SymbolDto;
-import lu.forex.system.models.SymbolUpdateDto;
-import lu.forex.system.services.SymbolService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.SymbolUpdateDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,45 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
 @RequestMapping("/symbols")
-@Getter(AccessLevel.PRIVATE)
-public class SymbolController {
-
-  private final SymbolService symbolService;
-
-  @Autowired
-  public SymbolController(final SymbolService symbolService) {
-    this.symbolService = symbolService;
-  }
+public interface SymbolController {
 
   @GetMapping
-  public Collection<SymbolDto> getSymbols() {
-    return this.getSymbolService().findAll();
-  }
+  @ResponseStatus(HttpStatus.OK)
+  Collection<SymbolDto> getSymbols();
 
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public SymbolDto getSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
-    return this.getSymbolService().findByName(name).orElseThrow(SymbolNotFoundException::new);
-  }
+  SymbolDto getSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name);
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto addSymbol(@RequestBody @Valid final SymbolDto symbolDto) {
-    return this.getSymbolService().save(symbolDto);
-  }
+  SymbolDto addSymbol(@RequestBody @Valid SymbolDto symbolDto);
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolDto updateSymbol(@RequestBody @Valid final SymbolUpdateDto symbolUpdateDto, @PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
-    return this.getSymbolService().updateSymbolByName(symbolUpdateDto, name).orElseThrow(SymbolNotFoundException::new);
-  }
+  SymbolDto updateSymbol(@RequestBody @Valid SymbolUpdateDto symbolUpdateDto, @PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name);
 
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  public void deleteSymbol(@PathVariable @NonNull @Size(max = 6, min = 6) final String name) {
-    if (!this.getSymbolService().deleteByName(name)) {
-      throw new SymbolNotDeletedException();
-    }
-  }
-
+  void deleteSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name);
 }

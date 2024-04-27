@@ -1,25 +1,29 @@
 package lu.forex.system.mappers;
 
-import lombok.NonNull;
+import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.entities.Symbol;
-import lu.forex.system.models.SymbolDto;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingConstants.ComponentModel;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 
-public class SymbolMapper {
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING)
+public interface SymbolMapper {
 
-  private SymbolMapper() {
-    throw new IllegalStateException("SymbolMapper class");
-  }
+  Symbol toEntity(SymbolDto symbolDto);
 
-  // To DTO
-  public static @NonNull SymbolDto toDto(final @NonNull Symbol symbol) {
-    return new SymbolDto(symbol.getName(), symbol.getDescription(), symbol.getMargin(), symbol.getProfit(), symbol.getDigits(), symbol.getSwapLong(),
-        symbol.getSwapShort());
-  }
+  SymbolDto toDto(Symbol symbol);
 
-  // To Entity
-  public static @NonNull Symbol toEntity(final @NonNull SymbolDto symbolDto) {
-    return new Symbol(symbolDto.name(), symbolDto.description(), symbolDto.margin(), symbolDto.profit(), symbolDto.digits(), symbolDto.swapLong(),
-        symbolDto.swapShort());
-  }
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Symbol partialUpdate(SymbolDto symbolDto, @MappingTarget Symbol symbol);
 
+  Symbol toEntity(SymbolUpdateDto symbolUpdateDto);
+
+  SymbolUpdateDto toDto1(Symbol symbol);
+
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Symbol partialUpdate(SymbolUpdateDto symbolUpdateDto, @MappingTarget Symbol symbol);
 }

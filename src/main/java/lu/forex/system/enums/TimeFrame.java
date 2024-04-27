@@ -1,6 +1,9 @@
 package lu.forex.system.enums;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,6 +20,9 @@ public enum TimeFrame {
   //@formatter:on
 
   @NotBlank
+  @NotNull
   private final String name;
+  @Positive
+  @Min(60)
   private final int time;
 }

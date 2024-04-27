@@ -2,58 +2,74 @@ package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import java.util.UUID;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
-import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-@Entity
-@Table
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-public class Symbol implements Serializable {
-
-  @Serial
-  private static final long serialVersionUID = -8600247918110142179L;
+@Entity
+@Table(name = "symbols", uniqueConstraints = {@UniqueConstraint(name = "uc_symbol_id_name", columnNames = {"id", "name"})})
+public class Symbol {
 
   @Id
-  @Column(unique = true, nullable = false)
-  @Setter(AccessLevel.PROTECTED)
-  @Size(max = 6, min = 6)
-  @NonNull
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id", nullable = false, unique = true)
+  private UUID id;
+
+  @NotNull
   @NotBlank
+  @Size(min = 6, max = 6)
+  @Column(name = "name", nullable = false, unique = true, length = 6)
+  @JdbcTypeCode(SqlTypes.CHAR)
   private String name;
-  @Column(nullable = false)
-  @NonNull
+
+  @NotNull
   @NotBlank
+  @Column(name = "description", nullable = false)
+  @JdbcTypeCode(SqlTypes.CHAR)
   private String description;
-  @Column(nullable = false)
-  @Size(max = 3, min = 3)
-  @NonNull
+
+  @NotNull
   @NotBlank
-  private String margin;
-  @Column(nullable = false)
-  @Size(max = 3, min = 3)
-  @NonNull
+  @Size(min = 3, max = 3)
+  @Column(name = "currency_base", nullable = false, length = 3)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  private String currencyBase;
+
+  @NotNull
   @NotBlank
-  private String profit;
-  @Column(nullable = false)
+  @Size(min = 3, max = 3)
+  @Column(name = "currency_quote", nullable = false, length = 3)
+  @JdbcTypeCode(SqlTypes.CHAR)
+  private String currencyQuote;
+
+  @Positive
+  @Min(1)
+  @Column(name = "digits", nullable = false)
+  @JdbcTypeCode(SqlTypes.SMALLINT)
   private int digits;
-  @Column(nullable = false)
+
+  @Column(name = "swap_long", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double swapLong;
-  @Column(nullable = false)
+
+  @Column(name = "swap_short", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
   private double swapShort;
+
 
 }
