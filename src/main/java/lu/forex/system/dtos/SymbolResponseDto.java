@@ -12,9 +12,10 @@ import lu.forex.system.enums.Currency;
 /**
  * DTO for {@link lu.forex.system.entities.Symbol}
  */
-public record SymbolDto(@NotNull @NotEmpty @NotBlank String name, @NotNull Currency currencyBase, @NotNull Currency currencyQuote,
-                        @Min(1) @Positive int digits, double swapLong, double swapShort) implements Serializable {
+public record SymbolResponseDto(@NotNull @NotEmpty @NotBlank String name, @NotNull Currency currencyBase, @NotNull Currency currencyQuote,
+                                @Min(1) @Positive int digits, double swapLong, double swapShort,
+                                @NotNull @NotEmpty @NotBlank String description) implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 8605014685376603308L;
+  private static final long serialVersionUID = 7822325714143808724L;
 }

@@ -4,13 +4,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
-import lu.forex.system.entities.Symbol;
 
 /**
- * DTO for {@link Symbol}
+ * DTO for {@link lu.forex.system.entities.Symbol}
  */
 public record SymbolUpdateDto(@Min(1) @Positive int digits, double swapLong, double swapShort) implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 3484491098272107660L;
+  private static final long serialVersionUID = 2904813128819566105L;
 }
