@@ -12,7 +12,7 @@ import lu.forex.system.enums.Currency;
 /**
  * DTO for {@link lu.forex.system.entities.Symbol}
  */
-public record SymbolDto(@NotNull @NotEmpty @NotBlank String name, @NotNull Currency currencyBase, @NotNull Currency currencyQuote,
+public record SymbolCreateDto(@NotNull @NotEmpty @NotBlank String name, @NotNull Currency currencyBase, @NotNull Currency currencyQuote,
                         @Min(1) @Positive int digits, double swapLong, double swapShort) implements Serializable {
 
   @Serial

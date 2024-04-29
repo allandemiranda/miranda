@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.SymbolCreateDto;
 import lu.forex.system.dtos.SymbolResponseDto;
 import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.exceptions.SymbolNotFoundException;
@@ -38,32 +38,32 @@ public class SymbolController {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  Collection<SymbolResponseDto> getSymbols() {
+  public Collection<SymbolResponseDto> getSymbols() {
     return this.getSymbolService().getSymbols();
   }
 
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  SymbolResponseDto getSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
+  public SymbolResponseDto getSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
     return this.getSymbolService().getSymbol(name).orElseThrow(SymbolNotFoundException::new);
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  SymbolResponseDto addSymbol(@RequestBody @Valid SymbolDto symbolDto) {
-    return this.getSymbolService().addSymbol(symbolDto);
+  public SymbolResponseDto addSymbol(@RequestBody @Valid SymbolCreateDto symbolCreateDto) {
+    return this.getSymbolService().addSymbol(symbolCreateDto);
   }
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  SymbolResponseDto updateSymbol(@RequestBody @Valid SymbolUpdateDto symbolUpdateDto,
+  public SymbolResponseDto updateSymbol(@RequestBody @Valid SymbolUpdateDto symbolUpdateDto,
       @PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
     return this.getSymbolService().updateSymbol(symbolUpdateDto, name);
   }
 
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  void deleteSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
+  public void deleteSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
     if (!this.getSymbolService().deleteSymbol(name)) {
       throw new SymbolNotFoundException();
     }

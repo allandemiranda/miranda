@@ -3,10 +3,9 @@ package lu.forex.system.services;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.SymbolCreateDto;
 import lu.forex.system.dtos.SymbolResponseDto;
 import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.entities.Symbol;
@@ -31,15 +30,15 @@ public class SymbolService {
   }
 
   public @NotNull Collection<@NotNull SymbolResponseDto> getSymbols() {
-    return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto).collect(Collectors.toList());
+    return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto).toList();
   }
 
   public @NotNull Optional<@NotNull SymbolResponseDto> getSymbol(final @NotNull String name) {
     return this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).map(symbolMapper::toDto);
   }
 
-  public @NotNull SymbolResponseDto addSymbol(final @NotNull SymbolDto symbolDto) {
-    final Symbol symbol = symbolMapper.toEntity(symbolDto);
+  public @NotNull SymbolResponseDto addSymbol(final @NotNull SymbolCreateDto symbolCreateDto) {
+    final Symbol symbol = symbolMapper.toEntity(symbolCreateDto);
     final Symbol saved = this.getSymbolRepository().save(symbol);
     return symbolMapper.toDto(saved);
   }
