@@ -1,4 +1,4 @@
-package lu.forex.system.services.impl;
+package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
@@ -19,13 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Getter(AccessLevel.PRIVATE)
-public class SymbolImpl implements SymbolService {
+public class SymbolProvider implements SymbolService {
 
   private final SymbolRepository symbolRepository;
   private final SymbolMapper symbolMapper;
 
   @Autowired
-  public SymbolImpl(final SymbolRepository symbolRepository, final SymbolMapper symbolMapper) {
+  public SymbolProvider(final SymbolRepository symbolRepository, final SymbolMapper symbolMapper) {
     this.symbolRepository = symbolRepository;
     this.symbolMapper = symbolMapper;
   }

@@ -1,4 +1,4 @@
-package lu.forex.system.services.impl;
+package lu.forex.system.providers;
 
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
@@ -19,14 +19,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Getter(AccessLevel.PRIVATE)
-public class TickImpl implements TickService {
+public class TickProvider implements TickService {
 
   private final TickRepository tickRepository;
   private final SymbolRepository symbolRepository;
   private final TickMapper tickMapper;
 
   @Autowired
-  public TickImpl(final TickRepository tickRepository, final SymbolRepository symbolRepository, final TickMapper tickMapper) {
+  public TickProvider(final TickRepository tickRepository, final SymbolRepository symbolRepository, final TickMapper tickMapper) {
     this.tickRepository = tickRepository;
     this.symbolRepository = symbolRepository;
     this.tickMapper = tickMapper;
