@@ -11,6 +11,7 @@ import lu.forex.system.dtos.SymbolCreateDto;
 import lu.forex.system.dtos.SymbolResponseDto;
 import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.exceptions.SymbolNotFoundException;
+import lu.forex.system.operations.SymbolOperations;
 import lu.forex.system.services.SymbolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/symbols")
 @Getter(AccessLevel.PRIVATE)
-public class SymbolController {
+public class SymbolController implements SymbolOperations {
 
   private final SymbolService symbolService;
 
@@ -36,24 +37,28 @@ public class SymbolController {
     this.symbolService = symbolService;
   }
 
+  @Override
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
   public Collection<SymbolResponseDto> getSymbols() {
     return this.getSymbolService().getSymbols();
   }
 
+  @Override
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
   public SymbolResponseDto getSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
     return this.getSymbolService().getSymbol(name).orElseThrow(SymbolNotFoundException::new);
   }
 
+  @Override
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   public SymbolResponseDto addSymbol(@RequestBody @NotNull @Valid SymbolCreateDto symbolCreateDto) {
     return this.getSymbolService().addSymbol(symbolCreateDto);
   }
 
+  @Override
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
   public SymbolResponseDto updateSymbol(@RequestBody @NotNull @Valid SymbolUpdateDto symbolUpdateDto,
@@ -61,6 +66,7 @@ public class SymbolController {
     return this.getSymbolService().updateSymbol(symbolUpdateDto, name);
   }
 
+  @Override
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
   public void deleteSymbol(@PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
