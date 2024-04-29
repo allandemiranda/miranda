@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificationExecutor<Tick> {
 
-  @NonNull Collection<@NotNull Tick> findBySymbol_NameOrderByTimestampAsc(@NonNull String name);
+  @NonNull
+  Collection<@NotNull Tick> findBySymbol_NameOrderByTimestampAsc(@NonNull String name);
 
 }

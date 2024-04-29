@@ -24,9 +24,7 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @Entity
-@Table(name = "tick", indexes = {
-    @Index(name = "idx_tick_symbol_name", columnList = "symbol_name")
-})
+@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_name", columnList = "symbol_name")})
 public class Tick implements Serializable {
 
   @Serial

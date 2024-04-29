@@ -40,7 +40,7 @@ public class TickController {
 
   @PostMapping("/{symbolName}")
   @ResponseStatus(HttpStatus.CREATED)
-  public TickResponseDto addTick(@RequestBody @Valid TickCreateDto tickCreateDto,
+  public TickResponseDto addTick(@RequestBody @NotNull @Valid TickCreateDto tickCreateDto,
       @PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String symbolName) {
     return this.getTickService().addTick(tickCreateDto, symbolName);
   }

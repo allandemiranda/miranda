@@ -50,13 +50,13 @@ public class SymbolController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolResponseDto addSymbol(@RequestBody @Valid SymbolCreateDto symbolCreateDto) {
+  public SymbolResponseDto addSymbol(@RequestBody @NotNull @Valid SymbolCreateDto symbolCreateDto) {
     return this.getSymbolService().addSymbol(symbolCreateDto);
   }
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  public SymbolResponseDto updateSymbol(@RequestBody @Valid SymbolUpdateDto symbolUpdateDto,
+  public SymbolResponseDto updateSymbol(@RequestBody @NotNull @Valid SymbolUpdateDto symbolUpdateDto,
       @PathVariable @NotNull @NotBlank @Size(max = 6, min = 6) String name) {
     return this.getSymbolService().updateSymbol(symbolUpdateDto, name);
   }

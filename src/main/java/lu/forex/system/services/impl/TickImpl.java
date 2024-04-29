@@ -32,11 +32,13 @@ public class TickImpl implements TickService {
     this.tickMapper = tickMapper;
   }
 
-  @Override public @Nonnull Collection<@NotNull TickResponseDto> getTicks(final @Nonnull String symbolName) {
+  @Override
+  public @Nonnull Collection<@NotNull TickResponseDto> getTicks(final @Nonnull String symbolName) {
     return this.getTickRepository().findBySymbol_NameOrderByTimestampAsc(symbolName).stream().map(this.getTickMapper()::toDto).toList();
   }
 
-  @Override public @Nonnull TickResponseDto addTick(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull String symbolName) {
+  @Override
+  public @Nonnull TickResponseDto addTick(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull String symbolName) {
     final Symbol symbol = this.getSymbolRepository().findFirstByNameOrderByNameAsc(symbolName)
         .orElseThrow(() -> new SymbolNotFoundException("Symbol not found"));
     final Tick tick = this.getTickMapper().toEntity(tickCreateDto);
