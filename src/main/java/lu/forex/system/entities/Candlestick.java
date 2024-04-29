@@ -3,6 +3,9 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,21 +22,22 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import lu.forex.system.enums.TimeFrame;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "tick", indexes = {
-    @Index(name = "idx_tick_symbol_name", columnList = "symbol_name")
+@Table(name = "candlestick", indexes = {
+    @Index(name = "idx_candlestick_symbol_name", columnList = "symbol_name, time_frame")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})
+    @UniqueConstraint(name = "uc_candlestick_symbol_name", columnNames = {"symbol_name", "time_frame", "timestamp"})
 })
-public class Tick implements Serializable {
+public class Candlestick implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 8640594898040399917L;
+  private static final long serialVersionUID = 8655855891835745603L;
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,9 +45,14 @@ public class Tick implements Serializable {
   private UUID id;
 
   @NotNull
-  @ManyToOne(cascade = CascadeType.ALL, optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
   @JoinColumn(name = "symbol_name", nullable = false)
   private Symbol symbol;
+
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "time_frame", nullable = false, length = 3)
+  private TimeFrame timeFrame;
 
   @NotNull
   @Column(name = "timestamp", nullable = false)
@@ -53,11 +62,21 @@ public class Tick implements Serializable {
   @Positive
   @Column(name = "high", nullable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
-  private double bid;
+  private double high;
 
   @Positive
   @Column(name = "low", nullable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
-  private double ask;
+  private double low;
+
+  @Positive
+  @Column(name = "open", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
+  private double open;
+
+  @Positive
+  @Column(name = "close", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
+  private double close;
 
 }

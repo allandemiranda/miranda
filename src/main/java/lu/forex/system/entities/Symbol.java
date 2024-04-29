@@ -23,8 +23,11 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @Entity
-@Table(name = "symbols", indexes = {@Index(name = "idx_symbols_name", columnList = "name")}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_symbols_name", columnNames = {"name"})})
+@Table(name = "symbol", indexes = {
+    @Index(name = "idx_symbol_name", columnList = "name")
+}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})
+})
 public class Symbol implements Serializable {
 
   @Serial
@@ -33,7 +36,7 @@ public class Symbol implements Serializable {
   @NotNull
   @NotBlank
   @Id
-  @Column(name = "name", nullable = false, length = 6)
+  @Column(name = "name", nullable = false, unique = true, length = 6)
   private String name;
 
   @NotNull

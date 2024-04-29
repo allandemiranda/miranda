@@ -1,5 +1,6 @@
 package lu.forex.system.providers;
 
+import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Optional;
@@ -9,7 +10,6 @@ import lu.forex.system.dtos.SymbolCreateDto;
 import lu.forex.system.dtos.SymbolResponseDto;
 import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.entities.Symbol;
-import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.services.SymbolService;
@@ -31,17 +31,17 @@ public class SymbolProvider implements SymbolService {
   }
 
   @Override
-  public @NotNull Collection<@NotNull SymbolResponseDto> getSymbols() {
+  public @Nonnull Collection<@NotNull SymbolResponseDto> getSymbols() {
     return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto).toList();
   }
 
   @Override
-  public @NotNull Optional<@NotNull SymbolResponseDto> getSymbol(final @NotNull String name) {
+  public @Nonnull Optional<@NotNull SymbolResponseDto> getSymbol(final @Nonnull String name) {
     return this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).map(symbolMapper::toDto);
   }
 
   @Override
-  public @NotNull SymbolResponseDto addSymbol(final @NotNull SymbolCreateDto symbolCreateDto) {
+  public @Nonnull SymbolResponseDto addSymbol(final @Nonnull SymbolCreateDto symbolCreateDto) {
     final Symbol symbol = symbolMapper.toEntity(symbolCreateDto);
     final Symbol saved = this.getSymbolRepository().save(symbol);
     return symbolMapper.toDto(saved);
@@ -49,17 +49,14 @@ public class SymbolProvider implements SymbolService {
 
   @Override
   @Transactional
-  public @NotNull SymbolResponseDto updateSymbol(final @NotNull SymbolUpdateDto symbolUpdateDto, final @NotNull String name) {
-    final Symbol symbol = this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).orElseThrow(() -> new SymbolNotFoundException(name));
-    symbol.setDigits(symbolUpdateDto.digits());
-    symbol.setSwapShort(symbolUpdateDto.swapShort());
-    symbol.setSwapLong(symbolUpdateDto.swapLong());
-    return symbolMapper.toDto(this.getSymbolRepository().save(symbol));
+  public void updateSymbol(final @Nonnull SymbolUpdateDto symbolUpdateDto, final @Nonnull String name) {
+    this.getSymbolRepository()
+        .updateDigitsAndSwapLongAndSwapShortByName(symbolUpdateDto.digits(), symbolUpdateDto.swapLong(), symbolUpdateDto.swapShort(), name);
   }
 
   @Override
   @Transactional
-  public boolean deleteSymbol(final @NotNull String name) {
-    return this.getSymbolRepository().deleteByName(name) > 0L;
+  public void deleteSymbol(final @Nonnull String name) {
+    this.getSymbolRepository().deleteByName(name);
   }
 }

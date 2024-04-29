@@ -34,8 +34,7 @@ public interface SymbolOperations {
 
   @PutMapping("/{name}")
   @ResponseStatus(HttpStatus.CREATED)
-  SymbolResponseDto updateSymbol(final @RequestBody @Valid SymbolUpdateDto symbolUpdateDto,
-      final @PathVariable @NotBlank @Size(max = 6, min = 6) String name);
+  void updateSymbol(final @RequestBody @Valid SymbolUpdateDto symbolUpdateDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String name);
 
   @DeleteMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)

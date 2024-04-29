@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @StandardException
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class SymbolNotDeletedException extends RuntimeException {
+public class SymbolNotUpdatedException extends RuntimeException {
 
-  public SymbolNotDeletedException(final String symbolName) {
-    super(String.format("Symbol %s not deleted", symbolName));
+  public SymbolNotUpdatedException(final String symbolName) {
+    super(String.format("Symbol %s not updated", symbolName));
   }
 }

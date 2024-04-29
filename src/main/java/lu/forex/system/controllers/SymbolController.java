@@ -39,14 +39,12 @@ public class SymbolController implements SymbolOperations {
   }
 
   @Override
-  public SymbolResponseDto updateSymbol(final SymbolUpdateDto symbolUpdateDto, final String name) {
-    return this.getSymbolService().updateSymbol(symbolUpdateDto, name);
+  public void updateSymbol(final SymbolUpdateDto symbolUpdateDto, final String name) {
+    this.getSymbolService().updateSymbol(symbolUpdateDto, name);
   }
 
   @Override
   public void deleteSymbol(final String name) {
-    if (!this.getSymbolService().deleteSymbol(name)) {
-      throw new SymbolNotFoundException();
-    }
+    this.getSymbolService().deleteSymbol(name);
   }
 }

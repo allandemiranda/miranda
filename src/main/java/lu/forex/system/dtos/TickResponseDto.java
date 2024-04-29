@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * DTO for {@link lu.forex.system.entities.Tick}
  */
-public record TickResponseDto(@NotNull UUID id, @NotNull SymbolCreateDto symbol, @NotNull LocalDateTime timestamp, @Positive double bid,
+public record TickResponseDto(@NotNull UUID id, @NotNull SymbolResponseDto symbol, @NotNull LocalDateTime timestamp, @Positive double bid,
                               @Positive double ask) implements Serializable {
 
   @Serial

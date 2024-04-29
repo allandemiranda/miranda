@@ -1,5 +1,6 @@
 package lu.forex.system.services;
 
+import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Optional;
@@ -12,19 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public interface SymbolService {
 
-  @NotNull
+  @Nonnull
   Collection<@NotNull SymbolResponseDto> getSymbols();
 
-  @NotNull
-  Optional<@NotNull SymbolResponseDto> getSymbol(@NotNull String name);
+  @Nonnull
+  Optional<@NotNull SymbolResponseDto> getSymbol(@Nonnull String name);
 
-  @NotNull
-  SymbolResponseDto addSymbol(@NotNull SymbolCreateDto symbolCreateDto);
-
-  @Transactional
-  @NotNull
-  SymbolResponseDto updateSymbol(@NotNull SymbolUpdateDto symbolUpdateDto, @NotNull String name);
+  @Nonnull
+  SymbolResponseDto addSymbol(@Nonnull SymbolCreateDto symbolCreateDto);
 
   @Transactional
-  boolean deleteSymbol(@NotNull String name);
+  void updateSymbol(@Nonnull SymbolUpdateDto symbolUpdateDto, @Nonnull String name);
+
+  @Transactional
+  void deleteSymbol(@Nonnull String name);
 }
