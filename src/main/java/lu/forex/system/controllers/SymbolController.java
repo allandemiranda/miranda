@@ -30,7 +30,7 @@ public class SymbolController implements SymbolOperations {
 
   @Override
   public SymbolResponseDto getSymbol(final String name) {
-    return this.getSymbolService().getSymbol(name).orElseThrow(SymbolNotFoundException::new);
+    return this.getSymbolService().getSymbol(name).orElseThrow(() -> new SymbolNotFoundException(name));
   }
 
   @Override

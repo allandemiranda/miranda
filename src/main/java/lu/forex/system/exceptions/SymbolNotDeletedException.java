@@ -8,4 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class SymbolNotDeletedException extends RuntimeException {
 
+  public SymbolNotDeletedException(final String symbolName) {
+    super(String.format("Symbol %s not deleted", symbolName));
+  }
 }

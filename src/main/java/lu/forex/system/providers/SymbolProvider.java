@@ -50,7 +50,7 @@ public class SymbolProvider implements SymbolService {
   @Override
   @Transactional
   public @NotNull SymbolResponseDto updateSymbol(final @NotNull SymbolUpdateDto symbolUpdateDto, final @NotNull String name) {
-    final Symbol symbol = this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).orElseThrow(SymbolNotFoundException::new);
+    final Symbol symbol = this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).orElseThrow(() -> new SymbolNotFoundException(name));
     symbol.setDigits(symbolUpdateDto.digits());
     symbol.setSwapShort(symbolUpdateDto.swapShort());
     symbol.setSwapLong(symbolUpdateDto.swapLong());

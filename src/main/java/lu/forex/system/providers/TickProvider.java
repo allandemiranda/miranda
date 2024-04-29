@@ -40,7 +40,7 @@ public class TickProvider implements TickService {
   @Override
   public @Nonnull TickResponseDto addTick(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull String symbolName) {
     final Symbol symbol = this.getSymbolRepository().findFirstByNameOrderByNameAsc(symbolName)
-        .orElseThrow(() -> new SymbolNotFoundException("Symbol not found"));
+        .orElseThrow(() -> new SymbolNotFoundException(symbolName));
     final Tick tick = this.getTickMapper().toEntity(tickCreateDto);
     tick.setSymbol(symbol);
     final Tick saved = this.getTickRepository().save(tick);

@@ -8,4 +8,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class SymbolNotFoundException extends RuntimeException {
 
+  public SymbolNotFoundException(final String symbolName) {
+    super(String.format("Symbol %s not found", symbolName));
+  }
 }
