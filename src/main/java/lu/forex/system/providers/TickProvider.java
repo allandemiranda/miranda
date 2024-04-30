@@ -70,26 +70,33 @@ public class TickProvider implements TickService {
       final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
           .getFirstBySymbol_NameAndTimeFrameAndTimestampOrderByTimestampDesc(tick.getSymbol().getName(), timeFrame, localTimesFrame);
       if (lastCandlestickOptional.isPresent()) {
-        final Candlestick lastCandlestick = lastCandlestickOptional.get();
-        if (lastCandlestick.getHigh() < tick.getBid()) {
-          lastCandlestick.setHigh(tick.getBid());
-        } else if (lastCandlestick.getLow() > tick.getBid()) {
-          lastCandlestick.setLow(tick.getBid());
-        }
-        lastCandlestick.setClose(tick.getBid());
-        this.getCandlestickRepository().save(lastCandlestick);
+        updateCandlestick(tick, lastCandlestickOptional.get());
       } else {
-        final Candlestick candlestick = new Candlestick();
-        candlestick.setTimestamp(localTimesFrame);
-        candlestick.setTimeFrame(timeFrame);
-        candlestick.setSymbol(tick.getSymbol());
-        candlestick.setHigh(tick.getBid());
-        candlestick.setLow(tick.getBid());
-        candlestick.setOpen(tick.getBid());
-        candlestick.setClose(tick.getBid());
-        this.getCandlestickRepository().save(candlestick);
+        createCandlestick(tick, timeFrame, localTimesFrame);
       }
     });
+  }
+
+  private void updateCandlestick(final @NotNull Tick tick, final @NotNull Candlestick lastCandlestick) {
+    if (lastCandlestick.getHigh() < tick.getBid()) {
+      lastCandlestick.setHigh(tick.getBid());
+    } else if (lastCandlestick.getLow() > tick.getBid()) {
+      lastCandlestick.setLow(tick.getBid());
+    }
+    lastCandlestick.setClose(tick.getBid());
+    this.getCandlestickRepository().save(lastCandlestick);
+  }
+
+  private void createCandlestick(final @NotNull Tick tick, final @NotNull TimeFrame timeFrame, final @NotNull LocalDateTime localTimesFrame) {
+    final Candlestick candlestick = new Candlestick();
+    candlestick.setTimestamp(localTimesFrame);
+    candlestick.setTimeFrame(timeFrame);
+    candlestick.setSymbol(tick.getSymbol());
+    candlestick.setHigh(tick.getBid());
+    candlestick.setLow(tick.getBid());
+    candlestick.setOpen(tick.getBid());
+    candlestick.setClose(tick.getBid());
+    this.getCandlestickRepository().save(candlestick);
   }
 
   private Symbol getSymbolByName(final String symbolName) {
