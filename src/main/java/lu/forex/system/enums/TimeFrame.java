@@ -1,9 +1,7 @@
 package lu.forex.system.enums;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,18 +9,17 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TimeFrame {
   //@formatter:off
-  M15("M15", 900),
-  M30("M30", M15.getTime() + M15.getTime()),
-  H1("H1", M30.getTime() + M30.getTime()),
-  H2("H2", H1.getTime() + H1.getTime()),
-  H12("H12", H1.getTime() * 12),
-  D1("D1", H1.getTime() * 24);
+  M15("M15", 15, Frame.MINUTE),
+  M30("M30", 30, Frame.MINUTE),
+  H1("H1", 1, Frame.HOUR),
+  H4("H4", 4, Frame.HOUR),
+  D1("D1", 1, Frame.DAY);
   //@formatter:on
 
   @NotBlank
   @NotNull
   private final String name;
-  @Positive
-  @Min(60)
-  private final int time;
+  private final int timeValue;
+  @NotNull
+  private final Frame frame;
 }

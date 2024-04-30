@@ -2,14 +2,18 @@ package lu.forex.system.providers;
 
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lu.forex.system.dtos.TickCreateDto;
 import lu.forex.system.dtos.TickResponseDto;
+import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.entities.Tick;
+import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.exceptions.TickConflictException;
 import lu.forex.system.exceptions.TickExistException;
@@ -18,6 +22,7 @@ import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.repositories.TickRepository;
 import lu.forex.system.services.TickService;
+import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +36,8 @@ public class TickProvider implements TickService {
   private final TickMapper tickMapper;
 
   @Autowired
-  public TickProvider(final TickRepository tickRepository, final SymbolRepository symbolRepository, final CandlestickRepository candlestickRepository, final TickMapper tickMapper) {
+  public TickProvider(final TickRepository tickRepository, final SymbolRepository symbolRepository, final CandlestickRepository candlestickRepository,
+      final TickMapper tickMapper) {
     this.tickRepository = tickRepository;
     this.symbolRepository = symbolRepository;
     this.candlestickRepository = candlestickRepository;
@@ -53,8 +59,37 @@ public class TickProvider implements TickService {
       throw new TickConflictException(symbolName, tickCreateDto.timestamp(), optionalTick.get().getTimestamp());
     } else {
       final Tick saved = saveTick(tick);
+      this.createOrUpdateCandlestick(tick);
       return getTickMapper().toDto(saved);
     }
+  }
+
+  private void createOrUpdateCandlestick(final Tick tick) {
+    Arrays.stream(TimeFrame.values()).forEachOrdered(timeFrame -> {
+      final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(tick.getTimestamp(), timeFrame);
+      final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
+          .getFirstBySymbol_NameAndTimeFrameAndTimestampOrderByTimestampDesc(tick.getSymbol().getName(), timeFrame, localTimesFrame);
+      if (lastCandlestickOptional.isPresent()) {
+        final Candlestick lastCandlestick = lastCandlestickOptional.get();
+        if (lastCandlestick.getHigh() < tick.getBid()) {
+          lastCandlestick.setHigh(tick.getBid());
+        } else if (lastCandlestick.getLow() > tick.getBid()) {
+          lastCandlestick.setLow(tick.getBid());
+        }
+        lastCandlestick.setClose(tick.getBid());
+        this.getCandlestickRepository().save(lastCandlestick);
+      } else {
+        final Candlestick candlestick = new Candlestick();
+        candlestick.setTimestamp(localTimesFrame);
+        candlestick.setTimeFrame(timeFrame);
+        candlestick.setSymbol(tick.getSymbol());
+        candlestick.setHigh(tick.getBid());
+        candlestick.setLow(tick.getBid());
+        candlestick.setOpen(tick.getBid());
+        candlestick.setClose(tick.getBid());
+        this.getCandlestickRepository().save(candlestick);
+      }
+    });
   }
 
   private Symbol getSymbolByName(final String symbolName) {

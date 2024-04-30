@@ -1,7 +1,9 @@
 package lu.forex.system.repositories;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
@@ -17,12 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>, JpaSpecificationExecutor<Candlestick> {
 
-  @Transactional
-  @Modifying
-  @Query("update Candlestick c set c.high = ?1, c.low = ?2, c.close = ?3 where c.symbol = ?4 and c.timeFrame = ?5")
-  void update(@NonNull double high, @NonNull double low, @NonNull double close, @NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
+  @NonNull
+  List<@NotNull Candlestick> findBySymbol_NameAndTimeFrameOrderByTimestampAsc(@NonNull String name, @NonNull TimeFrame timeFrame);
 
-  @NonNull List<@NotNull Candlestick> findBySymbol_NameAndTimeFrameOrderByTimestampAsc(@NonNull String name, @NonNull TimeFrame timeFrame);
+  @NonNull
+  Optional<@NotNull Candlestick> getFirstBySymbol_NameAndTimeFrameAndTimestampOrderByTimestampDesc(@NonNull String name, @NonNull TimeFrame timeFrame,
+      @NonNull LocalDateTime timestamp);
 
 
 }
