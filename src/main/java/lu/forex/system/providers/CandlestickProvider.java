@@ -9,7 +9,6 @@ import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.repositories.CandlestickRepository;
-import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.services.CandlestickService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,14 +18,11 @@ import org.springframework.stereotype.Service;
 public class CandlestickProvider implements CandlestickService {
 
   private final CandlestickRepository candlestickRepository;
-  private final SymbolRepository symbolRepository;
   private final CandlestickMapper candlestickMapper;
 
   @Autowired
-  public CandlestickProvider(final @Nonnull CandlestickRepository candlestickRepository, final @Nonnull SymbolRepository symbolRepository,
-      final CandlestickMapper candlestickMapper) {
+  public CandlestickProvider(final @Nonnull CandlestickRepository candlestickRepository, final CandlestickMapper candlestickMapper) {
     this.candlestickRepository = candlestickRepository;
-    this.symbolRepository = symbolRepository;
     this.candlestickMapper = candlestickMapper;
   }
 
