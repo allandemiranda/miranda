@@ -36,7 +36,7 @@ class CandlestickProviderTests {
       GBPUSD, D1
       """)
   void getCandlesticks(final String symbolName, final TimeFrame timeFrame) {
-    // given
+    //given
     final Candlestick candlestick1 = new Candlestick();
     final Candlestick candlestick2 = new Candlestick();
     final List<Candlestick> candlesticks = Arrays.asList(candlestick1, candlestick2);
@@ -44,13 +44,13 @@ class CandlestickProviderTests {
     final CandlestickResponseDto dto2 = Mockito.mock(CandlestickResponseDto.class);
     final List<CandlestickResponseDto> expectedDtos = Arrays.asList(dto1, dto2);
 
-    // when
+    //when
     Mockito.when(candlestickRepository.findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame)).thenReturn(candlesticks);
     Mockito.when(candlestickMapper.toDto(candlestick1)).thenReturn(dto1);
     Mockito.when(candlestickMapper.toDto(candlestick2)).thenReturn(dto2);
     final Collection<CandlestickResponseDto> actualDtos = candlestickService.getCandlesticks(symbolName, timeFrame);
 
-    // Verify the results
+    //then
     Assertions.assertEquals(expectedDtos.size(), actualDtos.size());
     Assertions.assertEquals(expectedDtos.get(0), actualDtos.iterator().next());
     Assertions.assertEquals(expectedDtos.get(1), actualDtos.toArray()[1]);

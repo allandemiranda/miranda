@@ -29,6 +29,6 @@ public class CandlestickProvider implements CandlestickService {
   @Override
   public @Nonnull Collection<CandlestickResponseDto> getCandlesticks(final @Nonnull String symbolName, final @Nonnull TimeFrame timeFrame) {
     return this.getCandlestickRepository().findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame).stream()
-        .map(candlestickMapper::toDto).collect(Collectors.toList());
+        .map(this.getCandlestickMapper()::toDto).collect(Collectors.toList());
   }
 }
