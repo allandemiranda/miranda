@@ -3,8 +3,11 @@ package lu.forex.system.entities;
 import lu.forex.system.enums.Currency;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SymbolTest {
 
   @Test

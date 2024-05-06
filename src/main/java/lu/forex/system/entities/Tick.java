@@ -16,14 +16,17 @@ import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "tick", indexes = {
     @Index(name = "idx_tick_symbol_name", columnList = "symbol_name")
@@ -60,4 +63,21 @@ public class Tick implements Serializable {
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double ask;
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    final Tick tick = (Tick) o;
+    return Objects.equals(id, tick.id) && Objects.equals(symbol, tick.symbol) && Objects.equals(timestamp,
+        tick.timestamp);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, symbol, timestamp);
+  }
 }
