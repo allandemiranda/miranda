@@ -19,6 +19,7 @@ import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +31,7 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @Entity
 @Table(name = "candlestick", indexes = {
-    @Index(name = "idx_candlestick_symbol_name", columnList = "symbol_name, time_frame")
+    @Index(name = "idx_candlestick_unq", columnList = "symbol_name, time_frame", unique = true)
 }, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_symbol_name", columnNames = {"symbol_name", "time_frame", "timestamp"})
 })
@@ -79,4 +80,21 @@ public class Candlestick implements Serializable {
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double close;
 
+  @Override
+  public boolean equals(final Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    final Candlestick that = (Candlestick) o;
+    return Objects.equals(id, that.id) && Objects.equals(symbol, that.symbol) && timeFrame == that.timeFrame && Objects.equals(timestamp,
+        that.timestamp);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, symbol, timeFrame, timestamp);
+  }
 }

@@ -31,7 +31,7 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "tick", indexes = {
     @Index(name = "idx_tick_symbol_name", columnList = "symbol_name")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})
+    @UniqueConstraint(name = "uc_tick_symbol_name_timestamp", columnNames = {"symbol_name", "timestamp"})
 })
 public class Tick implements Serializable {
 

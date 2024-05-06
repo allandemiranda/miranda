@@ -27,7 +27,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @Entity
 @Table(name = "symbol", indexes = {
-    @Index(name = "idx_symbol_name", columnList = "name")
+    @Index(name = "idx_symbol_name_unq", columnList = "name, currency_base, currency_quote", unique = true)
 }, uniqueConstraints = {
     @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})
 })
