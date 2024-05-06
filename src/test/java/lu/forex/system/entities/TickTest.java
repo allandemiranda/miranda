@@ -7,7 +7,6 @@ import jakarta.validation.ValidatorFactory;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
-import lu.forex.system.entities.templates.TickTestTemplate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TickTest implements TickTestTemplate {
+class TickTest {
 
   private UUID uuid;
   private ValidatorFactory validatorFactory;
@@ -34,9 +33,8 @@ class TickTest implements TickTestTemplate {
     validatorFactory = Validation.buildDefaultValidatorFactory();
   }
 
-  @Override
   @Test
-  public void tickIsValid() {
+  void tickIsValid() {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -52,9 +50,8 @@ class TickTest implements TickTestTemplate {
     Assertions.assertTrue(validator.validate(tick).isEmpty());
   }
 
-  @Override
   @Test
-  public void tickIsValidTimestampOld() {
+  void tickIsValidTimestampOld() {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -70,9 +67,8 @@ class TickTest implements TickTestTemplate {
     Assertions.assertTrue(validator.validate(tick).isEmpty());
   }
 
-  @Override
   @Test
-  public void tickIsValidTimestampFuture() {
+  void tickIsValidTimestampFuture() {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -88,9 +84,8 @@ class TickTest implements TickTestTemplate {
     Assertions.assertTrue(validator.validate(tick).isEmpty());
   }
 
-  @Override
   @Test
-  public void tickWithoutSymbolIsInvalid() {
+  void tickWithoutSymbolIsInvalid() {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -109,9 +104,8 @@ class TickTest implements TickTestTemplate {
     Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
   }
 
-  @Override
   @Test
-  public void tickWithoutTimestampIsInvalid() {
+  void tickWithoutTimestampIsInvalid() {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -130,10 +124,9 @@ class TickTest implements TickTestTemplate {
     Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
   }
 
-  @Override
   @ParameterizedTest
   @ValueSource(doubles = {0d, -1d, -2d})
-  public void tickWithNegativeOrZeroBidIsInvalid(double value) {
+  void tickWithNegativeOrZeroBidIsInvalid(double value) {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -152,10 +145,9 @@ class TickTest implements TickTestTemplate {
     Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
   }
 
-  @Override
   @ParameterizedTest
   @ValueSource(doubles = {0d, -1d, -2d})
-  public void tickWithNegativeAskIsInvalid(double value) {
+  void tickWithNegativeAskIsInvalid(double value) {
     //given
     final Validator validator = validatorFactory.getValidator();
     final Tick tick = new Tick();
@@ -174,14 +166,8 @@ class TickTest implements TickTestTemplate {
     Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
   }
 
-  @AfterEach
-  void tearDown() {
-    validatorFactory.close();
-  }
-
-  @Override
   @Test
-  public void testEqualsAndHashCode() {
+  void testEqualsAndHashCode() {
     //given
     final Tick tick1 = new Tick();
     final Tick tick2 = new Tick();
@@ -191,23 +177,18 @@ class TickTest implements TickTestTemplate {
     tick1.setId(uuid);
     tick1.setSymbol(symbol);
     tick1.setTimestamp(timestamp);
-    tick1.setBid(1d);
-    tick1.setAsk(2d);
 
     tick2.setId(uuid);
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
-    tick2.setBid(3d);
-    tick2.setAsk(4d);
 
     //then
     Assertions.assertEquals(tick1, tick2);
     Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
   }
 
-  @Override
   @Test
-  public void testIdNotEqualsAndHashCode() {
+  void testIdNotEqualsAndHashCode() {
     //given
     final Tick tick1 = new Tick();
     final Tick tick2 = new Tick();
@@ -217,23 +198,18 @@ class TickTest implements TickTestTemplate {
     tick1.setId(uuid);
     tick1.setSymbol(symbol);
     tick1.setTimestamp(timestamp);
-    tick1.setBid(1d);
-    tick1.setAsk(2d);
 
     tick2.setId(UUID.randomUUID());
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
-    tick2.setBid(3d);
-    tick2.setAsk(4d);
 
     //then
     Assertions.assertNotEquals(tick1, tick2);
     Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
   }
 
-  @Override
   @Test
-  public void testSymbolNotEqualsAndHashCode() {
+  void testSymbolNotEqualsAndHashCode() {
     //given
     final Tick tick1 = new Tick();
     final Tick tick2 = new Tick();
@@ -244,23 +220,18 @@ class TickTest implements TickTestTemplate {
     tick1.setId(uuid);
     tick1.setSymbol(symbol1);
     tick1.setTimestamp(timestamp);
-    tick1.setBid(1d);
-    tick1.setAsk(2d);
 
     tick2.setId(uuid);
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
-    tick2.setBid(3d);
-    tick2.setAsk(4d);
 
     //then
     Assertions.assertNotEquals(tick1, tick2);
     Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
   }
 
-  @Override
   @Test
-  public void testTimestampNotEqualsAndHashCode() {
+  void testTimestampNotEqualsAndHashCode() {
     //given
     final Tick tick1 = new Tick();
     final Tick tick2 = new Tick();
@@ -270,17 +241,80 @@ class TickTest implements TickTestTemplate {
     tick1.setId(uuid);
     tick1.setSymbol(symbol);
     tick1.setTimestamp(timestamp);
-    tick1.setBid(1d);
-    tick1.setAsk(2d);
 
     tick2.setId(uuid);
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp.plusYears(1));
-    tick2.setBid(3d);
-    tick2.setAsk(4d);
 
     //then
     Assertions.assertNotEquals(tick1, tick2);
     Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
+  }
+
+  @Test
+  void testId() {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setId(uuid);
+
+    //then
+    Assertions.assertEquals(uuid, tick.getId());
+  }
+
+  @Test
+  void testSymbol() {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setSymbol(symbol);
+
+    //then
+    Assertions.assertEquals(symbol, tick.getSymbol());
+  }
+
+  @Test
+  void testTimestamp() {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setSymbol(symbol);
+
+    //then
+    Assertions.assertEquals(symbol, tick.getSymbol());
+  }
+
+  @Test
+  void testBid() {
+    //given
+    final Tick tick = new Tick();
+    final double price = 1d;
+
+    //when
+    tick.setBid(price);
+
+    //then
+    Assertions.assertEquals(price, tick.getBid());
+  }
+
+  @Test
+  void testAsk() {
+    //given
+    final Tick tick = new Tick();
+    final double price = 1d;
+
+    //when
+    tick.setAsk(price);
+
+    //then
+    Assertions.assertEquals(price, tick.getAsk());
+  }
+
+  @AfterEach
+  void tearDown() {
+    validatorFactory.close();
   }
 }

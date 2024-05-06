@@ -10,8 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SymbolTest {
 
+  private static final String NAME = "NAME";
+  private static final Currency CURRENCY_BASE = Currency.EUR;
+  private static final Currency CURRENCY_QUOTE = Currency.EUR;
+  private static final int DIGITS = 25;
+
   @Test
-  void getName() {
+  void testName() {
     //given
     final Symbol symbol = new Symbol();
     final String name = "EURUSD";
@@ -24,7 +29,7 @@ class SymbolTest {
   }
 
   @Test
-  void getCurrency() {
+  void testCurrency() {
     //given
     final Symbol symbol = new Symbol();
     final Currency currencyBase = Currency.EUR;
@@ -40,7 +45,7 @@ class SymbolTest {
   }
 
   @Test
-  void getDescription() {
+  void testDescription() {
     //given
     final Symbol symbol = new Symbol();
 
@@ -53,7 +58,7 @@ class SymbolTest {
   }
 
   @Test
-  void getDescriptionBaseThrow() {
+  void testDescriptionBaseThrow() {
     //given
     final Symbol symbol = new Symbol();
 
@@ -66,7 +71,7 @@ class SymbolTest {
   }
 
   @Test
-  void getDescriptionQuoteThrow() {
+  void testDescriptionQuoteThrow() {
     //given
     final Symbol symbol = new Symbol();
 
@@ -79,86 +84,130 @@ class SymbolTest {
   }
 
   @Test
-  void getDigits() {
+  void testDigits() {
     //given
     final Symbol symbol = new Symbol();
+    final int digits = 5;
 
     //when
-    symbol.setDigits(5);
+    symbol.setDigits(digits);
 
     //then
-    Assertions.assertEquals(5, symbol.getDigits());
+    Assertions.assertEquals(digits, symbol.getDigits());
   }
 
   @Test
   void testSymbolSwapLong() {
     //given
     final Symbol symbol = new Symbol();
+    final double tax = 0.25;
 
     //when
-    symbol.setSwapLong(0.25);
+    symbol.setSwapLong(tax);
 
     //then
-    Assertions.assertEquals(0.25, symbol.getSwapLong());
+    Assertions.assertEquals(tax, symbol.getSwapLong());
   }
 
   @Test
   void testSymbolSwapShort() {
     //given
     final Symbol symbol = new Symbol();
+    final double tax = -0.1;
 
     //when
-    symbol.setSwapShort(-0.1);
+    symbol.setSwapShort(tax);
 
     //then
-    Assertions.assertEquals(-0.1, symbol.getSwapShort());
+    Assertions.assertEquals(tax, symbol.getSwapShort());
   }
 
   @Test
-  void testSymbolEquals() {
+  void testSymbolEqualsAndHashCode() {
     //given
+    final String name = "EURUSD";
+    final Currency currencyBase = Currency.EUR;
+    final Currency currencyQuote = Currency.USD;
     final Symbol symbol1 = new Symbol();
-    symbol1.setCurrencyBase(Currency.EUR);
-    symbol1.setCurrencyQuote(Currency.USD);
-    symbol1.setDigits(5);
-    symbol1.setSwapShort(0.1);
-    symbol1.setSwapLong(0.2);
     final Symbol symbol2 = new Symbol();
-    symbol2.setCurrencyBase(Currency.GBP);
-    symbol2.setCurrencyQuote(Currency.AUD);
-    symbol2.setDigits(3);
-    symbol2.setSwapShort(-0.1);
-    symbol2.setSwapLong(-0.2);
 
     //when
-    symbol1.setName("EURUSD");
-    symbol2.setName("EURUSD");
+    symbol1.setName(name);
+    symbol1.setCurrencyBase(currencyBase);
+    symbol1.setCurrencyQuote(currencyQuote);
+
+    symbol2.setName(name);
+    symbol2.setCurrencyBase(currencyBase);
+    symbol2.setCurrencyQuote(currencyQuote);
 
     //then
     Assertions.assertEquals(symbol1, symbol2);
+    Assertions.assertEquals(symbol1.hashCode(), symbol2.hashCode());
   }
 
   @Test
-  void testSymbolHashCode() {
+  void testNameNotEqualsAndHashCode() {
     //given
+    final Currency currencyBase = Currency.EUR;
+    final Currency currencyQuote = Currency.USD;
     final Symbol symbol1 = new Symbol();
-    symbol1.setCurrencyBase(Currency.EUR);
-    symbol1.setCurrencyQuote(Currency.USD);
-    symbol1.setDigits(5);
-    symbol1.setSwapShort(0.1);
-    symbol1.setSwapLong(0.2);
     final Symbol symbol2 = new Symbol();
-    symbol2.setCurrencyBase(Currency.GBP);
-    symbol2.setCurrencyQuote(Currency.AUD);
-    symbol2.setDigits(3);
-    symbol2.setSwapShort(-0.1);
-    symbol2.setSwapLong(-0.2);
 
     //when
-    symbol1.setName("EURUSD");
-    symbol2.setName("EURUSD");
+    symbol1.setName("name");
+    symbol1.setCurrencyBase(currencyBase);
+    symbol1.setCurrencyQuote(currencyQuote);
+
+    symbol2.setName("name1");
+    symbol2.setCurrencyBase(currencyBase);
+    symbol2.setCurrencyQuote(currencyQuote);
 
     //then
-    Assertions.assertEquals(symbol1.hashCode(), symbol2.hashCode());
+    Assertions.assertNotEquals(symbol1, symbol2);
+    Assertions.assertNotEquals(symbol1.hashCode(), symbol2.hashCode());
+  }
+
+  @Test
+  void testBaseNotEqualsAndHashCode() {
+    //given
+    final String name = "EURUSD";
+    final Currency currencyQuote = Currency.USD;
+    final Symbol symbol1 = new Symbol();
+    final Symbol symbol2 = new Symbol();
+
+    //when
+    symbol1.setName(name);
+    symbol1.setCurrencyBase(Currency.EUR);
+    symbol1.setCurrencyQuote(currencyQuote);
+
+    symbol2.setName(name);
+    symbol2.setCurrencyBase(Currency.GBP);
+    symbol2.setCurrencyQuote(currencyQuote);
+
+    //then
+    Assertions.assertNotEquals(symbol1, symbol2);
+    Assertions.assertNotEquals(symbol1.hashCode(), symbol2.hashCode());
+  }
+
+  @Test
+  void testQuoteNotEqualsAndHashCode() {
+    //given
+    final String name = "EURUSD";
+    final Currency currencyBase = Currency.EUR;
+    final Symbol symbol1 = new Symbol();
+    final Symbol symbol2 = new Symbol();
+
+    //when
+    symbol1.setName(name);
+    symbol1.setCurrencyBase(currencyBase);
+    symbol1.setCurrencyQuote(Currency.USD);
+
+    symbol2.setName(name);
+    symbol2.setCurrencyBase(currencyBase);
+    symbol2.setCurrencyQuote(Currency.GBP);
+
+    //then
+    Assertions.assertNotEquals(symbol1, symbol2);
+    Assertions.assertNotEquals(symbol1.hashCode(), symbol2.hashCode());
   }
 }
