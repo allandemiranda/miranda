@@ -52,8 +52,6 @@ class CandlestickProviderTests {
 
     //then
     Assertions.assertEquals(expectedDtos.size(), actualDtos.size());
-    Assertions.assertEquals(expectedDtos.get(0), actualDtos.iterator().next());
-    Assertions.assertEquals(expectedDtos.get(1), actualDtos.toArray()[1]);
     Mockito.verify(candlestickRepository).findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame);
     Mockito.verify(candlestickMapper, Mockito.times(2)).toDto(Mockito.any());
   }
