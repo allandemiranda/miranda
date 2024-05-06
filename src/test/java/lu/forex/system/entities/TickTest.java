@@ -172,91 +172,6 @@ class TickTest {
   }
 
   @Test
-  void testEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    tick1.setId(uuid);
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
-
-    tick2.setId(uuid);
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertEquals(tick1, tick2);
-    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
-  void testIdNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    tick1.setId(uuid);
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
-
-    tick2.setId(UUID.randomUUID());
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
-  void testSymbolNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol1 = Mockito.mock(Symbol.class);
-
-    //when
-    tick1.setId(uuid);
-    tick1.setSymbol(symbol1);
-    tick1.setTimestamp(timestamp);
-
-    tick2.setId(uuid);
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
-  void testTimestampNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    tick1.setId(uuid);
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
-
-    tick2.setId(uuid);
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp.plusYears(1));
-
-    //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
   void testId() {
     //given
     final Tick tick = new Tick();
@@ -316,5 +231,94 @@ class TickTest {
 
     //then
     Assertions.assertEquals(price, tick.getAsk());
+  }
+
+  @Test
+  void testEqualsAndHashCode() {
+    //given
+    final Tick tick1 = new Tick();
+    final Tick tick2 = new Tick();
+    final LocalDateTime timestamp = LocalDateTime.now();
+
+    //when
+    tick1.setId(uuid);
+    tick1.setSymbol(symbol);
+    tick1.setTimestamp(timestamp);
+
+    tick2.setId(uuid);
+    tick2.setSymbol(symbol);
+    tick2.setTimestamp(timestamp);
+
+    //then
+    Assertions.assertEquals(tick1, tick2);
+    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
+  }
+
+  @Test
+  void testIdNotEqualsAndHashCode() {
+    //given
+    final Tick tick1 = new Tick();
+    final Tick tick2 = new Tick();
+    final LocalDateTime timestamp = LocalDateTime.now();
+
+    //when
+    tick1.setId(uuid);
+    tick1.setSymbol(symbol);
+    tick1.setTimestamp(timestamp);
+
+    UUID randomUUID = UUID.randomUUID();
+    while (randomUUID.equals(tick1.getId())) {
+      randomUUID = UUID.randomUUID();
+    }
+    tick2.setId(randomUUID);
+    tick2.setSymbol(symbol);
+    tick2.setTimestamp(timestamp);
+
+    //then
+    Assertions.assertNotEquals(tick1, tick2);
+    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
+  }
+
+  @Test
+  void testSymbolNotEqualsAndHashCode() {
+    //given
+    final Tick tick1 = new Tick();
+    final Tick tick2 = new Tick();
+    final LocalDateTime timestamp = LocalDateTime.now();
+    final Symbol symbol1 = Mockito.mock(Symbol.class);
+
+    //when
+    tick1.setId(uuid);
+    tick1.setSymbol(symbol1);
+    tick1.setTimestamp(timestamp);
+
+    tick2.setId(uuid);
+    tick2.setSymbol(symbol);
+    tick2.setTimestamp(timestamp);
+
+    //then
+    Assertions.assertNotEquals(tick1, tick2);
+    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
+  }
+
+  @Test
+  void testTimestampNotEqualsAndHashCode() {
+    //given
+    final Tick tick1 = new Tick();
+    final Tick tick2 = new Tick();
+    final LocalDateTime timestamp = LocalDateTime.now();
+
+    //when
+    tick1.setId(uuid);
+    tick1.setSymbol(symbol);
+    tick1.setTimestamp(timestamp);
+
+    tick2.setId(uuid);
+    tick2.setSymbol(symbol);
+    tick2.setTimestamp(timestamp.plusYears(1));
+
+    //then
+    Assertions.assertNotEquals(tick1, tick2);
+    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
   }
 }
