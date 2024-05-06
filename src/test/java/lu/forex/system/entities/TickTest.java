@@ -33,6 +33,11 @@ class TickTest {
     validatorFactory = Validation.buildDefaultValidatorFactory();
   }
 
+  @AfterEach
+  void tearDown() {
+    validatorFactory.close();
+  }
+
   @Test
   void tickIsValid() {
     //given
@@ -44,7 +49,7 @@ class TickTest {
     tick.setSymbol(symbol);
     tick.setTimestamp(LocalDateTime.now());
     tick.setBid(1d);
-    tick.setAsk(1d);
+    tick.setAsk(2d);
 
     //then
     Assertions.assertTrue(validator.validate(tick).isEmpty());
@@ -61,7 +66,7 @@ class TickTest {
     tick.setSymbol(symbol);
     tick.setTimestamp(LocalDateTime.now().minusYears(1));
     tick.setBid(1d);
-    tick.setAsk(1d);
+    tick.setAsk(2d);
 
     //then
     Assertions.assertTrue(validator.validate(tick).isEmpty());
@@ -78,7 +83,7 @@ class TickTest {
     tick.setSymbol(symbol);
     tick.setTimestamp(LocalDateTime.now().plusYears(1));
     tick.setBid(1d);
-    tick.setAsk(1d);
+    tick.setAsk(2d);
 
     //then
     Assertions.assertTrue(validator.validate(tick).isEmpty());
@@ -95,10 +100,10 @@ class TickTest {
     tick.setSymbol(null);
     tick.setTimestamp(LocalDateTime.now());
     tick.setBid(1d);
-    tick.setAsk(1d);
-
-    //then
+    tick.setAsk(2d);
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //then  
     Assertions.assertEquals(1, validate.size());
     Assertions.assertEquals("symbol", validate.iterator().next().getPropertyPath().toString());
     Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
@@ -115,10 +120,10 @@ class TickTest {
     tick.setSymbol(symbol);
     tick.setTimestamp(null);
     tick.setBid(1d);
-    tick.setAsk(1d);
-
-    //then
+    tick.setAsk(2d);
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //then  
     Assertions.assertEquals(1, validate.size());
     Assertions.assertEquals("timestamp", validate.iterator().next().getPropertyPath().toString());
     Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
@@ -137,9 +142,9 @@ class TickTest {
     tick.setTimestamp(LocalDateTime.now());
     tick.setBid(value);
     tick.setAsk(1d);
-
-    //then
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //then  
     Assertions.assertEquals(1, validate.size());
     Assertions.assertEquals("bid", validate.iterator().next().getPropertyPath().toString());
     Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
@@ -158,9 +163,9 @@ class TickTest {
     tick.setTimestamp(LocalDateTime.now());
     tick.setBid(1d);
     tick.setAsk(value);
-
-    //then
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //then  
     Assertions.assertEquals(1, validate.size());
     Assertions.assertEquals("ask", validate.iterator().next().getPropertyPath().toString());
     Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
@@ -311,10 +316,5 @@ class TickTest {
 
     //then
     Assertions.assertEquals(price, tick.getAsk());
-  }
-
-  @AfterEach
-  void tearDown() {
-    validatorFactory.close();
   }
 }

@@ -1,19 +1,107 @@
 package lu.forex.system.entities;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import java.util.Set;
+import java.util.stream.Stream;
 import lu.forex.system.enums.Currency;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SymbolTest {
 
-  private static final String NAME = "NAME";
-  private static final Currency CURRENCY_BASE = Currency.EUR;
-  private static final Currency CURRENCY_QUOTE = Currency.EUR;
-  private static final int DIGITS = 25;
+  private ValidatorFactory validatorFactory;
+
+  @BeforeEach
+  void setUp() {
+    validatorFactory = Validation.buildDefaultValidatorFactory();
+  }
+
+  @AfterEach
+  void tearDown() {
+    validatorFactory.close();
+  }
+
+  @Test
+  void symbolIsValid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Symbol symbol = new Symbol();
+
+    //when
+    symbol.setName("EURUSD");
+    symbol.setCurrencyBase(Currency.EUR);
+    symbol.setCurrencyQuote(Currency.USD);
+    symbol.setDigits(5);
+    symbol.setSwapShort(1.2);
+    symbol.setSwapShort(-1.2);
+
+    //then
+    Assertions.assertTrue(validator.validate(symbol).isEmpty());
+  }
+
+  @Test
+  void symbolWithoutNameIsInvalid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Symbol symbol = new Symbol();
+
+    //when
+    symbol.setName(null);
+    symbol.setCurrencyBase(Currency.EUR);
+    symbol.setCurrencyQuote(Currency.USD);
+    symbol.setDigits(5);
+    symbol.setSwapShort(1.2);
+    symbol.setSwapShort(-1.2);
+    final Set<ConstraintViolation<Symbol>> validate = validator.validate(symbol);
+
+    //then
+    Assertions.assertEquals(2, validate.size());
+    Assertions.assertEquals("name",
+        validate.stream().map(symbolConstraintViolation -> symbolConstraintViolation.getPropertyPath().toString()).distinct()
+            .reduce("", String::concat));
+    Assertions.assertLinesMatch(
+        Stream.of("{jakarta.validation.constraints.NotNull.message}", "{jakarta.validation.constraints.NotBlank.message}").sorted(),
+        validate.stream().map(ConstraintViolation::getMessageTemplate).sorted());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0})
+  void symbolWithDigitNegativeOrZeroIsInvalid(int digits) {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Symbol symbol = new Symbol();
+
+    //when
+    symbol.setName("EURUSD");
+    symbol.setCurrencyBase(Currency.EUR);
+    symbol.setCurrencyQuote(Currency.USD);
+    symbol.setDigits(digits);
+    symbol.setSwapShort(1.2);
+    symbol.setSwapShort(-1.2);
+
+    final Set<ConstraintViolation<Symbol>> validate = validator.validate(symbol);
+
+    //then
+    System.out.println(validate);
+    Assertions.assertEquals(2, validate.size());
+    Assertions.assertEquals("digits",
+        validate.stream().map(symbolConstraintViolation -> symbolConstraintViolation.getPropertyPath().toString()).distinct()
+            .reduce("", String::concat));
+    Assertions.assertLinesMatch(
+        Stream.of("{jakarta.validation.constraints.Min.message}", "{jakarta.validation.constraints.Positive.message}").sorted(),
+        validate.stream().map(ConstraintViolation::getMessageTemplate).sorted());
+  }
 
   @Test
   void testName() {
