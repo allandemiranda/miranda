@@ -6,11 +6,13 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lu.forex.system.annotations.CandlestickRepresentation;
 import lu.forex.system.enums.TimeFrame;
 
 /**
  * DTO for {@link lu.forex.system.entities.Candlestick}
  */
+@CandlestickRepresentation
 public record CandlestickResponseDto(@NotNull UUID id, @NotNull SymbolResponseDto symbol, @NotNull TimeFrame timeFrame,
                                      @NotNull LocalDateTime timestamp, @Positive double high, @Positive double low, @Positive double open,
                                      @Positive double close) implements Serializable {
