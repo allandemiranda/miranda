@@ -22,12 +22,13 @@ public class TimeFrameUtils {
 
   private static @NotNull LocalDateTime getDayTime(final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame) {
     final LocalTime localTime = LocalTime.of(0, 0, 0);
-    if(timestamp.getDayOfMonth() <= timeFrame.getTimeValue()) {
-      return LocalDateTime.of(LocalDate.of(timestamp.getYear(), timestamp.getMonth(), 1), localTime);
+    if (timestamp.getDayOfMonth() % timeFrame.getTimeValue() == 0) {
+      return LocalDateTime.of(LocalDate.of(timestamp.getYear(), timestamp.getMonth(), timestamp.getDayOfMonth() - (timeFrame.getTimeValue() - 1)),
+          localTime);
     } else {
       final int div = timestamp.getDayOfMonth() / timeFrame.getTimeValue();
       final int newDay = div * timeFrame.getTimeValue();
-      return LocalDateTime.of(LocalDate.of(timestamp.getYear(), timestamp.getMonth(), newDay), localTime);
+      return LocalDateTime.of(LocalDate.of(timestamp.getYear(), timestamp.getMonth(), newDay + 1), localTime);
     }
   }
 
