@@ -78,11 +78,12 @@ public class Symbol implements Serializable {
       return false;
     }
     final Symbol symbol = (Symbol) o;
-    return Objects.equals(name, symbol.name) && currencyBase == symbol.currencyBase && currencyQuote == symbol.currencyQuote;
+    return Objects.equals(this.getName(), symbol.getName()) && this.getCurrencyBase() == symbol.getCurrencyBase()
+           && this.getCurrencyQuote() == symbol.getCurrencyQuote();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, currencyBase, currencyQuote);
+    return Objects.hash(this.getName(), this.getCurrencyBase(), this.getCurrencyQuote());
   }
 }

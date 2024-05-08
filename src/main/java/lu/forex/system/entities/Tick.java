@@ -78,11 +78,11 @@ public class Tick implements Serializable {
       return false;
     }
     final Tick tick = (Tick) o;
-    return Objects.equals(symbol, tick.symbol) && Objects.equals(timestamp, tick.timestamp);
+    return Objects.equals(this.getSymbol(), tick.getSymbol()) && Objects.equals(this.getTimestamp(), tick.getTimestamp());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(symbol, timestamp);
+    return Objects.hash(this.getSymbol(), this.getTimestamp());
   }
 }

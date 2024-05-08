@@ -2,6 +2,7 @@ package lu.forex.system.providers;
 
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,7 +51,7 @@ public class CandlestickProvider implements CandlestickService {
     this.getCandlestickRepository().saveAllAndFlush(candlestickCollection);
   }
 
-  private @NotNull Candlestick updateCandlestick(final double price, final @Nonnull Candlestick lastCandlestick) {
+  private @NotNull Candlestick updateCandlestick(final @Positive double price, final @Nonnull Candlestick lastCandlestick) {
     if (lastCandlestick.getHigh() < price) {
       lastCandlestick.setHigh(price);
     } else if (lastCandlestick.getLow() > price) {
@@ -60,7 +61,7 @@ public class CandlestickProvider implements CandlestickService {
     return lastCandlestick;
   }
 
-  private @NotNull Candlestick createCandlestick(final @Nonnull Symbol symbol, final double price, final @Nonnull TimeFrame timeFrame,
+  private @NotNull Candlestick createCandlestick(final @Nonnull Symbol symbol, final @Positive double price, final @Nonnull TimeFrame timeFrame,
       final @Nonnull LocalDateTime localTimesFrame) {
     final Candlestick candlestick = new Candlestick();
     candlestick.setTimestamp(localTimesFrame);

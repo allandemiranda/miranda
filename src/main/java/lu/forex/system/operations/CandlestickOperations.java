@@ -16,6 +16,6 @@ public interface CandlestickOperations {
 
   @GetMapping("/{symbolName}/{timeFrame}")
   @ResponseStatus(HttpStatus.OK)
-  Collection<CandlestickResponseDto> getSymbols(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName,
+  Collection<CandlestickResponseDto> getCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName,
       final @PathVariable TimeFrame timeFrame);
 }

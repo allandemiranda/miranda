@@ -93,11 +93,12 @@ public class Candlestick implements Serializable {
       return false;
     }
     final Candlestick that = (Candlestick) o;
-    return Objects.equals(symbol, that.symbol) && timeFrame == that.timeFrame && Objects.equals(timestamp, that.timestamp);
+    return Objects.equals(this.getSymbol(), that.getSymbol()) && this.getTimeFrame() == that.getTimeFrame() && Objects.equals(this.getTimestamp(),
+        that.getTimestamp());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(symbol, timeFrame, timestamp);
+    return Objects.hash(this.getSymbol(), this.getTimeFrame(), this.getTimestamp());
   }
 }

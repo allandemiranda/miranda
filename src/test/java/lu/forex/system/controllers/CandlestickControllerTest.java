@@ -38,7 +38,7 @@ class CandlestickControllerTest {
         LocalDateTime.now(), 1d, 1d, 2d, 1d);
     when(candlestickService.getCandlesticks(symbolName, timeFrame)).thenReturn(Arrays.asList(candlestick1, candlestick2));
 
-    Collection<CandlestickResponseDto> candlesticks = candlestickController.getSymbols(symbolName, timeFrame);
+    Collection<CandlestickResponseDto> candlesticks = candlestickController.getCandlesticks(symbolName, timeFrame);
 
     assertEquals(2, candlesticks.size());
     assertTrue(candlesticks.contains(candlestick1));

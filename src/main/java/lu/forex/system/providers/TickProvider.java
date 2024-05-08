@@ -1,7 +1,9 @@
 package lu.forex.system.providers;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Optional;
 import lombok.AccessLevel;
@@ -50,7 +52,8 @@ public class TickProvider implements TickService {
     }
   }
 
-  private Symbol getSymbolByName(final String symbolName) {
+  @Nonnull
+  private Symbol getSymbolByName(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName) {
     return this.getSymbolRepository().findFirstByNameOrderByNameAsc(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
   }
 
@@ -60,11 +63,13 @@ public class TickProvider implements TickService {
     }
   }
 
-  private Optional<Tick> findLatestTickBySymbolName(final String symbolName) {
+  @Nonnull
+  private Optional<@NotNull Tick> findLatestTickBySymbolName(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName) {
     return this.getTickRepository().findFirstBySymbol_NameOrderByTimestampDesc(symbolName);
   }
 
-  private @Nonnull Tick createTickFromDto(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull Symbol symbol) {
+  @Nonnull
+  private Tick createTickFromDto(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull Symbol symbol) {
     final Tick tick = this.getTickMapper().toEntity(tickCreateDto);
     tick.setSymbol(symbol);
     return tick;

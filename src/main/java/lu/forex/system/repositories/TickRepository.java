@@ -21,6 +21,7 @@ public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificat
   @Query("select (count(t) > 0) from Tick t where t.symbol.name = ?1 and t.timestamp = ?2")
   boolean existsBySymbol_NameAndTimestamp(@NonNull String name, @NonNull LocalDateTime timestamp);
 
-  Optional<Tick> findFirstBySymbol_NameOrderByTimestampDesc(@NonNull String name);
+  @NonNull
+  Optional<@NotNull Tick> findFirstBySymbol_NameOrderByTimestampDesc(@NonNull String name);
 
 }

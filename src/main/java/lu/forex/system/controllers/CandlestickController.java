@@ -18,7 +18,7 @@ public class CandlestickController implements CandlestickOperations {
   private final CandlestickService candlestickService;
 
   @Override
-  public Collection<CandlestickResponseDto> getSymbols(final String symbolName, final TimeFrame timeFrame) {
+  public Collection<CandlestickResponseDto> getCandlesticks(final String symbolName, final TimeFrame timeFrame) {
     return this.getCandlestickService().getCandlesticks(symbolName, timeFrame);
   }
 }
