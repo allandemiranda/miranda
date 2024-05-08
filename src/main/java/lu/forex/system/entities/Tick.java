@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.annotations.TickRepresentation;
 import lu.forex.system.listeners.TickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -35,6 +36,7 @@ import org.hibernate.type.SqlTypes;
 @EntityListeners(TickListener.class)
 @Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_name", columnList = "symbol_name")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})})
+@TickRepresentation
 public class Tick implements Serializable {
 
   @Serial

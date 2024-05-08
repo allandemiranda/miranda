@@ -25,6 +25,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.annotations.CandlestickRepresentation;
 import lu.forex.system.enums.TimeFrame;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -35,6 +36,7 @@ import org.hibernate.type.SqlTypes;
 @Entity
 @Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})})
+@CandlestickRepresentation
 public class Candlestick implements Serializable {
 
   @Serial

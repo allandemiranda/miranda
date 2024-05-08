@@ -23,7 +23,8 @@ public class TickListener {
 
   @PrePersist
   public void prePersist(final @NotNull Tick tick) {
-    this.getCandlestickService().createOrUpdateCandlestick(tick.getSymbol(), tick.getTimestamp(), tick.getAsk());
+    // Use bid price for generate candlesticks and for make statistic calculations
+    this.getCandlestickService().createOrUpdateCandlestick(tick.getSymbol(), tick.getTimestamp(), tick.getBid());
   }
 
 }

@@ -5,10 +5,12 @@ import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import lu.forex.system.annotations.TickRepresentation;
 
 /**
  * DTO for {@link lu.forex.system.entities.Tick}
  */
+@TickRepresentation
 public record TickCreateDto(@NotNull LocalDateTime timestamp, @Positive double bid, @Positive double ask) implements Serializable {
 
   @Serial

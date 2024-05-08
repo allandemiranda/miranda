@@ -8,7 +8,7 @@ import lu.forex.system.annotations.CandlestickRepresentation;
 import lu.forex.system.dtos.CandlestickResponseDto;
 
 @SupportedValidationTarget(ValidationTarget.ANNOTATED_ELEMENT)
-public class CandlestickValidator implements ConstraintValidator<CandlestickRepresentation, CandlestickResponseDto> {
+public class CandlestickResponseDtoValidator implements ConstraintValidator<CandlestickRepresentation, CandlestickResponseDto> {
 
   @Override
   public void initialize(final CandlestickRepresentation constraintAnnotation) {

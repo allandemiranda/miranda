@@ -7,16 +7,17 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import lu.forex.system.validators.CandlestickEntityValidator;
-import lu.forex.system.validators.CandlestickResponseDtoValidator;
+import lu.forex.system.validators.SymbolCreateDtoValidator;
+import lu.forex.system.validators.SymbolEntityValidator;
+import lu.forex.system.validators.SymbolResponseDtoValidator;
 
-@Constraint(validatedBy = {CandlestickResponseDtoValidator.class, CandlestickEntityValidator.class})
+@Constraint(validatedBy = {SymbolCreateDtoValidator.class, SymbolEntityValidator.class, SymbolResponseDtoValidator.class})
 @Target({ElementType.TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface CandlestickRepresentation {
+public @interface SymbolCurrencyRepresentation {
 
-  String message() default "Need represent a Candlestick where high >= (open || close) >= low price ";
+  String message() default "Need represent a Symbol where Base and Quote currencies are different";
 
   Class<?>[] groups() default {};
 
