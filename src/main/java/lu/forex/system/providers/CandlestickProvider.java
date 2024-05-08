@@ -36,7 +36,7 @@ public class CandlestickProvider implements CandlestickService {
 
   @Override
   public void createOrUpdateCandlestick(final @Nonnull Symbol symbol, final @Nonnull LocalDateTime timestamp, final double price) {
-    Arrays.stream(TimeFrame.values()).map(timeFrame -> {
+    final Collection<Candlestick> candlestickCollection = Arrays.stream(TimeFrame.values()).parallel().map(timeFrame -> {
       final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
       final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
           .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
@@ -45,7 +45,8 @@ public class CandlestickProvider implements CandlestickService {
       } else {
         return this.createCandlestick(symbol, price, timeFrame, localTimesFrame);
       }
-    }).forEachOrdered(candlestick -> this.getCandlestickRepository().saveAndFlush(candlestick));
+    }).toList();
+    this.getCandlestickRepository().saveAllAndFlush(candlestickCollection);
   }
 
   private @NotNull Candlestick updateCandlestick(final double price, final @Nonnull Candlestick lastCandlestick) {
