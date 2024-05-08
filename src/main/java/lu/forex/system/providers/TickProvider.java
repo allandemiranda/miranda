@@ -44,7 +44,6 @@ public class TickProvider implements TickService {
       throw new TickConflictException(symbolName, tickCreateDto.timestamp(), optionalTick.get().getTimestamp());
     } else {
       final Tick saved = this.getTickRepository().saveAndFlush(tick);
-      System.out.println("TICK SALVO: " + saved);
       return this.getTickMapper().toDto(saved);
     }
   }

@@ -93,7 +93,6 @@ class SymbolTest {
     final Set<ConstraintViolation<Symbol>> validate = validator.validate(symbol);
 
     //then
-    System.out.println(validate);
     Assertions.assertEquals(2, validate.size());
     Assertions.assertEquals("digits",
         validate.stream().map(symbolConstraintViolation -> symbolConstraintViolation.getPropertyPath().toString()).distinct()

@@ -19,8 +19,6 @@ import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -47,10 +45,7 @@ public class CandlestickProvider implements CandlestickService {
       } else {
         return this.createCandlestick(symbol, price, timeFrame, localTimesFrame);
       }
-    }).forEachOrdered(candlestick -> {
-      final Candlestick saved = this.getCandlestickRepository().saveAndFlush(candlestick);
-      System.out.println("CAND SALVO: " + saved);
-    });
+    }).forEachOrdered(candlestick -> this.getCandlestickRepository().saveAndFlush(candlestick));
   }
 
   private @NotNull Candlestick updateCandlestick(final double price, final @Nonnull Candlestick lastCandlestick) {
