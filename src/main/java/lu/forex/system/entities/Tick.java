@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,6 +23,7 @@ import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import lu.forex.system.listeners.TickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -48,8 +50,9 @@ public class Tick implements Serializable {
   private UUID id;
 
   @NotNull
-  @ManyToOne(cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
+  @Exclude
   private Symbol symbol;
 
   @NotNull

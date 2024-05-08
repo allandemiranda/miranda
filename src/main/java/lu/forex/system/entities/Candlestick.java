@@ -23,12 +23,15 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import lombok.ToString.Exclude;
 import lu.forex.system.enums.TimeFrame;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "candlestick", indexes = {
     @Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")
@@ -49,6 +52,7 @@ public class Candlestick implements Serializable {
   @NotNull
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
+  @Exclude
   private Symbol symbol;
 
   @NotNull
@@ -97,11 +101,5 @@ public class Candlestick implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(id, symbol, timeFrame, timestamp);
-  }
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(" + "id = " + id + ", " + "timeFrame = " + timeFrame + ", " + "timestamp = " + timestamp + ", " + "high = "
-           + high + ", " + "low = " + low + ", " + "open = " + open + ", " + "close = " + close + ")";
   }
 }
