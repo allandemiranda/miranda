@@ -2,6 +2,7 @@ package lu.forex.system.controllers;
 
 import java.util.Collection;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.SymbolCreateDto;
 import lu.forex.system.dtos.SymbolResponseDto;
@@ -9,19 +10,14 @@ import lu.forex.system.dtos.SymbolUpdateDto;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.operations.SymbolOperations;
 import lu.forex.system.services.SymbolService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
 @Getter(AccessLevel.PRIVATE)
 public class SymbolController implements SymbolOperations {
 
   private final SymbolService symbolService;
-
-  @Autowired
-  public SymbolController(final SymbolService symbolService) {
-    this.symbolService = symbolService;
-  }
 
   @Override
   public Collection<SymbolResponseDto> getSymbols() {

@@ -27,7 +27,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @Entity
 @Table(name = "symbol", indexes = {
-    @Index(name = "idx_symbol_name_unq", columnList = "name, currency_base, currency_quote", unique = true)
+    @Index(name = "idx_symbol_name", columnList = "name, currency_base, currency_quote")
 }, uniqueConstraints = {
     @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})
 })
@@ -36,20 +36,20 @@ public class Symbol implements Serializable {
   @Serial
   private static final long serialVersionUID = -7531266602862670746L;
 
+  @Id
   @NotNull
   @NotBlank
-  @Id
   @Column(name = "name", nullable = false, unique = true, length = 6)
   private String name;
 
   @NotNull
   @Enumerated(EnumType.STRING)
-  @Column(name = "currency_base", nullable = false, length = 3)
+  @Column(name = "currency_base", nullable = false, length = 3, updatable = false)
   private Currency currencyBase;
 
   @NotNull
   @Enumerated(EnumType.STRING)
-  @Column(name = "currency_quote", nullable = false, length = 3)
+  @Column(name = "currency_quote", nullable = false, length = 3, updatable = false)
   private Currency currencyQuote;
 
   @Positive

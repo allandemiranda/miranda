@@ -23,18 +23,20 @@
 //    try (final HttpClient httpClient = HttpClient.newHttpClient()) {
 //      final String fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + "_201112190000_202404262358.csv";
 //      final File inputFile = new File(fileName);
+//      final AtomicReference<Double> bidH = new AtomicReference<>(0D);
+//      final AtomicReference<Double> askH = new AtomicReference<>(0D);
+//      final AtomicReference<LocalDateTime> lastUpdate = new AtomicReference<>(LocalDateTime.MIN);
 //      try (final FileReader fileReader = new FileReader(inputFile); final CSVParser csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
 //        StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
-//          final AtomicReference<Double> bidH = new AtomicReference<>(0D);
-//          final AtomicReference<Double> askH = new AtomicReference<>(0D);
 //          if (tick.getBid() > 0d) {
 //            bidH.set(tick.getBid());
 //          }
 //          if (tick.getAsk() > 0d) {
 //            askH.set(tick.getAsk());
 //          }
-//          if (bidH.get() > 0d && askH.get() > 0d) {
+//          if ((bidH.get() > 0d) && (askH.get() > 0d) && tick.getTime().isAfter(lastUpdate.get())) {
 //            sent(httpClient, symbol, tick.getTime(), bidH.get(), askH.get());
+//            lastUpdate.set(tick.getTime());
 //          }
 //        });
 //      }

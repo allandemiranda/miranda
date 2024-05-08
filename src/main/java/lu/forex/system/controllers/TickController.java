@@ -2,24 +2,20 @@ package lu.forex.system.controllers;
 
 import java.util.Collection;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.TickCreateDto;
 import lu.forex.system.dtos.TickResponseDto;
 import lu.forex.system.operations.TickOperations;
 import lu.forex.system.services.TickService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
 @Getter(AccessLevel.PRIVATE)
 public class TickController implements TickOperations {
 
   private final TickService tickService;
-
-  @Autowired
-  public TickController(final TickService tickService) {
-    this.tickService = tickService;
-  }
 
   @Override
   public Collection<TickResponseDto> getTicksBySymbolName(final String symbolName) {

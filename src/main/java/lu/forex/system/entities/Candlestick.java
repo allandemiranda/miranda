@@ -31,9 +31,9 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @Entity
 @Table(name = "candlestick", indexes = {
-    @Index(name = "idx_candlestick_unq", columnList = "symbol_name, time_frame", unique = true)
+    @Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")
 }, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_candlestick_symbol_name", columnNames = {"symbol_name", "time_frame", "timestamp"})
+    @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})
 })
 public class Candlestick implements Serializable {
 
@@ -41,22 +41,23 @@ public class Candlestick implements Serializable {
   private static final long serialVersionUID = 8655855891835745603L;
 
   @Id
+  @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, unique = true)
   private UUID id;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
-  @JoinColumn(name = "symbol_name", nullable = false)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
+  @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
   private Symbol symbol;
 
   @NotNull
   @Enumerated(EnumType.STRING)
-  @Column(name = "time_frame", nullable = false, length = 3)
+  @Column(name = "time_frame", nullable = false, length = 3, updatable = false)
   private TimeFrame timeFrame;
 
   @NotNull
-  @Column(name = "timestamp", nullable = false)
+  @Column(name = "timestamp", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
   private LocalDateTime timestamp;
 
@@ -71,7 +72,7 @@ public class Candlestick implements Serializable {
   private double low;
 
   @Positive
-  @Column(name = "open", nullable = false)
+  @Column(name = "open", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double open;
 
@@ -96,5 +97,11 @@ public class Candlestick implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(id, symbol, timeFrame, timestamp);
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(" + "id = " + id + ", " + "timeFrame = " + timeFrame + ", " + "timestamp = " + timestamp + ", " + "high = "
+           + high + ", " + "low = " + low + ", " + "open = " + open + ", " + "close = " + close + ")";
   }
 }
