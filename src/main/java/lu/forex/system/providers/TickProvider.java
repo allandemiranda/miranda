@@ -29,13 +29,15 @@ public class TickProvider implements TickService {
   private final SymbolRepository symbolRepository;
   private final TickMapper tickMapper;
 
+  @NotNull
   @Override
-  public @Nonnull Collection<@NotNull TickResponseDto> getTicks(final @Nonnull String symbolName) {
+  public Collection<@NotNull TickResponseDto> getTicks(@NotNull final String symbolName) {
     return this.getTickRepository().findBySymbol_NameOrderByTimestampAsc(symbolName).stream().map(this.getTickMapper()::toDto).toList();
   }
 
+  @NotNull
   @Override
-  public @Nonnull TickResponseDto addTick(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull String symbolName) {
+  public TickResponseDto addTick(@NotNull final TickCreateDto tickCreateDto, @NotNull final String symbolName) {
     final Symbol symbol = this.getSymbolByName(symbolName);
     this.validateTickNotExist(tickCreateDto, symbol);
     final Optional<Tick> optionalTick = this.findLatestTickBySymbolName(symbolName);

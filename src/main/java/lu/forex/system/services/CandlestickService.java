@@ -1,7 +1,9 @@
 package lu.forex.system.services;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import lu.forex.system.dtos.CandlestickResponseDto;
@@ -16,7 +18,7 @@ public interface CandlestickService {
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   @Nonnull
-  Collection<CandlestickResponseDto> getCandlesticks(final @Nonnull String symbolName, final @Nonnull TimeFrame timeFrame);
+  Collection<CandlestickResponseDto> getCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, final @Nonnull TimeFrame timeFrame);
 
   @Transactional(propagation = Propagation.REQUIRED)
   void createOrUpdateCandlestick(final @Nonnull Symbol symbol, final @Nonnull LocalDateTime timestamp, final @Positive double price);

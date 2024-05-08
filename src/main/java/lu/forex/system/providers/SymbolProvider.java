@@ -1,6 +1,5 @@
 package lu.forex.system.providers;
 
-import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Optional;
@@ -24,31 +23,36 @@ public class SymbolProvider implements SymbolService {
   private final SymbolRepository symbolRepository;
   private final SymbolMapper symbolMapper;
 
+  @NotNull
   @Override
-  public @Nonnull Collection<@NotNull SymbolResponseDto> getSymbols() {
+  public Collection<@NotNull SymbolResponseDto> getSymbols() {
     return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto).toList();
   }
 
+  @NotNull
   @Override
-  public @Nonnull Optional<@NotNull SymbolResponseDto> getSymbol(final @Nonnull String name) {
+  public Optional<@NotNull SymbolResponseDto> getSymbol(@NotNull final String name) {
     return this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).map(symbolMapper::toDto);
   }
 
+  @NotNull
   @Override
-  public @Nonnull SymbolResponseDto addSymbol(final @Nonnull SymbolCreateDto symbolCreateDto) {
+  public SymbolResponseDto addSymbol(@NotNull final SymbolCreateDto symbolCreateDto) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolCreateDto);
     final Symbol saved = this.getSymbolRepository().saveAndFlush(symbol);
     return this.getSymbolMapper().toDto(saved);
   }
 
   @Override
-  public void updateSymbol(final @Nonnull SymbolUpdateDto symbolUpdateDto, final @Nonnull String name) {
+  public void updateSymbol(@NotNull final SymbolUpdateDto symbolUpdateDto, @NotNull final String name) {
     this.getSymbolRepository()
         .updateDigitsAndSwapLongAndSwapShortByName(symbolUpdateDto.digits(), symbolUpdateDto.swapLong(), symbolUpdateDto.swapShort(), name);
   }
 
   @Override
-  public void deleteSymbol(final @Nonnull String name) {
+  public void deleteSymbol(@NotNull final String name) {
     this.getSymbolRepository().deleteByName(name);
   }
+
+
 }

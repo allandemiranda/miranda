@@ -28,14 +28,15 @@ public class CandlestickProvider implements CandlestickService {
   private final CandlestickRepository candlestickRepository;
   private final CandlestickMapper candlestickMapper;
 
+  @NotNull
   @Override
-  public @Nonnull Collection<CandlestickResponseDto> getCandlesticks(final @Nonnull String symbolName, final @Nonnull TimeFrame timeFrame) {
+  public Collection<CandlestickResponseDto> getCandlesticks(@NotNull final String symbolName, @NotNull final TimeFrame timeFrame) {
     return this.getCandlestickRepository().findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame).stream()
         .map(this.getCandlestickMapper()::toDto).collect(Collectors.toList());
   }
 
   @Override
-  public void createOrUpdateCandlestick(final @Nonnull Symbol symbol, final @Nonnull LocalDateTime timestamp, final double price) {
+  public void createOrUpdateCandlestick(@NotNull final Symbol symbol, @NotNull final LocalDateTime timestamp, final double price) {
     final Collection<Candlestick> candlestickCollection = Arrays.stream(TimeFrame.values()).parallel().map(timeFrame -> {
       final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
       final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()

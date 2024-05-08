@@ -1,7 +1,9 @@
 package lu.forex.system.services;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Optional;
 import lu.forex.system.dtos.SymbolCreateDto;
@@ -20,15 +22,15 @@ public interface SymbolService {
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   @Nonnull
-  Optional<@NotNull SymbolResponseDto> getSymbol(@Nonnull String name);
+  Optional<@NotNull SymbolResponseDto> getSymbol(@Nonnull @NotBlank @Size(min = 6, max = 6) String name);
 
   @Transactional(propagation = Propagation.REQUIRED)
   @Nonnull
   SymbolResponseDto addSymbol(@Nonnull SymbolCreateDto symbolCreateDto);
 
   @Transactional(propagation = Propagation.REQUIRED)
-  void updateSymbol(@Nonnull SymbolUpdateDto symbolUpdateDto, @Nonnull String name);
+  void updateSymbol(@Nonnull SymbolUpdateDto symbolUpdateDto, @Nonnull @NotBlank @Size(min = 6, max = 6) String name);
 
   @Transactional(propagation = Propagation.REQUIRED)
-  void deleteSymbol(@Nonnull String name);
+  void deleteSymbol(@Nonnull @NotBlank @Size(min = 6, max = 6) String name);
 }
