@@ -33,11 +33,8 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @ToString
 @Entity
-@Table(name = "candlestick", indexes = {
-    @Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")
-}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})
-})
+@Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})})
 public class Candlestick implements Serializable {
 
   @Serial
@@ -94,12 +91,11 @@ public class Candlestick implements Serializable {
       return false;
     }
     final Candlestick that = (Candlestick) o;
-    return Objects.equals(id, that.id) && Objects.equals(symbol, that.symbol) && timeFrame == that.timeFrame && Objects.equals(timestamp,
-        that.timestamp);
+    return Objects.equals(symbol, that.symbol) && timeFrame == that.timeFrame && Objects.equals(timestamp, that.timestamp);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, symbol, timeFrame, timestamp);
+    return Objects.hash(symbol, timeFrame, timestamp);
   }
 }

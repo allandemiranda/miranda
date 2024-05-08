@@ -26,11 +26,8 @@ import org.hibernate.type.SqlTypes;
 @Setter
 @ToString
 @Entity
-@Table(name = "symbol", indexes = {
-    @Index(name = "idx_symbol_name", columnList = "name, currency_base, currency_quote")
-}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})
-})
+@Table(name = "symbol", indexes = {@Index(name = "idx_symbol_name", columnList = "name, currency_base, currency_quote")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})})
 public class Symbol implements Serializable {
 
   @Serial

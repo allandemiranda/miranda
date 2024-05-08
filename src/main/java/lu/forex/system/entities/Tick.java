@@ -33,11 +33,8 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @Entity
 @EntityListeners(TickListener.class)
-@Table(name = "tick", indexes = {
-    @Index(name = "idx_tick_symbol_name", columnList = "symbol_name")
-}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})
-})
+@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_name", columnList = "symbol_name")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})})
 public class Tick implements Serializable {
 
   @Serial
@@ -79,11 +76,11 @@ public class Tick implements Serializable {
       return false;
     }
     final Tick tick = (Tick) o;
-    return Objects.equals(id, tick.id) && Objects.equals(symbol, tick.symbol) && Objects.equals(timestamp, tick.timestamp);
+    return Objects.equals(symbol, tick.symbol) && Objects.equals(timestamp, tick.timestamp);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, symbol, timestamp);
+    return Objects.hash(symbol, timestamp);
   }
 }
