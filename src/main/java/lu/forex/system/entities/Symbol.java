@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -38,6 +39,7 @@ public class Symbol implements Serializable {
   @Id
   @NotNull
   @NotBlank
+  @Size(min = 6, max = 6)
   @Column(name = "name", nullable = false, unique = true, length = 6)
   private String name;
 
@@ -66,7 +68,11 @@ public class Symbol implements Serializable {
   private double swapShort;
 
   public @NotNull String getDescription() {
-    return this.getCurrencyBase().getDescription().concat(" vs ").concat(this.getCurrencyQuote().getDescription());
+    final Currency base = this.getCurrencyBase();
+    final Currency quote = this.getCurrencyQuote();
+    final String baseDescription = base.getDescription();
+    final String quoteDescription = quote.getDescription();
+    return baseDescription.concat(" vs ").concat(quoteDescription);
   }
 
   @Override
