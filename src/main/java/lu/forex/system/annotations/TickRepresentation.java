@@ -17,7 +17,7 @@ import lu.forex.system.validators.TickResponseDtoValidator;
 @Documented
 public @interface TickRepresentation {
 
-  String message() default "Need represent a Tick where ask price >= bid price ";
+  String message() default "{lu.forex.system.annotations.TickRepresentation}";
 
   Class<?>[] groups() default {};
 

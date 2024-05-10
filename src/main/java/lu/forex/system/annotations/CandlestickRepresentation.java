@@ -16,7 +16,7 @@ import lu.forex.system.validators.CandlestickResponseDtoValidator;
 @Documented
 public @interface CandlestickRepresentation {
 
-  String message() default "Need represent a Candlestick where high >= (open || close) >= low price ";
+  String message() default "{lu.forex.system.annotations.CandlestickRepresentation}";
 
   Class<?>[] groups() default {};
 

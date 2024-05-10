@@ -89,6 +89,27 @@ class TickTest {
     Assertions.assertTrue(validator.validate(tick).isEmpty());
   }
 
+  @ParameterizedTest
+  @ValueSource(doubles = {2d, 5d, 10d})
+  void tickWithAskLowThanBidIsInvalid(double price) {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Tick tick = new Tick();
+
+    //when
+    tick.setId(uuid);
+    tick.setSymbol(symbol);
+    tick.setTimestamp(LocalDateTime.now().plusYears(1));
+    tick.setBid(price);
+    tick.setAsk(price - 1);
+    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+    System.out.println(validate);
+
+    //then
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
+  }
+
   @Test
   void tickWithoutSymbolIsInvalid() {
     //given
@@ -104,9 +125,10 @@ class TickTest {
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
 
     //then  
-    Assertions.assertEquals(1, validate.size());
-    Assertions.assertEquals("symbol", validate.iterator().next().getPropertyPath().toString());
-    Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
+    Assertions.assertTrue(
+        validate.stream().anyMatch(tickConstraintViolation -> "symbol".equals(tickConstraintViolation.getPropertyPath().toString())));
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{jakarta.validation.constraints.NotNull.message}".equals(tickConstraintViolation.getMessageTemplate())));
   }
 
   @Test
@@ -123,10 +145,11 @@ class TickTest {
     tick.setAsk(2d);
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
 
-    //then  
-    Assertions.assertEquals(1, validate.size());
-    Assertions.assertEquals("timestamp", validate.iterator().next().getPropertyPath().toString());
-    Assertions.assertEquals("{jakarta.validation.constraints.NotNull.message}", validate.iterator().next().getMessageTemplate());
+    //then
+    Assertions.assertTrue(
+        validate.stream().anyMatch(tickConstraintViolation -> "timestamp".equals(tickConstraintViolation.getPropertyPath().toString())));
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{jakarta.validation.constraints.NotNull.message}".equals(tickConstraintViolation.getMessageTemplate())));
   }
 
   @ParameterizedTest
@@ -145,9 +168,9 @@ class TickTest {
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
 
     //then  
-    Assertions.assertEquals(1, validate.size());
-    Assertions.assertEquals("bid", validate.iterator().next().getPropertyPath().toString());
-    Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
+    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "bid".equals(tickConstraintViolation.getPropertyPath().toString())));
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{jakarta.validation.constraints.Positive.message}".equals(tickConstraintViolation.getMessageTemplate())));
   }
 
   @ParameterizedTest
@@ -165,10 +188,10 @@ class TickTest {
     tick.setAsk(value);
     final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
 
-    //then  
-    Assertions.assertEquals(1, validate.size());
-    Assertions.assertEquals("ask", validate.iterator().next().getPropertyPath().toString());
-    Assertions.assertEquals("{jakarta.validation.constraints.Positive.message}", validate.iterator().next().getMessageTemplate());
+    //then
+    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "ask".equals(tickConstraintViolation.getPropertyPath().toString())));
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{jakarta.validation.constraints.Positive.message}".equals(tickConstraintViolation.getMessageTemplate())));
   }
 
   @Test
@@ -244,27 +267,8 @@ class TickTest {
     tick1.setId(uuid);
     tick1.setSymbol(symbol);
     tick1.setTimestamp(timestamp);
-
-    tick2.setId(uuid);
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertEquals(tick1, tick2);
-    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
-  void testIdNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    tick1.setId(uuid);
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
+    tick1.setBid(1d);
+    tick1.setAsk(2d);
 
     UUID randomUUID = UUID.randomUUID();
     while (randomUUID.equals(tick1.getId())) {
@@ -273,10 +277,12 @@ class TickTest {
     tick2.setId(randomUUID);
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
+    tick2.setBid(2d);
+    tick2.setAsk(3d);
 
     //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
+    Assertions.assertEquals(tick1, tick2);
+    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
   }
 
   @Test
@@ -286,15 +292,36 @@ class TickTest {
     final Tick tick2 = new Tick();
     final LocalDateTime timestamp = LocalDateTime.now();
     final Symbol symbol1 = Mockito.mock(Symbol.class);
+    final Symbol symbol2 = Mockito.mock(Symbol.class);
 
     //when
-    tick1.setId(uuid);
     tick1.setSymbol(symbol1);
     tick1.setTimestamp(timestamp);
 
-    tick2.setId(uuid);
-    tick2.setSymbol(symbol);
+    tick2.setSymbol(symbol2);
     tick2.setTimestamp(timestamp);
+
+    //then
+    Assertions.assertNotEquals(tick1, tick2);
+    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
+  }
+
+  @Test
+  void testNotEqualsAndHashCode() {
+    //given
+    final Tick tick1 = new Tick();
+    final Tick tick2 = new Tick();
+    final LocalDateTime timestamp1 = LocalDateTime.now();
+    final LocalDateTime timestamp2 = LocalDateTime.now().plusYears(1);
+    final Symbol symbol1 = Mockito.mock(Symbol.class);
+    final Symbol symbol2 = Mockito.mock(Symbol.class);
+
+    //when
+    tick1.setSymbol(symbol1);
+    tick1.setTimestamp(timestamp1);
+
+    tick2.setSymbol(symbol2);
+    tick2.setTimestamp(timestamp2);
 
     //then
     Assertions.assertNotEquals(tick1, tick2);
@@ -306,16 +333,15 @@ class TickTest {
     //given
     final Tick tick1 = new Tick();
     final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
+    final LocalDateTime timestamp1 = LocalDateTime.now();
+    final LocalDateTime localDateTime2 = timestamp1.plusYears(1);
 
     //when
-    tick1.setId(uuid);
     tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
+    tick1.setTimestamp(timestamp1);
 
-    tick2.setId(uuid);
     tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp.plusYears(1));
+    tick2.setTimestamp(localDateTime2);
 
     //then
     Assertions.assertNotEquals(tick1, tick2);

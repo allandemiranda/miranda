@@ -17,7 +17,7 @@ import lu.forex.system.validators.SymbolResponseDtoValidator;
 @Documented
 public @interface SymbolCurrencyRepresentation {
 
-  String message() default "Need represent a Symbol where Base and Quote currencies are different";
+  String message() default "{lu.forex.system.annotations.SymbolCurrencyRepresentation}";
 
   Class<?>[] groups() default {};
 
