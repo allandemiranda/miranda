@@ -392,6 +392,58 @@ class SymbolTest {
   }
 
   @Test
+  void testSymbolRepresentationCurrencyNotEqualIsValid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Symbol symbol = new Symbol();
+    final Currency currencyBase = randomCurrency();
+    final Currency currencyQuote = randomCurrency(currencyBase);
+
+    //when
+    symbol.setCurrencyBase(currencyBase);
+    symbol.setCurrencyQuote(currencyQuote);
+    final Set<ConstraintViolation<Symbol>> validate = validator.validate(symbol);
+
+    //when
+    Assertions.assertFalse(validate.stream().anyMatch(
+        symbolConstraintViolation -> "{lu.forex.system.annotations.SymbolCurrencyRepresentation}".equals(
+            symbolConstraintViolation.getMessageTemplate())));
+  }
+
+  @Test
+  void testSymbolRepresentationCurrencyIsEqualIsInvalid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Symbol symbol = new Symbol();
+    final Currency currencyBase = randomCurrency();
+
+    //when
+    symbol.setCurrencyBase(currencyBase);
+    symbol.setCurrencyQuote(currencyBase);
+    final Set<ConstraintViolation<Symbol>> validate = validator.validate(symbol);
+
+    //when
+    Assertions.assertTrue(validate.stream().anyMatch(symbolConstraintViolation -> "{lu.forex.system.annotations.SymbolCurrencyRepresentation}".equals(
+        symbolConstraintViolation.getMessageTemplate())));
+  }
+
+  @Test
+  void testTickRepresentationBidHighThanAskIsInvalid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Tick tick = new Tick();
+
+    //when
+    tick.setAsk(1d);
+    tick.setBid(2d);
+    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //when
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
+  }
+
+  @Test
   void testSymbolEqualsAndHashCode() {
     //given
     final String name = "EURUSD";
