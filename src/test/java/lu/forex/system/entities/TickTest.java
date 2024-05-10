@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,15 +22,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TickTest {
 
-  private UUID uuid;
+  private static UUID uuid;
   private ValidatorFactory validatorFactory;
 
   @Mock
   private Symbol symbol;
 
+  @BeforeAll
+  static void setUpBeforeClass() {
+    uuid = UUID.randomUUID();
+  }
+
   @BeforeEach
   void setUp() {
-    uuid = UUID.randomUUID();
     validatorFactory = Validation.buildDefaultValidatorFactory();
   }
 
@@ -292,13 +297,12 @@ class TickTest {
     final Tick tick2 = new Tick();
     final LocalDateTime timestamp = LocalDateTime.now();
     final Symbol symbol1 = Mockito.mock(Symbol.class);
-    final Symbol symbol2 = Mockito.mock(Symbol.class);
 
     //when
     tick1.setSymbol(symbol1);
     tick1.setTimestamp(timestamp);
 
-    tick2.setSymbol(symbol2);
+    tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
 
     //then
@@ -314,13 +318,12 @@ class TickTest {
     final LocalDateTime timestamp1 = LocalDateTime.now();
     final LocalDateTime timestamp2 = LocalDateTime.now().plusYears(1);
     final Symbol symbol1 = Mockito.mock(Symbol.class);
-    final Symbol symbol2 = Mockito.mock(Symbol.class);
 
     //when
     tick1.setSymbol(symbol1);
     tick1.setTimestamp(timestamp1);
 
-    tick2.setSymbol(symbol2);
+    tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp2);
 
     //then
