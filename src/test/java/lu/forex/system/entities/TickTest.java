@@ -69,6 +69,18 @@ class TickTest {
   }
 
   @Test
+  void testTickId() {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setId(uuid);
+
+    //then
+    Assertions.assertEquals(uuid, tick.getId());
+  }
+
+  @Test
   void testTickAnySymbolIsValid() {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -101,6 +113,20 @@ class TickTest {
   }
 
   @Test
+  void testTickSymbol() {
+    //given
+    final Tick tick = new Tick();
+    final Symbol symbol = new Symbol();
+    symbol.setName("EURUSD");
+
+    //when
+    tick.setSymbol(symbol);
+
+    //then
+    Assertions.assertEquals(symbol, tick.getSymbol());
+  }
+
+  @Test
   void testTickAnyTimestampIsValid() {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -130,6 +156,19 @@ class TickTest {
     Assertions.assertTrue(validate.stream().anyMatch(
         tickConstraintViolation -> "timestamp".equals(tickConstraintViolation.getPropertyPath().toString())
                                    && "{jakarta.validation.constraints.NotNull.message}".equals(tickConstraintViolation.getMessageTemplate())));
+  }
+
+  @Test
+  void testTickTimestamp() {
+    //given
+    final Tick tick = new Tick();
+    final LocalDateTime timestamp = LocalDateTime.now();
+
+    //when
+    tick.setTimestamp(timestamp);
+
+    //then
+    Assertions.assertEquals(timestamp, tick.getTimestamp());
   }
 
   @ParameterizedTest
@@ -166,6 +205,19 @@ class TickTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
+  void testTickBid(double bid) {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setBid(bid);
+
+    //then
+    Assertions.assertEquals(bid, tick.getBid());
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
   void testTickPositiveAndNotZeroAskIsValid(double ask) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -194,6 +246,19 @@ class TickTest {
     Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "bid".equals(tickConstraintViolation.getPropertyPath().toString())
                                                                                 && "{jakarta.validation.constraints.Positive.message}".equals(
         tickConstraintViolation.getMessageTemplate())));
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
+  void testTickAsk(double ask) {
+    //given
+    final Tick tick = new Tick();
+
+    //when
+    tick.setAsk(ask);
+
+    //then
+    Assertions.assertEquals(ask, tick.getAsk());
   }
 
   @Test
