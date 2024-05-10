@@ -248,6 +248,38 @@ class TickTest {
         tickConstraintViolation.getMessageTemplate())));
   }
 
+  @Test
+  void testTickRepresentationAskHighThanBidIsValid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Tick tick = new Tick();
+
+    //when
+    tick.setAsk(2d);
+    tick.setBid(1d);
+    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //when
+    Assertions.assertFalse(validate.stream().anyMatch(
+        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
+  }
+
+  @Test
+  void testTickRepresentationBidHighThanAskIsInvalid() {
+    //given
+    final Validator validator = validatorFactory.getValidator();
+    final Tick tick = new Tick();
+
+    //when
+    tick.setAsk(1d);
+    tick.setBid(2d);
+    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+
+    //when
+    Assertions.assertTrue(validate.stream().anyMatch(
+        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
+  }
+
   @ParameterizedTest
   @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
   void testTickAsk(double ask) {
