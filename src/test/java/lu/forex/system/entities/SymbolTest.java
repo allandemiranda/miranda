@@ -404,10 +404,16 @@ class SymbolTest {
     symbol1.setName(name);
     symbol1.setCurrencyBase(currencyBase);
     symbol1.setCurrencyQuote(currencyQuote);
+    symbol1.setDigits(1);
+    symbol1.setSwapLong(2d);
+    symbol1.setSwapLong(3d);
 
     symbol2.setName(name);
     symbol2.setCurrencyBase(currencyBase);
     symbol2.setCurrencyQuote(currencyQuote);
+    symbol1.setDigits(4);
+    symbol1.setSwapLong(5d);
+    symbol1.setSwapLong(6d);
 
     //then
     Assertions.assertEquals(symbol1, symbol2);
