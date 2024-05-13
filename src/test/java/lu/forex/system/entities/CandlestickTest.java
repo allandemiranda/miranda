@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.enums.TimeFrame;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,17 +21,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CandlestickTest {
 
-  private UUID uuid;
-  private ValidatorFactory validatorFactory;
+  private static ValidatorFactory validatorFactory;
+  private static UUID uuid;
 
-  @BeforeEach
-  void setUp() {
-    uuid = UUID.randomUUID();
+  @BeforeAll
+  static void setUpBeforeClass() {
     validatorFactory = Validation.buildDefaultValidatorFactory();
+    uuid = UUID.randomUUID();
   }
 
-  @AfterEach
-  void tearDown() {
+  @AfterAll
+  static void tearDownAfterClass() {
     validatorFactory.close();
   }
 

@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.Set;
 import lu.forex.system.enums.Currency;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SymbolTest {
 
-  private ValidatorFactory validatorFactory;
+  private static ValidatorFactory validatorFactory;
 
   @NotNull
   private static Currency randomCurrency() {
@@ -45,13 +45,13 @@ class SymbolTest {
     return next;
   }
 
-  @BeforeEach
-  void setUp() {
+  @BeforeAll
+  static void setUpBeforeClass() {
     validatorFactory = Validation.buildDefaultValidatorFactory();
   }
 
-  @AfterEach
-  void tearDown() {
+  @AfterAll
+  static void tearDownAfterClass() {
     validatorFactory.close();
   }
 

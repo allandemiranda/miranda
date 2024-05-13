@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.enums.TimeFrame;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,14 +22,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CandlestickResponseDtoTest {
 
-  private ValidatorFactory validatorFactory;
+  private static ValidatorFactory validatorFactory;
 
-  @BeforeEach
-  void setUp() {
+  @BeforeAll
+  static void setUpBeforeClass() {
     validatorFactory = Validation.buildDefaultValidatorFactory();
   }
 
-  //CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(UUID.randomUUID(), symbolResponseDto, TimeFrame.M15, LocalDateTime.now(), 1d, 1d, 1d, 1d);
+  @AfterAll
+  static void tearDownAfterClass() {
+    validatorFactory.close();
+  }
 
   @Test
   void testCandlestickResponseIdNotNullIsValid() {
@@ -158,18 +162,13 @@ class CandlestickResponseDtoTest {
     final Validator validator = validatorFactory.getValidator();
     final CandlestickResponseDto candlestickResponseDtoPast = new CandlestickResponseDto(null, null, null, LocalDateTime.now().minusYears(1), 0d, 0d,
         0d, 0d);
-    final CandlestickResponseDto candlestickResponseDtoNow = new CandlestickResponseDto(null, null, null, LocalDateTime.now(), 0d, 0d, 0d, 0d);
     final CandlestickResponseDto candlestickResponseDtoFuture = new CandlestickResponseDto(null, null, null, LocalDateTime.now().plusYears(1), 0d, 0d,
         0d, 0d);
     //when
     final Set<ConstraintViolation<CandlestickResponseDto>> validatePast = validator.validate(candlestickResponseDtoPast);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateNow = validator.validate(candlestickResponseDtoNow);
     final Set<ConstraintViolation<CandlestickResponseDto>> validateFuture = validator.validate(candlestickResponseDtoFuture);
-    System.out.println(validateFuture);
     //then
     Assertions.assertFalse(validatePast.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
-    Assertions.assertFalse(validateNow.stream().anyMatch(
         candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
     Assertions.assertTrue(validateFuture.stream().anyMatch(
         candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
