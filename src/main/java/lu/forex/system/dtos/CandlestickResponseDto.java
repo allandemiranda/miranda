@@ -1,6 +1,7 @@
 package lu.forex.system.dtos;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
@@ -14,7 +15,7 @@ import lu.forex.system.enums.TimeFrame;
  */
 @CandlestickRepresentation
 public record CandlestickResponseDto(@NotNull UUID id, @NotNull SymbolResponseDto symbol, @NotNull TimeFrame timeFrame,
-                                     @NotNull LocalDateTime timestamp, @Positive double high, @Positive double low, @Positive double open,
+                                     @NotNull @Past LocalDateTime timestamp, @Positive double high, @Positive double low, @Positive double open,
                                      @Positive double close) implements Serializable {
 
   @Serial

@@ -235,7 +235,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickNegativeOrZeroHighIsValid(double high) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -253,7 +253,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickHigh(double high) {
     //given
     final Candlestick candlestick = new Candlestick();
@@ -282,7 +282,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickNegativeOrZeroLowIsValid(double low) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -300,7 +300,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickLow(double low) {
     //given
     final Candlestick candlestick = new Candlestick();
@@ -329,7 +329,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickNegativeOrZeroOpenIsValid(double open) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -347,7 +347,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickOpen(double open) {
     //given
     final Candlestick candlestick = new Candlestick();
@@ -376,7 +376,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickNegativeOrZeroCloseIsValid(double close) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -394,7 +394,7 @@ class CandlestickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testCandlestickClose(double close) {
     //given
     final Candlestick candlestick = new Candlestick();

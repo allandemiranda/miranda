@@ -187,7 +187,7 @@ class TickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testTickNegativeOrZeroBidIsValid(double bid) {
     //given
     final Validator validator = validatorFactory.getValidator();
@@ -232,7 +232,7 @@ class TickTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_VALUE - 1d})
+  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
   void testTickNegativeOrZeroAskIsValid(double ask) {
     //given
     final Validator validator = validatorFactory.getValidator();
