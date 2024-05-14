@@ -4,12 +4,10 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
-import lu.forex.system.annotations.SymbolCurrencyRepresentation;
 
 /**
  * DTO for {@link lu.forex.system.entities.Symbol}
  */
-@SymbolCurrencyRepresentation
 public record SymbolUpdateDto(@Min(1) @Positive int digits, double swapLong, double swapShort) implements Serializable {
 
   @Serial
