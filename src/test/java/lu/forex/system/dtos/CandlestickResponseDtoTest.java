@@ -3,14 +3,11 @@ package lu.forex.system.dtos;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.enums.TimeFrame;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,289 +19,323 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class CandlestickResponseDtoTest {
 
-  private static ValidatorFactory validatorFactory;
-
-  @BeforeAll
-  static void setUpBeforeClass() {
-    validatorFactory = Validation.buildDefaultValidatorFactory();
-  }
-
-  @AfterAll
-  static void tearDownAfterClass() {
-    validatorFactory.close();
+  @Test
+  void testCandlestickResponseDtoIdNotNullIsValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "id", UUID.randomUUID());
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseIdNotNullIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(UUID.randomUUID(), null, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertFalse(validate.stream()
-        .anyMatch(candlestickResponseDtoConstraintViolation -> "id".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickResponseDtoIdNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "id", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseIdNullIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "id".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoSymbolNotNullIsValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "symbol", symbolResponseDto);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseSymbolNotNullIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final SymbolResponseDto symbol = Mockito.mock(SymbolResponseDto.class);
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, symbol, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "symbol".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @Test
-  void testCandlestickResponseSymbolNullIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "symbol".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoSymbolNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "symbol", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
   @EnumSource(TimeFrame.class)
-  void testCandlestickResponseTimeFrameNotNullIsValid(TimeFrame timeFrame) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, timeFrame, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timeFrame".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickResponseDtoTimeFrameNotNullIsValid(TimeFrame timeFrame) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timeFrame", timeFrame);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseTimeFrameNullIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timeFrame".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoTimeFrameNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timeFrame", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseTimestampNotNullIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoPast = new CandlestickResponseDto(null, null, null, LocalDateTime.now().minusYears(1), 0d, 0d,
-        0d, 0d);
-    final CandlestickResponseDto candlestickResponseDtoNow = new CandlestickResponseDto(null, null, null, LocalDateTime.now(), 0d, 0d, 0d, 0d);
-    final CandlestickResponseDto candlestickResponseDtoFuture = new CandlestickResponseDto(null, null, null, LocalDateTime.now().plusYears(1), 0d, 0d,
-        0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validatePast = validator.validate(candlestickResponseDtoPast);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateNow = validator.validate(candlestickResponseDtoNow);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateFuture = validator.validate(candlestickResponseDtoFuture);
-    //then
-    Assertions.assertFalse(validatePast.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertFalse(validateNow.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertFalse(validateFuture.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoTimestampNotNullOnPastIsValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().minusYears(1);
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseTimestampNullIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoTimestampNotNullOnPresentIsValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseTimestampFutureIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoPast = new CandlestickResponseDto(null, null, null, LocalDateTime.now().minusYears(1), 0d, 0d,
-        0d, 0d);
-    final CandlestickResponseDto candlestickResponseDtoFuture = new CandlestickResponseDto(null, null, null, LocalDateTime.now().plusYears(1), 0d, 0d,
-        0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validatePast = validator.validate(candlestickResponseDtoPast);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateFuture = validator.validate(candlestickResponseDtoFuture);
-    //then
-    Assertions.assertFalse(validatePast.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())));
-    Assertions.assertTrue(validateFuture.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "timestamp".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.Past.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoTimestampNotNullOnFutureIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().plusYears(1);
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timestamp", timestamp);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoTimestampIsNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "timestamp", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
-  void testCandlestickResponseHighNotZeroOrNegativeIsInvalid(double price) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, price, 0d, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "high".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickResponseHighPlusOrEqualThanLowAndCloseAndOpenIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoPlus = new CandlestickResponseDto(null, null, null, null, 2d, 1d, 1d, 1d);
-    final CandlestickResponseDto candlestickResponseDtoEqual = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 1d, 1d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validatePlus = validator.validate(candlestickResponseDtoPlus);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateEqual = validator.validate(candlestickResponseDtoEqual);
-    //then
-    Assertions.assertFalse(validatePlus.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertFalse(validateEqual.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickResponseDtoHighPositiveIsValid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "high", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
-  void testCandlestickResponseLowNotZeroOrNegativeIsInvalid(double price) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, price, 0d, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "low".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickResponseLowLowerOrEqualThanHighAndCloseAndOpenIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoLower = new CandlestickResponseDto(null, null, null, null, 2d, 1d, 2d, 2d);
-    final CandlestickResponseDto candlestickResponseDtoEqual = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 1d, 1d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateLower = validator.validate(candlestickResponseDtoLower);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateEqual = validator.validate(candlestickResponseDtoEqual);
-    //then
-    Assertions.assertFalse(validateLower.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertFalse(validateEqual.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickResponseDtoHighNegativeOrZeroIsInvalid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "high", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
-  void testCandlestickResponseOpenNotZeroOrNegativeIsInvalid(double price) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, price, 0d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "open".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickResponseOpenLowerThanLowAndPlusThanHighIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoLower = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 1d, 2d);
-    final CandlestickResponseDto candlestickResponseDtoPlus = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 2d, 1d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateLower = validator.validate(candlestickResponseDtoLower);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validatePlus = validator.validate(candlestickResponseDtoPlus);
-    //then
-    Assertions.assertTrue(validateLower.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertTrue(validatePlus.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickResponseDtoLowPositiveIsValid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "low", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
-  void testCandlestickResponseCloseNotZeroOrNegativeIsInvalid(double price) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 0d, 0d, 0d, price);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validate = validator.validate(candlestickResponseDto);
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "close".equals(candlestickResponseDtoConstraintViolation.getPropertyPath().toString())
-                                                     && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickResponseDtoLowNegativeOrZeroIsInvalid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "low", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickResponseDtoOpenPositiveIsValid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "open", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickResponseDtoOpenNegativeOrZeroIsInvalid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "open", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickResponseDtoClosePositiveIsValid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "close", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickResponseDtoCloseNegativeOrZeroIsInvalid(double price) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "close", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickResponseCloseLowerThanLowAndPlusThanHighIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final CandlestickResponseDto candlestickResponseDtoLower = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 2d, 1d);
-    final CandlestickResponseDto candlestickResponseDtoPlus = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 1d, 2d);
-    //when
-    final Set<ConstraintViolation<CandlestickResponseDto>> validateLower = validator.validate(candlestickResponseDtoLower);
-    final Set<ConstraintViolation<CandlestickResponseDto>> validatePlus = validator.validate(candlestickResponseDtoPlus);
-    //then
-    Assertions.assertTrue(validateLower.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
-    Assertions.assertTrue(validatePlus.stream().anyMatch(
-        candlestickResponseDtoConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickResponseDtoConstraintViolation.getMessageTemplate())));
+  void testCandlestickResponseDtoPriceEqualIsValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 1d, 1d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertFalse(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoPriceValid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 5d, 2d, 3d, 4d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertFalse(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoHighLowerThanLowIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 3d, 2d, 2d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoHighLowerThanOpenIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 3d, 2d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoHighLowerThanCloseIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 2d, 3d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoLowHigherThanOpenIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 3d, 3d, 2d, 3d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickResponseDtoLowHigherThanCloseIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 3d, 3d, 3d, 2d);
+      //when
+      final var validated = validator.validate(candlestickResponseDto);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "low".equals(violation.getPropertyPath().toString())));
+    }
   }
 }

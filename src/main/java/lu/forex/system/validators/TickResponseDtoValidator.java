@@ -5,19 +5,34 @@ import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraintvalidation.SupportedValidationTarget;
 import jakarta.validation.constraintvalidation.ValidationTarget;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lu.forex.system.annotations.TickRepresentation;
 import lu.forex.system.dtos.TickResponseDto;
 
+@Getter(AccessLevel.PRIVATE)
+@Setter(AccessLevel.PRIVATE)
 @SupportedValidationTarget(ValidationTarget.ANNOTATED_ELEMENT)
 public class TickResponseDtoValidator implements ConstraintValidator<TickRepresentation, TickResponseDto> {
 
+  private static final String BID = "bid";
+  private TickRepresentation constraintAnnotation;
+
   @Override
   public void initialize(final TickRepresentation constraintAnnotation) {
+    this.setConstraintAnnotation(constraintAnnotation);
     ConstraintValidator.super.initialize(constraintAnnotation);
   }
 
   @Override
   public boolean isValid(final @NotNull TickResponseDto value, final ConstraintValidatorContext context) {
-    return value.ask() >= value.bid();
+    if (value.ask() >= value.bid()) {
+      return true;
+    } else {
+      context.disableDefaultConstraintViolation();
+      context.buildConstraintViolationWithTemplate(this.getConstraintAnnotation().message()).addPropertyNode(BID).addConstraintViolation();
+      return false;
+    }
   }
 }

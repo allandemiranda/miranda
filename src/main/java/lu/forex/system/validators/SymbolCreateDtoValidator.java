@@ -5,19 +5,30 @@ import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraintvalidation.SupportedValidationTarget;
 import jakarta.validation.constraintvalidation.ValidationTarget;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lu.forex.system.annotations.SymbolCurrencyRepresentation;
 import lu.forex.system.dtos.SymbolCreateDto;
 
+@Getter(AccessLevel.PRIVATE)
+@Setter(AccessLevel.PRIVATE)
 @SupportedValidationTarget(ValidationTarget.ANNOTATED_ELEMENT)
 public class SymbolCreateDtoValidator implements ConstraintValidator<SymbolCurrencyRepresentation, SymbolCreateDto> {
 
+  private static final String CURRENCY_BASE = "currencyBase";
+  private SymbolCurrencyRepresentation constraintAnnotation;
+
   @Override
   public void initialize(final SymbolCurrencyRepresentation constraintAnnotation) {
+    this.setConstraintAnnotation(constraintAnnotation);
     ConstraintValidator.super.initialize(constraintAnnotation);
   }
 
   @Override
-  public boolean isValid(final @NotNull SymbolCreateDto value, final ConstraintValidatorContext context) {
+  public boolean isValid(final @NotNull SymbolCreateDto value, final @NotNull ConstraintValidatorContext context) {
+    context.disableDefaultConstraintViolation();
+    context.buildConstraintViolationWithTemplate(this.getConstraintAnnotation().message()).addPropertyNode(CURRENCY_BASE).addConstraintViolation();
     return !value.currencyBase().equals(value.currencyQuote());
   }
 }
