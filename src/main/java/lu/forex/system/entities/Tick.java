@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
@@ -55,6 +56,7 @@ public class Tick implements Serializable {
   private Symbol symbol;
 
   @NotNull
+  @PastOrPresent
   @Column(name = "timestamp", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
   private LocalDateTime timestamp;
@@ -78,11 +80,12 @@ public class Tick implements Serializable {
       return false;
     }
     final Tick tick = (Tick) o;
-    return Objects.equals(this.getSymbol(), tick.getSymbol()) && Objects.equals(this.getTimestamp(), tick.getTimestamp());
+    return Double.compare(this.getBid(), tick.getBid()) == 0 && Double.compare(this.getAsk(), tick.getAsk()) == 0 && Objects.equals(this.getId(),
+        tick.getId()) && Objects.equals(this.getSymbol(), tick.getSymbol()) && Objects.equals(this.getTimestamp(), tick.getTimestamp());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.getSymbol(), this.getTimestamp());
+    return Objects.hash(this.getId(), this.getSymbol(), this.getTimestamp(), this.getBid(), this.getAsk());
   }
 }

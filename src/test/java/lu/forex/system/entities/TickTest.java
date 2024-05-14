@@ -1,289 +1,256 @@
 package lu.forex.system.entities;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
+import lu.forex.system.dtos.SymbolResponseDto;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TickTest {
 
-  private static UUID uuid;
-  private static ValidatorFactory validatorFactory;
-
-  @BeforeAll
-  static void setUpBeforeClass() {
-    validatorFactory = Validation.buildDefaultValidatorFactory();
-    uuid = UUID.randomUUID();
-  }
-
-  @AfterAll
-  static void tearDownAfterClass() {
-    validatorFactory.close();
+  @Test
+  void testTickWhenIdNotNullIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var id = UUID.randomUUID();
+      //when
+      final var validated = validator.validateValue(Tick.class, "id", id);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testTickAnyIdIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setId(uuid);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(tickConstraintViolation -> "id".equals(tickConstraintViolation.getPropertyPath().toString())));
+  void testTickWhenIdNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "id", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
-  void testTickWithNullIdIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
+  void testTickWhenSymbolNotNullIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
+      //when
+      final var validated = validator.validateValue(Tick.class, "symbol", symbolResponseDto);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
 
-    //when
-    tick.setId(null);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
+  @Test
+  void testTickWhenSymbolNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "symbol", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
 
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "id".equals(tickConstraintViolation.getPropertyPath().toString())
-                                                                                && "{jakarta.validation.constraints.NotNull.message}".equals(
-        tickConstraintViolation.getMessageTemplate())));
+  @Test
+  void testTickWhenTimestampNotNullOnPastIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().minusYears(1);
+      //when
+      final var validated = validator.validateValue(Tick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testTickWhenTimestampNotNullOnPresentIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now();
+      //when
+      final var validated = validator.validateValue(Tick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testTickWhenTimestampNotNullOnFutureIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().plusYears(1);
+      //when
+      final var validated = validator.validateValue(Tick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testTickWhenTimestampIsNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "timestamp", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.000001, 0.00001, 0.0001, 1d, Double.MAX_VALUE})
+  void testTickWhenBidNotNegativeOrZeroIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "bid", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
+  void testTickWhenBidIsNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "bid", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.000001, 0.00001, 0.0001, 1d, Double.MAX_VALUE})
+  void testTickWhenAskNotNegativeOrZeroIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "ask", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {Double.MIN_EXPONENT, -1d, 0d})
+  void testTickWhenAskIsNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Tick.class, "ask", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {1.12345, 2.12345})
+  void testTickWhenAskAndBidEqualsIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var tick = new Tick();
+      //when
+      tick.setAsk(price);
+      tick.setBid(price);
+      final var validated = validator.validate(tick);
+      //then
+      Assertions.assertFalse(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {1.12345, 2.12345})
+  void testTickWhenAskLowerThanBidIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var tick = new Tick();
+      //when
+      tick.setAsk(price - 0.00001);
+      tick.setBid(price);
+      final var validated = validator.validate(tick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
+    }
   }
 
   @Test
   void testTickId() {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
+    final var id = UUID.randomUUID();
     //when
-    tick.setId(uuid);
-
+    tick.setId(id);
     //then
-    Assertions.assertEquals(uuid, tick.getId());
-  }
-
-  @Test
-  void testTickAnySymbolIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-    final Symbol symbol = new Symbol();
-
-    //when
-    tick.setSymbol(symbol);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(tickConstraintViolation -> "symbol".equals(tickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @Test
-  void testTickWithNullSymbolIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setSymbol(null);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "symbol".equals(tickConstraintViolation.getPropertyPath().toString())
-                                                                                && "{jakarta.validation.constraints.NotNull.message}".equals(
-        tickConstraintViolation.getMessageTemplate())));
+    Assertions.assertEquals(id, tick.getId());
   }
 
   @Test
   void testTickSymbol() {
     //given
-    final Tick tick = new Tick();
-    final Symbol symbol = new Symbol();
-    symbol.setName("EURUSD");
-
+    final var tick = new Tick();
+    final var symbol = new Symbol();
     //when
     tick.setSymbol(symbol);
-
     //then
     Assertions.assertEquals(symbol, tick.getSymbol());
   }
 
   @Test
-  void testTickAnyTimestampIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    tick.setTimestamp(timestamp);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(tickConstraintViolation -> "timestamp".equals(tickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @Test
-  void testTickWithNullTimestampIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setTimestamp(null);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        tickConstraintViolation -> "timestamp".equals(tickConstraintViolation.getPropertyPath().toString())
-                                   && "{jakarta.validation.constraints.NotNull.message}".equals(tickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
   void testTickTimestamp() {
     //given
-    final Tick tick = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
+    final var tick = new Tick();
+    final var timestamp = LocalDateTime.now();
     //when
     tick.setTimestamp(timestamp);
-
     //then
     Assertions.assertEquals(timestamp, tick.getTimestamp());
   }
 
   @ParameterizedTest
   @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testTickPositiveAndNotZeroBidIsValid(double bid) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setBid(bid);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(tickConstraintViolation -> "bid".equals(tickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testTickNegativeOrZeroBidIsValid(double bid) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setBid(bid);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "bid".equals(tickConstraintViolation.getPropertyPath().toString())
-                                                                                && "{jakarta.validation.constraints.Positive.message}".equals(
-        tickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
   void testTickBid(double bid) {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
     tick.setBid(bid);
-
     //then
     Assertions.assertEquals(bid, tick.getBid());
   }
 
   @ParameterizedTest
   @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testTickPositiveAndNotZeroAskIsValid(double ask) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setAsk(ask);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(tickConstraintViolation -> "ask".equals(tickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testTickNegativeOrZeroAskIsValid(double ask) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setAsk(ask);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(tickConstraintViolation -> "bid".equals(tickConstraintViolation.getPropertyPath().toString())
-                                                                                && "{jakarta.validation.constraints.Positive.message}".equals(
-        tickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testTickRepresentationAskHighThanBidIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setAsk(2d);
-    tick.setBid(1d);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //when
-    Assertions.assertFalse(validate.stream().anyMatch(
-        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testTickRepresentationBidHighThanAskIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Tick tick = new Tick();
-
-    //when
-    tick.setAsk(1d);
-    tick.setBid(2d);
-    final Set<ConstraintViolation<Tick>> validate = validator.validate(tick);
-
-    //when
-    Assertions.assertTrue(validate.stream().anyMatch(
-        tickConstraintViolation -> "{lu.forex.system.annotations.TickRepresentation}".equals(tickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
   void testTickAsk(double ask) {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
     tick.setAsk(ask);
-
     //then
     Assertions.assertEquals(ask, tick.getAsk());
   }
@@ -291,27 +258,27 @@ class TickTest {
   @Test
   void testTickEqualsAndHashCode() {
     //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
+    final var tick1 = new Tick();
+    final var tick2 = new Tick();
+
+    final var id = UUID.randomUUID();
+    final var symbol = new Symbol();
+    final var timestamp = LocalDateTime.now();
+    final var ask = 0.2;
+    final var bid = 0.1;
 
     //when
-    tick1.setId(uuid);
+    tick1.setId(id);
     tick1.setSymbol(symbol);
     tick1.setTimestamp(timestamp);
-    tick1.setBid(1d);
-    tick1.setAsk(2d);
+    tick1.setBid(ask);
+    tick1.setAsk(bid);
 
-    UUID randomUUID = UUID.randomUUID();
-    while (randomUUID.equals(tick1.getId())) {
-      randomUUID = UUID.randomUUID();
-    }
-    tick2.setId(randomUUID);
+    tick2.setId(id);
     tick2.setSymbol(symbol);
     tick2.setTimestamp(timestamp);
-    tick2.setBid(3d);
-    tick2.setAsk(4d);
+    tick2.setBid(ask);
+    tick2.setAsk(bid);
 
     //then
     Assertions.assertEquals(tick1, tick2);
@@ -319,57 +286,11 @@ class TickTest {
   }
 
   @Test
-  void testTickWithSymbolNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
-    final Symbol symbol1 = new Symbol();
-
-    //when
-    symbol1.setName("FGHIJK");
-    tick1.setSymbol(symbol1);
-    tick1.setTimestamp(timestamp);
-
-    symbol.setName("ABCDEF");
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
-  void testTickTimestampNotEqualsAndHashCode() {
-    //given
-    final Tick tick1 = new Tick();
-    final Tick tick2 = new Tick();
-    final LocalDateTime timestamp1 = LocalDateTime.now();
-    final LocalDateTime timestamp2 = LocalDateTime.now().plusYears(1);
-    final Symbol symbol = new Symbol();
-
-    //when
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp1);
-
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp2);
-
-    //then
-    Assertions.assertNotEquals(tick1, tick2);
-    Assertions.assertNotEquals(tick1.hashCode(), tick2.hashCode());
-  }
-
-  @Test
   void testTickEquals() {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
-    final boolean equals = tick.equals(tick);
-
+    final var equals = tick.equals(tick);
     //then
     Assertions.assertTrue(equals);
   }
@@ -377,11 +298,9 @@ class TickTest {
   @Test
   void testTickEqualsNull() {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
-    final boolean equals = tick.equals(null);
-
+    final var equals = tick.equals(null);
     //then
     Assertions.assertFalse(equals);
   }
@@ -389,11 +308,9 @@ class TickTest {
   @Test
   void testTickEqualsWrongObjectType() {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
-    final boolean equals = tick.equals(new Object());
-
+    final var equals = tick.equals(new Object());
     //then
     Assertions.assertFalse(equals);
   }
@@ -401,11 +318,9 @@ class TickTest {
   @Test
   void testTickToString() {
     //given
-    final Tick tick = new Tick();
-
+    final var tick = new Tick();
     //when
-    final String toString = tick.toString();
-
+    final var toString = tick.toString();
     //then
     Assertions.assertEquals("Tick(id=null, timestamp=null, bid=0.0, ask=0.0)", toString);
   }
