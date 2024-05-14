@@ -21,7 +21,7 @@ class TickListenerTest {
   private TickListener tickListener;
 
   @Test
-  void testPrePersist1() {
+  void testPrePersist() {
     //given
     final var tick = Mockito.spy(new Tick());
     final var symbol = Mockito.mock(Symbol.class);
