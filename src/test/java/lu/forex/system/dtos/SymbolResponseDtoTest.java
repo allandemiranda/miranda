@@ -129,6 +129,32 @@ class SymbolResponseDtoTest {
   }
 
   @ParameterizedTest
+  @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
+  void testSymbolResponseDtoWhenSwapLongIsValid(double swap) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "swapLong", swap);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
+  void testSymbolResponseDtoWhenSwapShortIsValid(double swap) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "swapShort", swap);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
   @EnumSource(Currency.class)
   void testSymbolResponseDtoWhenCurrenciesAreEqualIsInvalid(Currency currency) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
