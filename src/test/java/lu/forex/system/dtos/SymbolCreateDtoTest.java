@@ -17,7 +17,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(strings = {"EURUSD", "USDBRL", "123456"})
   void testSymbolCreateDtoWhenNameNotNullAndSixCharacterIsValid(String name) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -30,7 +30,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(strings = {"", "12345", "1234567"})
   void testSymbolCreateDtoWhenNameLessOrPlusThanSixCharacterIsInvalid(String name) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -42,7 +42,7 @@ class SymbolCreateDtoTest {
 
   @Test
   void testSymbolCreateDtoWhenNameIsNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -55,7 +55,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @EnumSource(Currency.class)
   void testSymbolCreateDtoWhenCurrencyBaseNotNullIsValid(Currency currencyBase) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -67,7 +67,7 @@ class SymbolCreateDtoTest {
 
   @Test
   void testSymbolCreateDtoWhenCurrencyBaseIsNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -80,7 +80,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @EnumSource(Currency.class)
   void testSymbolCreateDtoWhenCurrencyQuoteNotNullIsValid(Currency currencyQuote) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -92,7 +92,7 @@ class SymbolCreateDtoTest {
 
   @Test
   void testSymbolCreateDtoWhenCurrencyQuoteIsNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -105,7 +105,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(ints = {4, 5, 6})
   void testSymbolCreateDtoWhenDigitsPositiveIsValid(int digits) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -118,7 +118,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(ints = {Integer.MIN_VALUE, -1, 0})
   void testSymbolCreateDtoWhenNegativeOrZeroIsValid(int digits) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -131,7 +131,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
   void testSymbolCreateDtoWhenSwapLongIsValid(double swap) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -144,7 +144,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
   void testSymbolCreateDtoWhenSwapShortIsValid(double swap) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -157,7 +157,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @EnumSource(Currency.class)
   void testSymbolCreateDtoWhenCurrenciesAreEqualIsInvalid(Currency currency) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var symbolCreateDto = new SymbolCreateDto("123456", currency, currency, 1, 0, 0);
@@ -171,7 +171,7 @@ class SymbolCreateDtoTest {
   @ParameterizedTest
   @EnumSource(Currency.class)
   void testSymbolCreateDtoWhenCurrenciesAreNotEqualIsValid(Currency currency) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var currencyQuote = Arrays.stream(Currency.values()).filter(c -> !currency.equals(c)).findFirst().orElse(null);

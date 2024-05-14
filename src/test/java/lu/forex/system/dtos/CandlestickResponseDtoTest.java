@@ -17,8 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CandlestickResponseDtoTest {
 
   @Test
-  void testCandlestickResponseDtoIdNotNullIsValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenIdNotNullIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -29,8 +29,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoIdNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenIdNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -41,8 +41,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoSymbolNotNullIsValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenSymbolNotNullIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
@@ -54,8 +54,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoSymbolNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenSymbolNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -67,8 +67,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @EnumSource(TimeFrame.class)
-  void testCandlestickResponseDtoTimeFrameNotNullIsValid(TimeFrame timeFrame) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimeFrameNotNullIsValid(TimeFrame timeFrame) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -79,8 +79,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoTimeFrameNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimeFrameNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -91,8 +91,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoTimestampNotNullOnPastIsValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimestampNotNullOnPastIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var timestamp = LocalDateTime.now().minusYears(1);
@@ -104,8 +104,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoTimestampNotNullOnPresentIsValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimestampNotNullOnPresentIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var timestamp = LocalDateTime.now();
@@ -117,8 +117,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoTimestampNotNullOnFutureIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimestampNotNullOnFutureIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var timestamp = LocalDateTime.now().plusYears(1);
@@ -130,8 +130,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoTimestampIsNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenTimestampIsNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -143,8 +143,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
-  void testCandlestickResponseDtoHighPositiveIsValid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenHighPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -156,8 +156,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {-1d, 0})
-  void testCandlestickResponseDtoHighNegativeOrZeroIsInvalid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenHighNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -169,8 +169,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
-  void testCandlestickResponseDtoLowPositiveIsValid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenLowPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -182,8 +182,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {-1d, 0})
-  void testCandlestickResponseDtoLowNegativeOrZeroIsInvalid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenLowNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -195,8 +195,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
-  void testCandlestickResponseDtoOpenPositiveIsValid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenOpenPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -208,8 +208,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {-1d, 0})
-  void testCandlestickResponseDtoOpenNegativeOrZeroIsInvalid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenOpenNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -221,8 +221,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
-  void testCandlestickResponseDtoClosePositiveIsValid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenClosePositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -234,8 +234,8 @@ class CandlestickResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {-1d, 0})
-  void testCandlestickResponseDtoCloseNegativeOrZeroIsInvalid(double price) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenCloseNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -246,8 +246,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoPriceEqualIsValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenPriceEqualIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 1d, 1d, 1d, 1d);
@@ -260,8 +260,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoPriceValid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenPriceValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 5d, 2d, 3d, 4d);
@@ -274,8 +274,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoHighLowerThanLowIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenHighLowerThanLowIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 3d, 2d, 2d);
@@ -287,8 +287,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoHighLowerThanOpenIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenHighLowerThanOpenIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 3d, 2d);
@@ -300,8 +300,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoHighLowerThanCloseIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenHighLowerThanCloseIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 2d, 2d, 2d, 3d);
@@ -313,8 +313,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoLowHigherThanOpenIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenLowHigherThanOpenIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 3d, 3d, 2d, 3d);
@@ -326,8 +326,8 @@ class CandlestickResponseDtoTest {
   }
 
   @Test
-  void testCandlestickResponseDtoLowHigherThanCloseIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+  void testCandlestickResponseDtoWhenLowHigherThanCloseIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var candlestickResponseDto = new CandlestickResponseDto(null, null, null, null, 3d, 3d, 3d, 2d);

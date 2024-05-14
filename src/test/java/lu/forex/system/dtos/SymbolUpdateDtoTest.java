@@ -13,7 +13,7 @@ class SymbolUpdateDtoTest {
   @ParameterizedTest
   @ValueSource(ints = {4, 5, 6})
   void testSymbolUpdateDtoWhenDigitsPositiveIsValid(int digits) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -26,7 +26,7 @@ class SymbolUpdateDtoTest {
   @ParameterizedTest
   @ValueSource(ints = {Integer.MIN_VALUE, -1, 0})
   void testSymbolUpdateDtoWhenNegativeOrZeroIsValid(int digits) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -39,7 +39,7 @@ class SymbolUpdateDtoTest {
   @ParameterizedTest
   @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
   void testSymbolUpdateDtoWhenSwapLongIsValid(double swap) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
@@ -52,7 +52,7 @@ class SymbolUpdateDtoTest {
   @ParameterizedTest
   @ValueSource(doubles = {Double.MIN_VALUE, 1.15, -1d, 0d, 1d, 1.15, Double.MAX_VALUE})
   void testSymbolUpdateDtoWhenSwapShortIsValid(double swap) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when

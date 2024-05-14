@@ -1,7 +1,7 @@
 package lu.forex.system.dtos;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
@@ -13,8 +13,8 @@ import lu.forex.system.annotations.TickRepresentation;
  * DTO for {@link lu.forex.system.entities.Tick}
  */
 @TickRepresentation
-public record TickResponseDto(@NotNull UUID id, @NotNull SymbolResponseDto symbol, @NotNull @Past LocalDateTime timestamp, @Positive double bid,
-                              @Positive double ask) implements Serializable {
+public record TickResponseDto(@NotNull UUID id, @NotNull SymbolResponseDto symbol, @NotNull @PastOrPresent LocalDateTime timestamp,
+                              @Positive double bid, @Positive double ask) implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -528742790479041766L;
