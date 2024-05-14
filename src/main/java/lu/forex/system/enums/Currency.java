@@ -18,7 +18,7 @@ public enum Currency {
   AUD("AUD", "Australian dollar"),
   CAD("CAD", "Canadian dollar"),
   CNH("CNH", "Chinese Yuan Offshore"),
-  SEK("SEK", "Swedish krona"),;
+  SEK("SEK", "Swedish krona");
   //@formatter:on
 
   @NotNull
