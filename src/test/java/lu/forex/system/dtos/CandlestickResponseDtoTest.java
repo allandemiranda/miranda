@@ -21,8 +21,9 @@ class CandlestickResponseDtoTest {
     try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
-      //when
-      final var validated = validator.validateValue(CandlestickResponseDto.class, "id", UUID.randomUUID());
+      final var id = UUID.randomUUID();
+      //when      
+      final var validated = validator.validateValue(CandlestickResponseDto.class, "id", id);
       //then
       Assertions.assertTrue(validated.isEmpty());
     }

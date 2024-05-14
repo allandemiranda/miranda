@@ -15,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
@@ -60,6 +61,7 @@ public class Candlestick implements Serializable {
   private TimeFrame timeFrame;
 
   @NotNull
+  @PastOrPresent
   @Column(name = "timestamp", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
   private LocalDateTime timestamp;

@@ -19,8 +19,9 @@ class TickResponseDtoTest {
     try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
-      //when
-      final var validated = validator.validateValue(TickResponseDto.class, "id", UUID.randomUUID());
+      final var id = UUID.randomUUID();
+      //when      
+      final var validated = validator.validateValue(TickResponseDto.class, "id", id);
       //then
       Assertions.assertTrue(validated.isEmpty());
     }

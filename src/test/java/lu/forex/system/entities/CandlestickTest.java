@@ -1,619 +1,479 @@
 package lu.forex.system.entities;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.enums.TimeFrame;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class CandlestickTest {
 
-  private static ValidatorFactory validatorFactory;
-  private static UUID uuid;
-
-  @BeforeAll
-  static void setUpBeforeClass() {
-    validatorFactory = Validation.buildDefaultValidatorFactory();
-    uuid = UUID.randomUUID();
-  }
-
-  @AfterAll
-  static void tearDownAfterClass() {
-    validatorFactory.close();
-  }
-
   @Test
-  void testCandlestickAnyIdIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setId(uuid);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "id".equals(candlestickConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickWithNotNullIdIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var id = UUID.randomUUID();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "id", id);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
   void testCandlestickWithNullIdIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setId(null);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "id".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "id", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
   void testCandlestickId() {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
+    final var id = UUID.randomUUID();
     //when
-    candlestick.setId(uuid);
-
+    candlestick.setId(id);
     //then
-    Assertions.assertEquals(uuid, candlestick.getId());
+    Assertions.assertEquals(id, candlestick.getId());
   }
 
   @Test
-  void testCandlestickAnySymbolIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-    final Symbol symbol = new Symbol();
-
-    //when
-    candlestick.setSymbol(symbol);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "symbol".equals(candlestickConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickWhenSymbolNotNullIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var symbol = Mockito.mock(Symbol.class);
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "symbol", symbol);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickWithNullSymbolIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setSymbol(null);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "symbol".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
+  void testCandlestickWhenSymbolNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "symbol", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @Test
   void testCandlestickSymbol() {
     //given
-    final Candlestick candlestick = new Candlestick();
-    final Symbol symbol = new Symbol();
-    symbol.setName("EURUSD");
-
+    final var candlestick = new Candlestick();
+    final var symbol = new Symbol();
     //when
     candlestick.setSymbol(symbol);
-
     //then
     Assertions.assertEquals(symbol, candlestick.getSymbol());
   }
 
   @ParameterizedTest
   @EnumSource(TimeFrame.class)
-  void testCandlestickWithTimeFrameIsValid(TimeFrame timeFrame) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setTimeFrame(timeFrame);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream()
-        .anyMatch(candlestickConstraintViolation -> "timeFrame".equals(candlestickConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickWhenTimeFrameNotNullIsValid(TimeFrame timeFrame) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timeFrame", timeFrame);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickWithNullTimeFrameIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setTimeFrame(null);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "timeFrame".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
+  void testCandlestickWhenTimeFrameNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timeFrame", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
   }
 
   @ParameterizedTest
   @EnumSource(TimeFrame.class)
   void testCandlestickSymbol(TimeFrame timeFrame) {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
     candlestick.setTimeFrame(timeFrame);
-
     //then
     Assertions.assertEquals(timeFrame, candlestick.getTimeFrame());
   }
 
   @Test
-  void testCandlestickAnyTimestampIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
-    //when
-    candlestick.setTimestamp(timestamp);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream()
-        .anyMatch(candlestickConstraintViolation -> "timestamp".equals(candlestickConstraintViolation.getPropertyPath().toString())));
+  void testCandlestickWhenTimestampNotNullOnPastIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().minusYears(1);
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
   }
 
   @Test
-  void testCandlestickWithNullTimestampIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
+  void testCandlestickWhenTimestampNotNullOnPresentIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
 
-    //when
-    candlestick.setTimestamp(null);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
+  @Test
+  void testCandlestickWhenTimestampNotNullOnFutureIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var timestamp = LocalDateTime.now().plusYears(1);
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timestamp", timestamp);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
 
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "timestamp".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.NotNull.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
+  @Test
+  void testCandlestickWhenTimestampIsNullIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "timestamp", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickWhenHighPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "high", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickWhenHighNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "high", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickWhenLowPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "low", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickWhenLowNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "low", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickWhenOpenPositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "open", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickWhenOpenNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "open", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.0001, 0.00001, 0.000001, 1d, Double.MAX_VALUE})
+  void testCandlestickWhenClosePositiveIsValid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "close", price);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {-1d, 0})
+  void testCandlestickWhenCloseNegativeOrZeroIsInvalid(double price) {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(Candlestick.class, "close", price);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testCandlestickWhenPriceEqualIsValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(1d);
+      candlestick.setLow(1d);
+      candlestick.setOpen(1d);
+      candlestick.setClose(1d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertFalse(validated.stream()
+          .anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenPriceValid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(5d);
+      candlestick.setLow(3d);
+      candlestick.setOpen(3d);
+      candlestick.setClose(4d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertFalse(validated.stream()
+          .anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenHighLowerThanLowIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(2d);
+      candlestick.setLow(3d);
+      candlestick.setOpen(2d);
+      candlestick.setClose(2d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenHighLowerThanOpenIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(2d);
+      candlestick.setLow(2d);
+      candlestick.setOpen(3d);
+      candlestick.setClose(2d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenHighLowerThanCloseIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(2d);
+      candlestick.setLow(2d);
+      candlestick.setOpen(2d);
+      candlestick.setClose(3d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenLowHigherThanOpenIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(3d);
+      candlestick.setLow(3d);
+      candlestick.setOpen(2d);
+      candlestick.setClose(3d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "low".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @Test
+  void testCandlestickWhenLowHigherThanCloseIsInvalid() {
+    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      final var candlestick = new Candlestick();
+      candlestick.setHigh(3d);
+      candlestick.setLow(3d);
+      candlestick.setOpen(3d);
+      candlestick.setClose(2d);
+      //when
+      final var validated = validator.validate(candlestick);
+      //then
+      Assertions.assertTrue(validated.stream().anyMatch(violation -> "low".equals(violation.getPropertyPath().toString())));
+    }
   }
 
   @Test
   void testCandlestickTimestamp() {
     //given
-    final Candlestick candlestick = new Candlestick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-
+    final var candlestick = new Candlestick();
+    final var timestamp = LocalDateTime.now();
     //when
     candlestick.setTimestamp(timestamp);
-
     //then
     Assertions.assertEquals(timestamp, candlestick.getTimestamp());
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testCandlestickPositiveAndNotZeroHighIsValid(double high) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(high);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "high".equals(candlestickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testCandlestickNegativeOrZeroHighIsValid(double high) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(high);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "high".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
+  @ValueSource(doubles = {1.12345, 1.23456, 1.1234})
   void testCandlestickHigh(double high) {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
     candlestick.setHigh(high);
-
     //then
     Assertions.assertEquals(high, candlestick.getHigh());
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testCandlestickPositiveAndNotZeroLowIsValid(double low) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setLow(low);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "low".equals(candlestickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testCandlestickNegativeOrZeroLowIsValid(double low) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setLow(low);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "low".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
+  @ValueSource(doubles = {1.12345, 1.23456, 1.1234})
   void testCandlestickLow(double low) {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
     candlestick.setLow(low);
-
     //then
     Assertions.assertEquals(low, candlestick.getLow());
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testCandlestickPositiveAndNotZeroOpenIsValid(double open) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setOpen(open);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "open".equals(candlestickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testCandlestickNegativeOrZeroOpenIsValid(double open) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setOpen(open);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "open".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
+  @ValueSource(doubles = {1.12345, 1.23456, 1.1234})
   void testCandlestickOpen(double open) {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
     candlestick.setOpen(open);
-
     //then
     Assertions.assertEquals(open, candlestick.getOpen());
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1d, 2d, Double.MAX_VALUE})
-  void testCandlestickPositiveAndNotZeroCloseIsValid(double close) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setClose(close);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(
-        validate.stream().anyMatch(candlestickConstraintViolation -> "close".equals(candlestickConstraintViolation.getPropertyPath().toString())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
-  void testCandlestickNegativeOrZeroCloseIsValid(double close) {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setClose(close);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "close".equals(candlestickConstraintViolation.getPropertyPath().toString())
-                                          && "{jakarta.validation.constraints.Positive.message}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0d, -1d, Double.MIN_EXPONENT})
+  @ValueSource(doubles = {1.12345, 1.23456, 1.1234})
   void testCandlestickClose(double close) {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
     candlestick.setClose(close);
-
     //then
     Assertions.assertEquals(close, candlestick.getClose());
   }
 
-  @Test
-  void testCandlestickRepresentationIsValid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(4d);
-    candlestick.setOpen(3d);
-    candlestick.setClose(2d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsValidScenario1() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(1d);
-    candlestick.setOpen(1d);
-    candlestick.setClose(1d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsValidScenario2() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(3d);
-    candlestick.setOpen(2d);
-    candlestick.setClose(2d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsValidScenario3() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(2d);
-    candlestick.setOpen(2d);
-    candlestick.setClose(2d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsValidScenario4() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(3d);
-    candlestick.setOpen(2d);
-    candlestick.setClose(2d);
-    candlestick.setLow(2d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertFalse(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsInvalid() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(1d);
-    candlestick.setOpen(2d);
-    candlestick.setClose(3d);
-    candlestick.setLow(4d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsInvalidScenario1() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(2d);
-    candlestick.setOpen(3d);
-    candlestick.setClose(1d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsInvalidScenario2() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(2d);
-    candlestick.setOpen(1d);
-    candlestick.setClose(3d);
-    candlestick.setLow(1d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsInvalidScenario3() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(2d);
-    candlestick.setOpen(1d);
-    candlestick.setClose(1d);
-    candlestick.setLow(3d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
-
-  @Test
-  void testCandlestickRepresentationIsInvalidScenario4() {
-    //given
-    final Validator validator = validatorFactory.getValidator();
-    final Candlestick candlestick = new Candlestick();
-
-    //when
-    candlestick.setHigh(1d);
-    candlestick.setOpen(1d);
-    candlestick.setClose(1d);
-    candlestick.setLow(3d);
-    final Set<ConstraintViolation<Candlestick>> validate = validator.validate(candlestick);
-
-    //then
-    Assertions.assertTrue(validate.stream().anyMatch(
-        candlestickConstraintViolation -> "{lu.forex.system.annotations.CandlestickRepresentation}".equals(
-            candlestickConstraintViolation.getMessageTemplate())));
-  }
 
   @Test
   void testCandlestickEqualsAndHashCode() {
     //given
-    final Candlestick candlestick1 = new Candlestick();
-    final Candlestick candlestick2 = new Candlestick();
-    final TimeFrame timeFrame = TimeFrame.M15;
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
+    final var candlestick1 = new Candlestick();
+    final var candlestick2 = new Candlestick();
+
+    final var symbol = Mockito.mock(Symbol.class);
+    final var timeFrame = TimeFrame.values()[0];
+    final var timestamp = LocalDateTime.now();
 
     //when
-    candlestick1.setId(uuid);
     candlestick1.setSymbol(symbol);
-    candlestick1.setTimeFrame(timeFrame);
-    candlestick1.setTimestamp(timestamp);
-
-    candlestick2.setId(uuid);
     candlestick2.setSymbol(symbol);
+
+    candlestick1.setTimeFrame(timeFrame);
     candlestick2.setTimeFrame(timeFrame);
+
+    candlestick1.setTimestamp(timestamp);
     candlestick2.setTimestamp(timestamp);
 
     //then
@@ -622,90 +482,11 @@ class CandlestickTest {
   }
 
   @Test
-  void testCandlestickSymbolNotEqualsAndHashCode() {
-    //given
-    final Candlestick candlestick1 = new Candlestick();
-    final Candlestick candlestick2 = new Candlestick();
-    final TimeFrame timeFrame = TimeFrame.M15;
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
-    symbol.setName("EURUSD");
-    final Symbol symbol1 = new Symbol();
-    symbol1.setName("ABCDEF");
-
-    //when
-    candlestick1.setId(uuid);
-    candlestick1.setSymbol(symbol);
-    candlestick1.setTimeFrame(timeFrame);
-    candlestick1.setTimestamp(timestamp);
-
-    candlestick2.setId(uuid);
-    candlestick2.setSymbol(symbol1);
-    candlestick2.setTimeFrame(timeFrame);
-    candlestick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertNotEquals(candlestick1, candlestick2);
-    Assertions.assertNotEquals(candlestick1.hashCode(), candlestick2.hashCode());
-  }
-
-  @Test
-  void testCandlestickTimeFrameNotEqualsAndHashCode() {
-    //given
-    final Candlestick candlestick1 = new Candlestick();
-    final Candlestick candlestick2 = new Candlestick();
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
-
-    //when
-    candlestick1.setId(uuid);
-    candlestick1.setSymbol(symbol);
-    candlestick1.setTimeFrame(TimeFrame.M15);
-    candlestick1.setTimestamp(timestamp);
-
-    candlestick2.setId(uuid);
-    candlestick2.setSymbol(symbol);
-    candlestick2.setTimeFrame(TimeFrame.D1);
-    candlestick2.setTimestamp(timestamp);
-
-    //then
-    Assertions.assertNotEquals(candlestick1, candlestick2);
-    Assertions.assertNotEquals(candlestick1.hashCode(), candlestick2.hashCode());
-  }
-
-  @Test
-  void testCandlestickTimestampNotEqualsAndHashCode() {
-    //given
-    final Candlestick candlestick1 = new Candlestick();
-    final Candlestick candlestick2 = new Candlestick();
-    final TimeFrame timeFrame = TimeFrame.M15;
-    final LocalDateTime timestamp = LocalDateTime.now();
-    final Symbol symbol = new Symbol();
-
-    //when
-    candlestick1.setId(uuid);
-    candlestick1.setSymbol(symbol);
-    candlestick1.setTimeFrame(timeFrame);
-    candlestick1.setTimestamp(timestamp);
-
-    candlestick2.setId(uuid);
-    candlestick2.setSymbol(symbol);
-    candlestick2.setTimeFrame(timeFrame);
-    candlestick2.setTimestamp(timestamp.plusYears(1));
-
-    //then
-    Assertions.assertNotEquals(candlestick1, candlestick2);
-    Assertions.assertNotEquals(candlestick1.hashCode(), candlestick2.hashCode());
-  }
-
-  @Test
   void testCandlestickEquals() {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
-    final boolean equals = candlestick.equals(candlestick);
-
+    final var equals = candlestick.equals(candlestick);
     //then
     Assertions.assertTrue(equals);
   }
@@ -713,11 +494,9 @@ class CandlestickTest {
   @Test
   void testCandlestickEqualsNull() {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
-    final boolean equals = candlestick.equals(null);
-
+    final var equals = candlestick.equals(null);
     //then
     Assertions.assertFalse(equals);
   }
@@ -725,11 +504,9 @@ class CandlestickTest {
   @Test
   void testCandlestickEqualsWrongObjectType() {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
-    final boolean equals = candlestick.equals(new Object());
-
+    final var equals = candlestick.equals(new Object());
     //then
     Assertions.assertFalse(equals);
   }
@@ -737,11 +514,9 @@ class CandlestickTest {
   @Test
   void testCandlestickToString() {
     //given
-    final Candlestick candlestick = new Candlestick();
-
+    final var candlestick = new Candlestick();
     //when
-    final String toString = candlestick.toString();
-
+    final var toString = candlestick.toString();
     //then
     Assertions.assertEquals("Candlestick(id=null, timeFrame=null, timestamp=null, high=0.0, low=0.0, open=0.0, close=0.0)", toString);
   }
