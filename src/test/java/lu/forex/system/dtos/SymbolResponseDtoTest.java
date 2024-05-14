@@ -12,16 +12,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SymbolCreateDtoTest {
+class SymbolResponseDtoTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"EURUSD", "USDBRL", "123456"})
-  void testSymbolCreateDtoWhenNameNotNullAndSixCharacterIsValid(String name) {
+  void testSymbolResponseDtoWhenNameNotNullAndSixCharacterIsValid(String name) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "name", name);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "name", name);
       //then
       Assertions.assertTrue(validated.isEmpty());
     }
@@ -29,49 +29,24 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"", "12345", "1234567"})
-  void testSymbolCreateDtoWhenNameLessOrPlusThanSixCharacterIsInvalid(String name) {
+  void testSymbolResponseDtoWhenNameLessOrPlusThanSixCharacterIsInvalid(String name) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "name", name);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "name", name);
       //then
       Assertions.assertFalse(validated.isEmpty());
     }
   }
 
   @Test
-  void testSymbolCreateDtoWhenNameIsNullIsInvalid() {
+  void testSymbolResponseDtoWhenNameIsNullIsInvalid() {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "name", null);
-      //then
-      Assertions.assertFalse(validated.isEmpty());
-    }
-  }
-
-  @ParameterizedTest
-  @EnumSource(Currency.class)
-  void testSymbolCreateDtoWhenCurrencyBaseNotNullIsValid(Currency currencyBase) {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
-      //given
-      final var validator = validatorFactory.getValidator();
-      //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "currencyBase", currencyBase);
-      //then
-      Assertions.assertTrue(validated.isEmpty());
-    }
-  }
-
-  @Test
-  void testSymbolCreateDtoWhenCurrencyBaseIsNullIsInvalid() {
-    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
-      //given
-      final var validator = validatorFactory.getValidator();
-      //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "currencyBase", null);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "name", null);
       //then
       Assertions.assertFalse(validated.isEmpty());
     }
@@ -79,24 +54,49 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @EnumSource(Currency.class)
-  void testSymbolCreateDtoWhenCurrencyQuoteNotNullIsValid(Currency currencyQuote) {
+  void testSymbolResponseDtoWhenCurrencyBaseNotNullIsValid(Currency currencyBase) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "currencyQuote", currencyQuote);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "currencyBase", currencyBase);
       //then
       Assertions.assertTrue(validated.isEmpty());
     }
   }
 
   @Test
-  void testSymbolCreateDtoWhenCurrencyQuoteIsNullIsInvalid() {
+  void testSymbolResponseDtoWhenCurrencyBaseIsNullIsInvalid() {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "currencyQuote", null);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "currencyBase", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(Currency.class)
+  void testSymbolResponseDtoWhenCurrencyQuoteNotNullIsValid(Currency currencyQuote) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "currencyQuote", currencyQuote);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testSymbolResponseDtoWhenCurrencyQuoteIsNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "currencyQuote", null);
       //then
       Assertions.assertFalse(validated.isEmpty());
     }
@@ -104,12 +104,12 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @ValueSource(ints = {4, 5, 6})
-  void testSymbolCreateDtoWhenDigitsPositiveIsValid(int digits) {
+  void testSymbolResponseDtoWhenDigitsPositiveIsValid(int digits) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "digits", digits);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "digits", digits);
       //then
       Assertions.assertTrue(validated.isEmpty());
     }
@@ -117,12 +117,12 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @ValueSource(ints = {Integer.MIN_VALUE, -1, 0})
-  void testSymbolCreateDtoWhenNegativeOrZeroIsValid(int digits) {
+  void testSymbolResponseDtoWhenNegativeOrZeroIsValid(int digits) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       //when
-      final var validated = validator.validateValue(SymbolCreateDto.class, "digits", digits);
+      final var validated = validator.validateValue(SymbolResponseDto.class, "digits", digits);
       //then
       Assertions.assertFalse(validated.isEmpty());
     }
@@ -130,13 +130,13 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @EnumSource(Currency.class)
-  void testSymbolCreateDtoWhenCurrenciesAreEqualIsInvalid(Currency currency) {
+  void testSymbolResponseDtoWhenCurrenciesAreEqualIsInvalid(Currency currency) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
-      final var symbolCreateDto = new SymbolCreateDto("123456", currency, currency, 1, 0, 0);
+      final var SymbolResponseDto = new SymbolResponseDto("123456", currency, currency, 1, 0, 0, "");
       //when
-      final var validated = validator.validate(symbolCreateDto);
+      final var validated = validator.validate(SymbolResponseDto);
       //then
       Assertions.assertTrue(validated.stream().anyMatch(violation -> "currencyBase".equals(violation.getPropertyPath().toString())));
     }
@@ -144,17 +144,54 @@ class SymbolCreateDtoTest {
 
   @ParameterizedTest
   @EnumSource(Currency.class)
-  void testSymbolCreateDtoWhenCurrenciesAreNotEqualIsValid(Currency currency) {
+  void testSymbolResponseDtoWhenCurrenciesAreNotEqualIsValid(Currency currency) {
     try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
       //given
       final var validator = validatorFactory.getValidator();
       final var currencyQuote = Arrays.stream(Currency.values()).filter(c -> !currency.equals(c)).findFirst().orElse(null);
       assert currencyQuote != null;
-      final var symbolCreateDto = new SymbolCreateDto("123456", currency, currencyQuote, 1, 0, 0);
+      final var SymbolResponseDto = new SymbolResponseDto("123456", currency, currencyQuote, 1, 0, 0, "");
       //when
-      final var validated = validator.validate(symbolCreateDto);
+      final var validated = validator.validate(SymbolResponseDto);
       //then
       Assertions.assertFalse(validated.stream().anyMatch(violation -> "currencyBase".equals(violation.getPropertyPath().toString())));
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"EUR vs USD", "notEmpty"})
+  void testSymbolResponseDtoWhenDescriptionNotNullAndNotBlankIsValid(String description) {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "description", description);
+      //then
+      Assertions.assertTrue(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testSymbolResponseDtoWhenDescriptionNullIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "description", null);
+      //then
+      Assertions.assertFalse(validated.isEmpty());
+    }
+  }
+
+  @Test
+  void testSymbolResponseDtoWhenDescriptionNotNullAndBlankIsInvalid() {
+    try (var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+      //given
+      final var validator = validatorFactory.getValidator();
+      //when
+      final var validated = validator.validateValue(SymbolResponseDto.class, "description", "");
+      //then
+      Assertions.assertFalse(validated.isEmpty());
     }
   }
 }

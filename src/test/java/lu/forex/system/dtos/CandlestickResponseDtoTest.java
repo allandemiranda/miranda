@@ -1,10 +1,7 @@
 package lu.forex.system.dtos;
 
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import java.time.LocalDateTime;
-import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.enums.TimeFrame;
 import org.junit.jupiter.api.Assertions;
@@ -257,7 +254,8 @@ class CandlestickResponseDtoTest {
       //when
       final var validated = validator.validate(candlestickResponseDto);
       //then
-      Assertions.assertFalse(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+      Assertions.assertFalse(validated.stream()
+          .anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
     }
   }
 
@@ -270,7 +268,8 @@ class CandlestickResponseDtoTest {
       //when
       final var validated = validator.validate(candlestickResponseDto);
       //then
-      Assertions.assertFalse(validated.stream().anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
+      Assertions.assertFalse(validated.stream()
+          .anyMatch(violation -> "high".equals(violation.getPropertyPath().toString()) || "low".equals(violation.getPropertyPath().toString())));
     }
   }
 
