@@ -29,7 +29,7 @@ class SymbolProviderTest {
   private SymbolProvider symbolProvider;
 
   @Test
-  void getSymbolsSuccessful() {
+  void testGetSymbolsSuccessful() {
     //given
     final var symbolCollection = List.of(new Symbol());
     final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
@@ -44,7 +44,7 @@ class SymbolProviderTest {
   }
 
   @Test
-  void getSymbolSuccessful() {
+  void testGetSymbolSuccessful() {
     //given
     final var name = "TestName";
     final var optionalSymbol = Optional.of(new Symbol());
@@ -60,7 +60,7 @@ class SymbolProviderTest {
   }
 
   @Test
-  void addSymbolSuccessful() {
+  void testAddSymbolSuccessful() {
     //given
     final var symbolCreateDto = Mockito.mock(SymbolCreateDto.class);
     final var symbol = Mockito.mock(Symbol.class);
@@ -76,7 +76,7 @@ class SymbolProviderTest {
   }
 
   @Test
-  void updateSymbolSuccessful() {
+  void testUpdateSymbolSuccessful() {
     //given
     final var symbolUpdateDto = Mockito.mock(SymbolUpdateDto.class);
     final var name = "TestSymbol";
@@ -88,7 +88,7 @@ class SymbolProviderTest {
   }
 
   @Test
-  void deleteSymbolSuccessful() {
+  void testDeleteSymbolSuccessful() {
     //given
     final var name = "TestSymbol";
     //when
