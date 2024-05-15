@@ -1,17 +1,20 @@
 package lu.forex.system.providers;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.Candlestick;
+import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.repositories.CandlestickRepository;
+import lu.forex.system.utils.TimeFrameUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -27,32 +30,94 @@ class CandlestickProviderTests {
   private CandlestickMapper candlestickMapper;
 
   @InjectMocks
-  private CandlestickProvider candlestickService;
+  private CandlestickProvider candlestickProvider;
 
   @ParameterizedTest
-  @CsvSource(textBlock = """
-      EURUSD, M15
-      USDJPY, H1
-      GBPUSD, D1
-      """)
-  void getCandlesticks(final String symbolName, final TimeFrame timeFrame) {
+  @EnumSource(TimeFrame.class)
+  void testGetCandlesticksSuccessful(TimeFrame timeFrame) {
     //given
-    final Candlestick candlestick1 = new Candlestick();
-    final Candlestick candlestick2 = new Candlestick();
-    final List<Candlestick> candlesticks = Arrays.asList(candlestick1, candlestick2);
-    final CandlestickResponseDto dto1 = Mockito.mock(CandlestickResponseDto.class);
-    final CandlestickResponseDto dto2 = Mockito.mock(CandlestickResponseDto.class);
-    final List<CandlestickResponseDto> expectedDtos = Arrays.asList(dto1, dto2);
-
+    final var symbolName = "TestSymbolName";
+    final var candlestickCollection = List.of(new Candlestick());
+    final var candlestickResponseDto = Mockito.mock(CandlestickResponseDto.class);
     //when
-    Mockito.when(candlestickRepository.findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame)).thenReturn(candlesticks);
-    Mockito.when(candlestickMapper.toDto(candlestick1)).thenReturn(dto1);
-    Mockito.when(candlestickMapper.toDto(candlestick2)).thenReturn(dto2);
-    final Collection<CandlestickResponseDto> actualDtos = candlestickService.getCandlesticks(symbolName, timeFrame);
-
+    Mockito.when(candlestickRepository.findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame)).thenReturn(candlestickCollection);
+    Mockito.when(candlestickMapper.toDto(Mockito.any(Candlestick.class))).thenReturn(candlestickResponseDto);
+    final var result = candlestickProvider.getCandlesticks(symbolName, timeFrame);
     //then
-    Assertions.assertEquals(expectedDtos.size(), actualDtos.size());
-    Mockito.verify(candlestickRepository).findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame);
-    Mockito.verify(candlestickMapper, Mockito.times(2)).toDto(Mockito.any());
+    Assertions.assertNotNull(result);
+    Assertions.assertEquals(1, result.size());
+    Assertions.assertTrue(result.stream().anyMatch(candlestickResponseDto::equals));
+  }
+
+  @Test
+  void testCreateOrUpdateCandlestickSuccessfulCreate() {
+    //given
+    final var symbol = Mockito.mock(Symbol.class);
+    final var timestamp = LocalDateTime.now();
+    final double price = 1.1234;
+    //when
+    Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
+        .thenReturn(Optional.empty());
+    candlestickProvider.createOrUpdateCandlestick(symbol, timestamp, price);
+    //then
+    Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
+        .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
+    Mockito.verify(candlestickRepository, Mockito.times(1)).saveAllAndFlush(Mockito.any());
+  }
+
+  @Test
+  void testCreateOrUpdateCandlestickSuccessfulUpdate() {
+    //given
+    final var timestamp = LocalDateTime.now();
+    try (final var timeFrameUtilsMockedStatic = Mockito.mockStatic(TimeFrameUtils.class)) {
+      final var symbol = Mockito.mock(Symbol.class);
+      final double price = 1.1234;
+      final var candlestick = Mockito.spy(new Candlestick());
+      //when
+      Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
+          .thenReturn(Optional.of(candlestick));
+      timeFrameUtilsMockedStatic.when(() -> TimeFrameUtils.getCandlestickDateTime(Mockito.any(), Mockito.any())).thenReturn(timestamp);
+      Mockito.when(candlestick.getTimestamp()).thenReturn(timestamp);
+
+      Mockito.when(candlestick.getHigh()).thenReturn(price);
+      Mockito.when(candlestick.getLow()).thenReturn(price);
+
+      candlestickProvider.createOrUpdateCandlestick(symbol, timestamp, price);
+      //then
+      Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
+          .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
+      Mockito.verify(candlestickRepository, Mockito.times(1)).saveAllAndFlush(Mockito.any());
+      Assertions.assertEquals(price, candlestick.getHigh());
+      Assertions.assertEquals(price, candlestick.getClose());
+      Assertions.assertEquals(0.0, candlestick.getOpen());
+    }
+  }
+
+  @Test
+  void testCreateOrUpdateCandlestickSuccessfulUpdateLowerPrice() {
+    //given
+    final var timestamp = LocalDateTime.now();
+    try (final var timeFrameUtilsMockedStatic = Mockito.mockStatic(TimeFrameUtils.class)) {
+      final var symbol = Mockito.mock(Symbol.class);
+      final double price = 1.1234;
+      final var candlestick = Mockito.spy(new Candlestick());
+      candlestick.setLow(2d);
+      candlestick.setHigh(price);
+      //when
+      Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
+          .thenReturn(Optional.of(candlestick));
+      timeFrameUtilsMockedStatic.when(() -> TimeFrameUtils.getCandlestickDateTime(Mockito.any(), Mockito.any())).thenReturn(timestamp);
+      Mockito.when(candlestick.getTimestamp()).thenReturn(timestamp);
+
+      candlestickProvider.createOrUpdateCandlestick(symbol, timestamp, price);
+      //then
+      Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
+          .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
+      Mockito.verify(candlestickRepository, Mockito.times(1)).saveAllAndFlush(Mockito.any());
+      Assertions.assertEquals(price, candlestick.getHigh());
+      Assertions.assertEquals(price, candlestick.getLow());
+      Assertions.assertEquals(price, candlestick.getClose());
+      Assertions.assertEquals(0.0, candlestick.getOpen());
+    }
   }
 }

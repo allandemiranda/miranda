@@ -1,6 +1,5 @@
 package lu.forex.system.providers;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import lu.forex.system.dtos.SymbolCreateDto;
@@ -30,75 +29,72 @@ class SymbolProviderTest {
   private SymbolProvider symbolProvider;
 
   @Test
-  void getSymbols() {
+  void getSymbolsSuccessful() {
     //given
-    final SymbolResponseDto symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
-    final Symbol symbol = new Symbol();
-    final List<Symbol> symbolList = Collections.singletonList(symbol);
-
+    final var symbolCollection = List.of(new Symbol());
+    final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
     //when
-    Mockito.when(symbolRepository.findAll()).thenReturn(symbolList);
+    Mockito.when(symbolRepository.findAll()).thenReturn(symbolCollection);
     Mockito.when(symbolMapper.toDto(Mockito.any(Symbol.class))).thenReturn(symbolResponseDto);
-
+    final var symbols = symbolProvider.getSymbols();
     //then
-    Assertions.assertNotNull(symbolProvider.getSymbols());
+    Assertions.assertNotNull(symbols);
+    Assertions.assertEquals(1, symbols.size());
+    Assertions.assertTrue(symbols.stream().anyMatch(symbolResponseDto::equals));
   }
 
   @Test
-  void getSymbol() {
+  void getSymbolSuccessful() {
     //given
-    final Optional<Symbol> optionalSymbol = Optional.of(new Symbol());
-    final SymbolResponseDto symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
-
+    final var name = "TestName";
+    final var optionalSymbol = Optional.of(new Symbol());
+    final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
     //when
-    Mockito.when(symbolRepository.findFirstByNameOrderByNameAsc(Mockito.anyString())).thenReturn(optionalSymbol);
+    Mockito.when(symbolRepository.findFirstByNameOrderByNameAsc(name)).thenReturn(optionalSymbol);
     Mockito.when(symbolMapper.toDto(Mockito.any(Symbol.class))).thenReturn(symbolResponseDto);
-
+    final var symbolResponseDtoOptional = symbolProvider.getSymbol(name);
     //then
-    Assertions.assertNotNull(symbolProvider.getSymbol("TestSymbol"));
+    Assertions.assertNotNull(symbolResponseDtoOptional);
+    Assertions.assertTrue(symbolResponseDtoOptional.isPresent());
+    Assertions.assertEquals(symbolResponseDto, symbolResponseDtoOptional.get());
   }
 
   @Test
-  void addSymbol() {
+  void addSymbolSuccessful() {
     //given
-    final SymbolCreateDto symbolCreateDto = Mockito.mock(SymbolCreateDto.class);
-    final Symbol symbol = new Symbol();
-    final SymbolResponseDto symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
-
+    final var symbolCreateDto = Mockito.mock(SymbolCreateDto.class);
+    final var symbol = Mockito.mock(Symbol.class);
+    final var symbolResponseDto = Mockito.mock(SymbolResponseDto.class);
     //when
     Mockito.when(symbolMapper.toEntity(symbolCreateDto)).thenReturn(symbol);
-    Mockito.when(symbolRepository.save(symbol)).thenReturn(symbol);
+    Mockito.when(symbolRepository.saveAndFlush(symbol)).thenReturn(symbol);
     Mockito.when(symbolMapper.toDto(symbol)).thenReturn(symbolResponseDto);
-
+    final var responseDto = symbolProvider.addSymbol(symbolCreateDto);
     //then
-    Assertions.assertNotNull(symbolProvider.addSymbol(symbolCreateDto));
+    Assertions.assertNotNull(responseDto);
+    Assertions.assertEquals(symbolResponseDto, responseDto);
   }
 
   @Test
-  void updateSymbol() {
+  void updateSymbolSuccessful() {
     //given
-    final SymbolUpdateDto symbolUpdateDto = Mockito.mock(SymbolUpdateDto.class);
-    final String name = "TestSymbol";
-
+    final var symbolUpdateDto = Mockito.mock(SymbolUpdateDto.class);
+    final var name = "TestSymbol";
     //when
     symbolProvider.updateSymbol(symbolUpdateDto, name);
-
     //then
     Mockito.verify(symbolRepository)
         .updateDigitsAndSwapLongAndSwapShortByName(symbolUpdateDto.digits(), symbolUpdateDto.swapLong(), symbolUpdateDto.swapShort(), name);
   }
 
   @Test
-  void deleteSymbol() {
+  void deleteSymbolSuccessful() {
     //given
-    final String name = "TestSymbol";
-
+    final var name = "TestSymbol";
     //when
     symbolProvider.deleteSymbol(name);
-
     //then
     Mockito.verify(symbolRepository).deleteByName(name);
   }
-
 
 }

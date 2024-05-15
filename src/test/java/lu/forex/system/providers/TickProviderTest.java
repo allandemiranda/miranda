@@ -40,10 +40,11 @@ class TickProviderTest {
     //given
     final var tickCollection = List.of(new Tick());
     final var tickResponseDto = Mockito.mock(TickResponseDto.class);
+    final var symbolName = "TestSymbolName";
     //when
-    Mockito.when(tickRepository.findBySymbol_NameOrderByTimestampAsc(Mockito.anyString())).thenReturn(tickCollection);
+    Mockito.when(tickRepository.findBySymbol_NameOrderByTimestampAsc(symbolName)).thenReturn(tickCollection);
     Mockito.when(tickMapper.toDto(Mockito.any(Tick.class))).thenReturn(tickResponseDto);
-    final var ticks = tickProvider.getTicks("TestSymbol");
+    final var ticks = tickProvider.getTicks(symbolName);
     //then
     Assertions.assertNotNull(ticks);
     Assertions.assertEquals(1, ticks.size());
@@ -54,7 +55,7 @@ class TickProviderTest {
   void testAddTickSuccessful() {
     //given
     final var tickCreateDto = Mockito.mock(TickCreateDto.class);
-    final var symbolName = "TestSymbol";
+    final var symbolName = "TestSymbolName";
     final var symbol = Mockito.mock(Symbol.class);
     final var timestamp = LocalDateTime.now().minusSeconds(1);
     final var tick = Mockito.mock(Tick.class);
