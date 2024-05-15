@@ -26,7 +26,7 @@ public class SymbolEntityValidator implements ConstraintValidator<SymbolCurrency
   }
 
   @Override
-  public boolean isValid(final @NotNull Symbol value, final ConstraintValidatorContext context) {
+  public boolean isValid(final @NotNull Symbol value, final @NotNull ConstraintValidatorContext context) {
     context.disableDefaultConstraintViolation();
     context.buildConstraintViolationWithTemplate(this.getConstraintAnnotation().message()).addPropertyNode(CURRENCY_BASE).addConstraintViolation();
     return !value.getCurrencyBase().equals(value.getCurrencyQuote());
