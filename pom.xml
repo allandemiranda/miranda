@@ -15,7 +15,7 @@
   <artifactId>miranda</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>Miranda</name>
-  <description>Demo project for Spring Boot</description>
+  <description>Forex operation</description>
 
   <properties>
     <maven.compiler.source>22</maven.compiler.source>
