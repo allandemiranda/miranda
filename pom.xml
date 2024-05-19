@@ -12,7 +12,7 @@
   </parent>
 
   <groupId>lu.forex.system</groupId>
-  <artifactId>miranda</artifactId>
+  <artifactId>miranda-api</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>miranda-api</name>
   <description>Forex operation</description>
