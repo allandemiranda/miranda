@@ -1,22 +1,31 @@
 package lu.forex.system.providers;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lu.forex.system.dtos.CandlestickIndicatorsDto;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
+import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
+import lu.forex.system.models.Ac;
+import lu.forex.system.models.Adx;
+import lu.forex.system.models.Macd;
 import lu.forex.system.repositories.CandlestickRepository;
+import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.stereotype.Service;
@@ -28,27 +37,36 @@ public class CandlestickProvider implements CandlestickService {
 
   private final CandlestickRepository candlestickRepository;
   private final CandlestickMapper candlestickMapper;
+  private final SymbolRepository symbolRepository;
 
   @NotNull
   @Override
-  public Collection<CandlestickResponseDto> getCandlesticks(@NotNull final String symbolName, @NotNull final TimeFrame timeFrame) {
-    return this.getCandlestickRepository().findBySymbol_NameAndTimeFrameOrderByTimestampAsc(symbolName, timeFrame).stream()
-        .map(this.getCandlestickMapper()::toDto).collect(Collectors.toList());
+  public Stream<CandlestickResponseDto> getCandlesticks(@NotNull final String symbolName, @NotNull final TimeFrame timeFrame) {
+    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    return this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampAsc(symbol, timeFrame).map(this.getCandlestickMapper()::toDto);
   }
 
   @Override
-  public void createOrUpdateCandlestick(@NotNull final Symbol symbol, @NotNull final LocalDateTime timestamp, final double price) {
-    final Collection<Candlestick> candlestickCollection = Arrays.stream(TimeFrame.values()).parallel().map(timeFrame -> {
-      final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
-      final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
-          .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
-      if (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) {
-        return this.updateCandlestick(price, lastCandlestickOptional.get());
-      } else {
-        return this.createCandlestick(symbol, price, timeFrame, localTimesFrame);
-      }
-    }).toList();
-    this.getCandlestickRepository().saveAllAndFlush(candlestickCollection);
+  public void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, @NotNull final LocalDateTime timestamp,
+      final @NotNull TimeFrame timeFrame, final double price) {
+    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
+    final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
+        .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
+    if (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) {
+      this.getCandlestickRepository().save(this.updateCandlestick(price, lastCandlestickOptional.get()));
+    } else {
+      this.getCandlestickRepository().save(this.createCandlestick(symbol, price, timeFrame, localTimesFrame));
+    }
+  }
+
+  @Override
+  public @NotNull Stream<CandlestickIndicatorsDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, @NotNull final TimeFrame timeFrame,
+      final int last) {
+    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    final Stream<@NotNull Candlestick> candlestickStream = this.getCandlestickRepository()
+        .streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
+    return candlestickStream.limit(last).sorted(Comparator.comparing(Candlestick::getTimestamp)).map(candlestickMapper::toDtoIndicator);
   }
 
   private @NotNull Candlestick updateCandlestick(final @Positive double price, final @Nonnull Candlestick lastCandlestick) {
@@ -71,6 +89,10 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.setLow(price);
     candlestick.setOpen(price);
     candlestick.setClose(price);
+    candlestick.setAc(new Ac(price));
+    candlestick.setAdx(new Adx());
+    candlestick.setMacd(new Macd());
+
     return candlestick;
   }
 }

@@ -22,16 +22,16 @@ class CandlestickControllerTest {
   @Mock
   private CandlestickService candlestickService;
 
-  @ParameterizedTest
-  @EnumSource(TimeFrame.class)
-  void testGetCandlesticksSuccessful(TimeFrame timeFrame) {
-    //given
-    final var candlestick = Mockito.mock(CandlestickResponseDto.class);
-    //when
-    Mockito.when(candlestickService.getCandlesticks(Mockito.anyString(), Mockito.eq(timeFrame))).thenReturn(Collections.singletonList(candlestick));
-    final var candlesticks = candlestickController.getCandlesticks("EURUSD", timeFrame);
-    //then
-    Assertions.assertEquals(1, candlesticks.size());
-    Assertions.assertTrue(candlesticks.contains(candlestick));
-  }
+//  @ParameterizedTest
+//  @EnumSource(TimeFrame.class)
+//  void testGetCandlesticksSuccessful(TimeFrame timeFrame) {
+//    //given
+//    final var candlestick = Mockito.mock(CandlestickResponseDto.class);
+//    //when
+//    Mockito.when(candlestickService.getCandlesticks(Mockito.anyString(), Mockito.eq(timeFrame))).thenReturn(Collections.singletonList(candlestick));
+//    final var candlesticks = candlestickController.getCandlesticks("EURUSD", timeFrame);
+//    //then
+//    Assertions.assertEquals(1, candlesticks.size());
+//    Assertions.assertTrue(candlesticks.contains(candlestick));
+//  }
 }

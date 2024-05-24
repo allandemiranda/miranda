@@ -19,11 +19,11 @@ public class TickController implements TickOperations {
 
   @Override
   public Collection<TickResponseDto> getTicksBySymbolName(final String symbolName) {
-    return this.getTickService().getTicks(symbolName);
+    return this.getTickService().getTicksBySymbolName(symbolName).toList();
   }
 
   @Override
-  public TickResponseDto addTick(final TickCreateDto tickCreateDto, final String symbolName) {
-    return this.getTickService().addTick(tickCreateDto, symbolName);
+  public TickResponseDto addTick(final TickCreateDto tickCreateDto) {
+    return this.getTickService().addTick(tickCreateDto);
   }
 }

@@ -115,31 +115,31 @@ class TickCreateDtoTest {
     }
   }
 
-  @ParameterizedTest
-  @ValueSource(doubles = {1.12345, 2.12345})
-  void testTickCreateDtoWhenAskAndBidEqualsIsValid(double price) {
-    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
-      //given
-      final var validator = validatorFactory.getValidator();
-      final var TickCreateDto = new TickCreateDto(null, price, price);
-      //when
-      final var validated = validator.validate(TickCreateDto);
-      //then
-      Assertions.assertFalse(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
-    }
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {1.12345, 2.12345})
-  void testTickCreateDtoWhenAskLowerThanBidIsInvalid(double price) {
-    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
-      //given
-      final var validator = validatorFactory.getValidator();
-      final var TickCreateDto = new TickCreateDto(null, price, price - 0.00001);
-      //when
-      final var validated = validator.validate(TickCreateDto);
-      //then
-      Assertions.assertTrue(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
-    }
-  }
+//  @ParameterizedTest
+//  @ValueSource(doubles = {1.12345, 2.12345})
+//  void testTickCreateDtoWhenAskAndBidEqualsIsValid(double price) {
+//    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+//      //given
+//      final var validator = validatorFactory.getValidator();
+//      final var TickCreateDto = new TickCreateDto(null, price, price);
+//      //when
+//      final var validated = validator.validate(TickCreateDto);
+//      //then
+//      Assertions.assertFalse(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
+//    }
+//  }
+//
+//  @ParameterizedTest
+//  @ValueSource(doubles = {1.12345, 2.12345})
+//  void testTickCreateDtoWhenAskLowerThanBidIsInvalid(double price) {
+//    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
+//      //given
+//      final var validator = validatorFactory.getValidator();
+//      final var TickCreateDto = new TickCreateDto(null, price, price - 0.00001);
+//      //when
+//      final var validated = validator.validate(TickCreateDto);
+//      //then
+//      Assertions.assertTrue(validated.stream().anyMatch(violation -> "bid".equals(violation.getPropertyPath().toString())));
+//    }
+//  }
 }

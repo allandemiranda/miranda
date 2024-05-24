@@ -5,10 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lu.forex.system.entities.Tick;
+import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.services.CandlestickService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @Getter(AccessLevel.PRIVATE)
@@ -16,15 +17,17 @@ public class TickListener {
 
   private final CandlestickService candlestickService;
 
-  @Autowired
   public TickListener(final @Lazy CandlestickService candlestickService) {
     this.candlestickService = candlestickService;
   }
 
   @PrePersist
+  @Transactional()
   public void prePersist(final @NotNull Tick tick) {
     // Use bid price for generate candlesticks and for make statistic calculations
-    this.getCandlestickService().createOrUpdateCandlestick(tick.getSymbol(), tick.getTimestamp(), tick.getBid());
+    // for (TimeFrame timeFrame : TimeFrame.values()) {
+    this.getCandlestickService().createOrUpdateCandlestickByPrice(tick.getSymbol().getName(), tick.getTimestamp(), TimeFrame.M15, tick.getBid());
+    //}
   }
 
 }

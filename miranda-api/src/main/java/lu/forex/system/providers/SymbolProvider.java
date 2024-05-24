@@ -1,8 +1,8 @@
 package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,21 +25,21 @@ public class SymbolProvider implements SymbolService {
 
   @NotNull
   @Override
-  public Collection<@NotNull SymbolResponseDto> getSymbols() {
-    return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto).toList();
+  public Stream<@NotNull SymbolResponseDto> getSymbols() {
+    return this.getSymbolRepository().findAll().stream().map(symbolMapper::toDto);
   }
 
   @NotNull
   @Override
   public Optional<@NotNull SymbolResponseDto> getSymbol(@NotNull final String name) {
-    return this.getSymbolRepository().findFirstByNameOrderByNameAsc(name).map(symbolMapper::toDto);
+    return this.getSymbolRepository().findFirstByName(name).map(symbolMapper::toDto);
   }
 
   @NotNull
   @Override
   public SymbolResponseDto addSymbol(@NotNull final SymbolCreateDto symbolCreateDto) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolCreateDto);
-    final Symbol saved = this.getSymbolRepository().saveAndFlush(symbol);
+    final Symbol saved = this.getSymbolRepository().save(symbol);
     return this.getSymbolMapper().toDto(saved);
   }
 

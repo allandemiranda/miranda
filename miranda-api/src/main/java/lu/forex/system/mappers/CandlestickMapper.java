@@ -1,5 +1,6 @@
 package lu.forex.system.mappers;
 
+import lu.forex.system.dtos.CandlestickIndicatorsDto;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.Candlestick;
 import org.mapstruct.Mapper;
@@ -10,4 +11,6 @@ import org.mapstruct.ReportingPolicy;
 public interface CandlestickMapper {
 
   CandlestickResponseDto toDto(Candlestick candlestick);
+
+  CandlestickIndicatorsDto toDtoIndicator(Candlestick candlestick);
 }

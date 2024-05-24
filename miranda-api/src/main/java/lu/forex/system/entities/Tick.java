@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
@@ -33,6 +34,7 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @ToString
+@RequiredArgsConstructor
 @Entity
 @EntityListeners(TickListener.class)
 @Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_name", columnList = "symbol_name")}, uniqueConstraints = {
@@ -44,15 +46,14 @@ public class Tick implements Serializable {
   private static final long serialVersionUID = 8640594898040399917L;
 
   @Id
-  @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, unique = true)
   private UUID id;
 
   @NotNull
+  @Exclude
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
-  @Exclude
   private Symbol symbol;
 
   @NotNull
@@ -62,12 +63,12 @@ public class Tick implements Serializable {
   private LocalDateTime timestamp;
 
   @Positive
-  @Column(name = "high", nullable = false, updatable = false)
+  @Column(name = "bid", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double bid;
 
   @Positive
-  @Column(name = "low", nullable = false, updatable = false)
+  @Column(name = "ask", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double ask;
 

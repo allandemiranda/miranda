@@ -17,6 +17,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lu.forex.system.annotations.SymbolCurrencyRepresentation;
@@ -27,6 +28,7 @@ import org.hibernate.type.SqlTypes;
 @Getter
 @Setter
 @ToString
+@RequiredArgsConstructor
 @Entity
 @Table(name = "symbol", indexes = {@Index(name = "idx_symbol_name", columnList = "name, currency_base, currency_quote")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_symbol_name_currency_base", columnNames = {"name", "currency_base", "currency_quote"})})
@@ -37,7 +39,6 @@ public class Symbol implements Serializable {
   private static final long serialVersionUID = -7531266602862670746L;
 
   @Id
-  @NotNull
   @NotBlank
   @Size(min = 6, max = 6)
   @Column(name = "name", nullable = false, unique = true, length = 6)

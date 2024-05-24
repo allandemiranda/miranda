@@ -3,6 +3,7 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -23,17 +24,22 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
 import lu.forex.system.annotations.CandlestickRepresentation;
 import lu.forex.system.enums.TimeFrame;
+import lu.forex.system.models.Ac;
+import lu.forex.system.models.Adx;
+import lu.forex.system.models.Macd;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
 @ToString
+@RequiredArgsConstructor
 @Entity
 @Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})})
@@ -44,15 +50,14 @@ public class Candlestick implements Serializable {
   private static final long serialVersionUID = 8655855891835745603L;
 
   @Id
-  @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, unique = true)
   private UUID id;
 
   @NotNull
+  @Exclude
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
-  @Exclude
   private Symbol symbol;
 
   @NotNull
@@ -85,6 +90,15 @@ public class Candlestick implements Serializable {
   @Column(name = "close", nullable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double close;
+
+  @Column(name = "ac", nullable = false)
+  private Ac ac;
+
+  @Column(name = "adx", nullable = false)
+  private Adx adx;
+
+  @Column(name = "macd", nullable = false)
+  private Macd macd;
 
   @Override
   public boolean equals(final Object o) {

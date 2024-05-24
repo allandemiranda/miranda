@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.StreamSupport;
 import lombok.SneakyThrows;
@@ -26,6 +27,7 @@ public class Reader {
       final AtomicReference<Double> bidH = new AtomicReference<>(0D);
       final AtomicReference<Double> askH = new AtomicReference<>(0D);
       final AtomicReference<LocalDateTime> lastUpdate = new AtomicReference<>(LocalDateTime.MIN);
+      System.out.println("Starting");
       try (final FileReader fileReader = new FileReader(inputFile); final CSVParser csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           if (tick.getBid() > 0d) {
@@ -56,22 +58,23 @@ public class Reader {
   @SneakyThrows
   private synchronized void sent(final @NotNull HttpClient httpClient, final String symbol, final @NotNull LocalDateTime localDateTime,
       final double bid, final double ask) {
+//    TimeUnit.SECONDS.sleep(1);
     final String s = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     final String s1 = String.valueOf(bid);
     final String s2 = String.valueOf(ask);
-    final String body = "{\n  \"timestamp\": \"" + s + "\",\n  \"bid\": " + s1 + ",\n  \"ask\": " + s2 + "\n}";
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/ticks/" + symbol)).header("Content-Type", "application/json")
+    final String body = "{\n  \"timestamp\": \"" + s + "\",\n  \"bid\": " + s1 + ",\n  \"ask\": " + s2 + ",\n  \"symbolName\": \"" + symbol + "\"\n}";
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks")).header("Content-Type", "application/json")
         .header("User-Agent", "insomnia/9.0.0").method("POST", HttpRequest.BodyPublishers.ofString(body)).build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-//    if (response.statusCode() != 201) {
-//      if (response.statusCode() == 409) {
-//        System.err.println("Conflict: " + body);
-//        System.err.println("Response: " + response.body());
-//      } else {
-//        System.err.println("Error " + response.statusCode());
-//        System.err.println("body: " + body);
-//      }
-//    }
+    if (response.statusCode() != 201) {
+      if (response.statusCode() == 409) {
+        System.err.println("Conflict: " + body);
+        System.err.println("Response: " + response.body());
+      } else {
+        System.err.println("Error " + response.statusCode());
+        System.err.println("body: " + body);
+      }
+    }
   }
 
 

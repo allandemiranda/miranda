@@ -2,6 +2,7 @@ package lu.forex.system.mappers;
 
 import lu.forex.system.dtos.TickCreateDto;
 import lu.forex.system.dtos.TickResponseDto;
+import lu.forex.system.entities.Symbol;
 import lu.forex.system.entities.Tick;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants.ComponentModel;
@@ -12,5 +13,5 @@ public interface TickMapper {
 
   TickResponseDto toDto(Tick tick);
 
-  Tick toEntity(TickCreateDto tickCreateDto);
+  Tick toEntity(TickCreateDto tickCreateDto, Symbol symbol);
 }

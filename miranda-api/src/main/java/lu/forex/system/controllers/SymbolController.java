@@ -21,7 +21,7 @@ public class SymbolController implements SymbolOperations {
 
   @Override
   public Collection<SymbolResponseDto> getSymbols() {
-    return this.getSymbolService().getSymbols();
+    return this.getSymbolService().getSymbols().toList();
   }
 
   @Override

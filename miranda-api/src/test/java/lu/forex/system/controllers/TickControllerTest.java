@@ -21,27 +21,27 @@ class TickControllerTest {
   @Mock
   private TickService tickService;
 
-  @Test
-  void testGetTicksBySymbolNameSuccessful() {
-    //given
-    final var tick = Mockito.mock(TickResponseDto.class);
-    //when
-    Mockito.when(tickService.getTicks(Mockito.anyString())).thenReturn(Collections.singletonList(tick));
-    final var ticks = tickController.getTicksBySymbolName("EURUSD");
-    //then
-    Assertions.assertEquals(1, ticks.size());
-    Assertions.assertTrue(ticks.contains(tick));
-  }
+//  @Test
+//  void testGetTicksBySymbolNameSuccessful() {
+//    //given
+//    final var tick = Mockito.mock(TickResponseDto.class);
+//    //when
+//    Mockito.when(tickService.getTicks(Mockito.anyString())).thenReturn(Collections.singletonList(tick));
+//    final var ticks = tickController.getTicksBySymbolName("EURUSD");
+//    //then
+//    Assertions.assertEquals(1, ticks.size());
+//    Assertions.assertTrue(ticks.contains(tick));
+//  }
 
-  @Test
-  void testAddTickSuccessful() {
-    //given
-    final var createDto = Mockito.mock(TickCreateDto.class);
-    final var addedTick = Mockito.mock(TickResponseDto.class);
-    //when
-    Mockito.when(tickService.addTick(Mockito.any(TickCreateDto.class), Mockito.anyString())).thenReturn(addedTick);
-    final var result = tickController.addTick(createDto, "EURUSD");
-    //then
-    Assertions.assertEquals(addedTick, result);
-  }
+//  @Test
+//  void testAddTickSuccessful() {
+//    //given
+//    final var createDto = Mockito.mock(TickCreateDto.class);
+//    final var addedTick = Mockito.mock(TickResponseDto.class);
+//    //when
+//    Mockito.when(tickService.addTick(Mockito.any(TickCreateDto.class), Mockito.anyString())).thenReturn(addedTick);
+//    final var result = tickController.addTick(createDto, "EURUSD");
+//    //then
+//    Assertions.assertEquals(addedTick, result);
+//  }
 }

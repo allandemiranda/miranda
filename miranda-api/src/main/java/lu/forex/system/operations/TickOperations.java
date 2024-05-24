@@ -21,8 +21,7 @@ public interface TickOperations {
   @ResponseStatus(HttpStatus.OK)
   Collection<TickResponseDto> getTicksBySymbolName(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
-  @PostMapping("/{symbolName}")
+  @PostMapping()
   @ResponseStatus(HttpStatus.CREATED)
-  TickResponseDto addTick(final @RequestBody @Valid TickCreateDto tickCreateDto,
-      final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
+  TickResponseDto addTick(final @RequestBody @Valid TickCreateDto tickCreateDto);
 }

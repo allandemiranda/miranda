@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 public interface SymbolRepository extends JpaRepository<Symbol, String>, JpaSpecificationExecutor<Symbol> {
 
   @NonNull
-  Optional<@NotNull Symbol> findFirstByNameOrderByNameAsc(@NonNull String name);
+  Optional<@NotNull Symbol> findFirstByName(@NonNull String name);
 
   void deleteByName(@NonNull String name);
 
