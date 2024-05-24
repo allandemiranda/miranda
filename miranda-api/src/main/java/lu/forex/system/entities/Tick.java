@@ -48,12 +48,14 @@ public class Tick implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, unique = true)
+  @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
   @NotNull
   @Exclude
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private Symbol symbol;
 
   @NotNull

@@ -42,16 +42,19 @@ public class Symbol implements Serializable {
   @NotBlank
   @Size(min = 6, max = 6)
   @Column(name = "name", nullable = false, unique = true, length = 6)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private String name;
 
   @NotNull
   @Enumerated(EnumType.STRING)
   @Column(name = "currency_base", nullable = false, length = 3, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private Currency currencyBase;
 
   @NotNull
   @Enumerated(EnumType.STRING)
   @Column(name = "currency_quote", nullable = false, length = 3, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private Currency currencyQuote;
 
   @Positive

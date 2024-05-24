@@ -52,17 +52,20 @@ public class Candlestick implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "id", nullable = false, unique = true)
+  @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
   @NotNull
   @Exclude
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private Symbol symbol;
 
   @NotNull
   @Enumerated(EnumType.STRING)
   @Column(name = "time_frame", nullable = false, length = 3, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
   private TimeFrame timeFrame;
 
   @NotNull
