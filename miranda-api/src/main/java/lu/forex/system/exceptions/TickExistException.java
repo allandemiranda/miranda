@@ -13,4 +13,8 @@ public class TickExistException extends RuntimeException {
   public TickExistException(final @NotNull TickCreateDto tickCreateDto, final @NotNull Symbol symbol) {
     super(String.format("Tick %s - %s exist", symbol.getName(), tickCreateDto.timestamp().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
   }
+
+  public TickExistException(final @NotNull Symbol symbol) {
+    super(String.format("Tick %s with same last price", symbol.getName()));
+  }
 }
