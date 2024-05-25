@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
-import lu.forex.system.listeners.AcIndicatorListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -27,7 +26,6 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@EntityListeners(AcIndicatorListener.class)
 @Table(name = "ac_indicator")
 public class AcIndicator implements Serializable {
 
