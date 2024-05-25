@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "adx.parameters.period",
+      "type": "java.lang.Integer",
+      "description": "Period to calculate the indicator ADX."
+  }
+] }

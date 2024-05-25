@@ -18,6 +18,7 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickIndicatorDto;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.AcIndicator;
+import lu.forex.system.entities.AdxIndicator;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
@@ -26,6 +27,7 @@ import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.services.CandlestickService;
+import lu.forex.system.utils.MathUtils;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.stereotype.Service;
 
@@ -75,6 +77,7 @@ public class CandlestickProvider implements CandlestickService {
 
     candlestick.setAcIndicator(new AcIndicator());
     calculateAcIndicator(timeFrame, candlestick, symbol);
+    candlestick.setAdxIndicator(new AdxIndicator());
     return candlestick;
   }
 
@@ -97,40 +100,41 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.getAcIndicator().setMp(mp);
 
     // get SMA(MP,34)
-    final Collection<BigDecimal> collectionSmaMp34 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-        .limit(34).map(c -> BigDecimal.valueOf(c.getAcIndicator().getMp())).toList();
+    final Collection<Double> collectionSmaMp34 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
+        .limit(34).map(c -> c.getAcIndicator().getMp()).toList();
     if (collectionSmaMp34.size() != 34) {
       candlestick.getAcIndicator().setAo(null);
       candlestick.getAcIndicator().setAc(null);
     } else {
-      final BigDecimal smaMp34 = collectionSmaMp34.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
-          .divide(BigDecimal.valueOf(34), 10, RoundingMode.HALF_UP);
+      final double smaMp34 = MathUtils.getSMA(collectionSmaMp34);
 
       // get SMA(MP,5)
-      final BigDecimal smaMp5 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5)
-          .map(c -> BigDecimal.valueOf(c.getAcIndicator().getMp())).reduce(BigDecimal.ZERO, BigDecimal::add)
-          .divide(BigDecimal.valueOf(5), 10, RoundingMode.HALF_UP);
+      final double smaMp5 = MathUtils.getSMA(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5)
+          .map(c -> c.getAcIndicator().getMp()).toList());
 
       // get SMA(MP,5) - SMA(MP,34)
-      final BigDecimal ao = smaMp5.subtract(smaMp34);
-      candlestick.getAcIndicator().setAo(ao.doubleValue());
+      final double ao = BigDecimal.valueOf(smaMp5).subtract(BigDecimal.valueOf(smaMp34)).doubleValue();
+      candlestick.getAcIndicator().setAo(ao);
 
       // get SMA(ao,5)
-      final Collection<BigDecimal> collectionSmaAo5 = this.getCandlestickRepository()
+      final Collection<Double> collectionSmaAo5 = this.getCandlestickRepository()
           .streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5).filter(c -> Objects.nonNull(c.getAcIndicator().getAo()))
-          .map(c -> BigDecimal.valueOf(c.getAcIndicator().getAo())).toList();
+          .map(c -> c.getAcIndicator().getAo()).toList();
       if (collectionSmaAo5.size() != 5) {
         candlestick.getAcIndicator().setAc(null);
       } else {
-        final BigDecimal smaAo5 = collectionSmaAo5.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
-            .divide(BigDecimal.valueOf(5), 10, RoundingMode.HALF_UP);
+        final double smaAo5 = MathUtils.getSMA(collectionSmaAo5);
 
         // get ao - SMA(ao,5)
-        final BigDecimal ac = BigDecimal.valueOf(candlestick.getAcIndicator().getAo()).subtract(smaAo5);
-        candlestick.getAcIndicator().setAc(ac.doubleValue());
-
+        final double ac = BigDecimal.valueOf(candlestick.getAcIndicator().getAo()).subtract(BigDecimal.valueOf(smaAo5)).doubleValue();
+        candlestick.getAcIndicator().setAc(ac);
       }
     }
+  }
+
+  private void calculateAdxIndicator(final @NotNull TimeFrame timeFrame, final @NotNull Candlestick candlestick, final Symbol symbol) {
+    // set TR1
+
   }
 
   @Override

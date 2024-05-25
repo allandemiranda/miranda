@@ -100,6 +100,10 @@ public class Candlestick implements Serializable {
   @JoinColumn(name = "ac_indicator_id", nullable = false, unique = true)
   private AcIndicator acIndicator;
 
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @JoinColumn(name = "adx_indicator_id", nullable = false, unique = true)
+  private AdxIndicator adxIndicator;
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {

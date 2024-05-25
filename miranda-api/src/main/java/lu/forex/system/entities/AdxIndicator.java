@@ -1,10 +1,12 @@
 package lu.forex.system.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -80,5 +83,9 @@ public class AdxIndicator implements Serializable {
   @Column(name = "adx")
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private Double adx;
+
+  @Exclude
+  @OneToOne(mappedBy = "adxIndicator", cascade = CascadeType.ALL, optional = false)
+  private Candlestick candlestick;
 
 }
