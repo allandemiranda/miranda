@@ -44,9 +44,9 @@ public class TickProvider implements TickService {
     final Symbol symbol = this.getSymbolByName(tickCreateDto.symbolName());
     this.validateTickNotExist(tickCreateDto, symbol);
     final Optional<Tick> optionalTick = this.findLatestTickBySymbol(symbol);
-    if (optionalTick.isPresent() && optionalTick.get().getTimestamp().isAfter(tickCreateDto.timestamp())) {
+    if (optionalTick.isPresent() && ((optionalTick.get().getTimestamp().isAfter(tickCreateDto.timestamp())) || (optionalTick.get().getBid() == tickCreateDto.bid() && optionalTick.get().getAsk() == tickCreateDto.ask()))) {
       throw new TickConflictException(symbol.getName(), tickCreateDto.timestamp(), optionalTick.get().getTimestamp());
-    } else {
+    }  else {
       final Tick tick = this.createTickFromDto(tickCreateDto, symbol);
       final Tick saved = this.getTickRepository().save(tick);
       return this.getTickMapper().toDto(saved);
