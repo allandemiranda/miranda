@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
-import lu.forex.system.dtos.CandlestickIndicatorsDto;
+import lu.forex.system.dtos.CandlestickIndicatorDto;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.enums.TimeFrame;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,6 @@ public interface CandlestickService {
 
   @Transactional(readOnly = true)
   @Nonnull
-  Stream<@NotNull CandlestickIndicatorsDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
+  Stream<@NotNull CandlestickIndicatorDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
       final @Nonnull TimeFrame timeFrame, final @Positive int last);
 }

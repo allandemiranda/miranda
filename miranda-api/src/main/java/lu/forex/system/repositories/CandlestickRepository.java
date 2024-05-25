@@ -7,16 +7,10 @@ import java.util.stream.Stream;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
-import lu.forex.system.models.Ac;
-import lu.forex.system.models.Adx;
-import lu.forex.system.models.Macd;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>, JpaSpecificationExecutor<Candlestick> {

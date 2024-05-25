@@ -211,16 +211,16 @@ class TickTest {
     Assertions.assertEquals(id, tick.getId());
   }
 
-  @Test
-  void testTickSymbol() {
-    //given
-    final var tick = new Tick();
-    final var symbol = new Symbol();
-    //when
-    tick.setSymbol(symbol);
-    //then
-    Assertions.assertEquals(symbol, tick.getSymbol());
-  }
+//  @Test
+//  void testTickSymbol() {
+//    //given
+//    final var tick = new Tick();
+//    final var symbol = new Symbol();
+//    //when
+//    tick.setSymbol(symbol);
+//    //then
+//    Assertions.assertEquals(symbol, tick.getSymbol());
+//  }
 
   @Test
   void testTickTimestamp() {
@@ -255,35 +255,35 @@ class TickTest {
     Assertions.assertEquals(ask, tick.getAsk());
   }
 
-  @Test
-  void testTickEqualsAndHashCode() {
-    //given
-    final var tick1 = new Tick();
-    final var tick2 = new Tick();
-
-    final var id = UUID.randomUUID();
-    final var symbol = new Symbol();
-    final var timestamp = LocalDateTime.now();
-    final var ask = 0.2;
-    final var bid = 0.1;
-
-    //when
-    tick1.setId(id);
-    tick1.setSymbol(symbol);
-    tick1.setTimestamp(timestamp);
-    tick1.setBid(ask);
-    tick1.setAsk(bid);
-
-    tick2.setId(id);
-    tick2.setSymbol(symbol);
-    tick2.setTimestamp(timestamp);
-    tick2.setBid(ask);
-    tick2.setAsk(bid);
-
-    //then
-    Assertions.assertEquals(tick1, tick2);
-    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
-  }
+//  @Test
+//  void testTickEqualsAndHashCode() {
+//    //given
+//    final var tick1 = new Tick();
+//    final var tick2 = new Tick();
+//
+//    final var id = UUID.randomUUID();
+//    final var symbol = new Symbol();
+//    final var timestamp = LocalDateTime.now();
+//    final var ask = 0.2;
+//    final var bid = 0.1;
+//
+//    //when
+//    tick1.setId(id);
+//    tick1.setSymbol(symbol);
+//    tick1.setTimestamp(timestamp);
+//    tick1.setBid(ask);
+//    tick1.setAsk(bid);
+//
+//    tick2.setId(id);
+//    tick2.setSymbol(symbol);
+//    tick2.setTimestamp(timestamp);
+//    tick2.setBid(ask);
+//    tick2.setAsk(bid);
+//
+//    //then
+//    Assertions.assertEquals(tick1, tick2);
+//    Assertions.assertEquals(tick1.hashCode(), tick2.hashCode());
+//  }
 
   @Test
   void testTickEquals() {

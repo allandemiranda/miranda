@@ -13,7 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -30,9 +33,7 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import lu.forex.system.annotations.CandlestickRepresentation;
 import lu.forex.system.enums.TimeFrame;
-import lu.forex.system.models.Ac;
-import lu.forex.system.models.Adx;
-import lu.forex.system.models.Macd;
+import lu.forex.system.listeners.CandlestickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -41,6 +42,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
+@EntityListeners(CandlestickListener.class)
 @Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick", columnList = "symbol_name, time_frame")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_id_symbol_name", columnNames = {"id", "symbol_name", "time_frame", "timestamp"})})
 @CandlestickRepresentation
@@ -70,6 +72,7 @@ public class Candlestick implements Serializable {
 
   @NotNull
   @PastOrPresent
+  @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "timestamp", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
   private LocalDateTime timestamp;
@@ -94,14 +97,10 @@ public class Candlestick implements Serializable {
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double close;
 
-  @Column(name = "ac", nullable = false)
-  private Ac ac;
-
-  @Column(name = "adx", nullable = false)
-  private Adx adx;
-
-  @Column(name = "macd", nullable = false)
-  private Macd macd;
+  @Exclude
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @JoinColumn(name = "ac_indicator_id", nullable = false, unique = true)
+  private AcIndicator acIndicator;
 
   @Override
   public boolean equals(final Object o) {
