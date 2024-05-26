@@ -11,7 +11,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {SymbolMapper.class, AcIndicatorMapper.class,
-    AdxIndicatorMapper.class, EmaIndicatorMapper.class})
+    AdxIndicatorMapper.class, EmaIndicatorMapper.class, MacdIndicatorMapper.class})
 public interface CandlestickMapper {
 
   CandlestickResponseDto toDto(Candlestick candlestick);

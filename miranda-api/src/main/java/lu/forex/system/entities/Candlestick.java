@@ -111,6 +111,11 @@ public class Candlestick implements Serializable {
   @OneToMany(cascade = CascadeType.ALL)
   private Set<EmaIndicator> emaIndicators = new LinkedHashSet<>();
 
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @JoinColumn(name = "macd_indicator_id", nullable = false, unique = true)
+  @Exclude
+  private MacdIndicator macdIndicator;
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {

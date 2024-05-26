@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ import lu.forex.system.entities.AcIndicator;
 import lu.forex.system.entities.AdxIndicator;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.EmaIndicator;
+import lu.forex.system.entities.MacdIndicator;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
@@ -84,6 +87,7 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.setAdxIndicator(new AdxIndicator());
     candlestick.getEmaIndicators().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 12, CandlestickApply.CLOSE));
     candlestick.getEmaIndicators().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 26, CandlestickApply.CLOSE));
+    candlestick.setMacdIndicator(new MacdIndicator());
 
     return candlestick;
   }
@@ -107,6 +111,7 @@ public class CandlestickProvider implements CandlestickService {
     this.calculateAdxIndicator(candlestick);
     candlestick.getEmaIndicators()
         .forEach(emaIndicator -> emaIndicator.setEma(MathUtils.getEma(emaIndicator, candlestickRepository, emaIndicatorRepository, candlestick)));
+    this.calculateMacdIndicator(candlestick);
   }
 
   private @NotNull Candlestick updateCandlestick(final double price, final @NotNull Candlestick candlestick) {
@@ -230,6 +235,24 @@ public class CandlestickProvider implements CandlestickService {
           final double adx = MathUtils.getMed(collectionDx);
           candlestick.getAdxIndicator().setAdx(adx);
         }
+      }
+    }
+  }
+
+  private void calculateMacdIndicator(final @NotNull Candlestick candlestick) {
+    final EmaIndicator ema12 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 12 && Objects.nonNull(ema.getEma())).findFirst().orElse(null);
+    final EmaIndicator ema26 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 26 && Objects.nonNull(ema.getEma())).findFirst().orElse(null);
+    if(Objects.nonNull(ema12) && Objects.nonNull(ema26)) {
+      final Symbol symbol = candlestick.getSymbol();
+      final TimeFrame timeFrame = candlestick.getTimeFrame();
+
+      final double macd = MathUtils.getSubtract(ema12.getEma(), ema26.getEma());
+      candlestick.getMacdIndicator().setMacd(macd);
+
+      final Collection<Double> collectionMacd =  this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(9).filter(c -> Objects.nonNull(c.getMacdIndicator().getMacd())).map(c -> c.getMacdIndicator().getMacd()).toList();
+      if(collectionMacd.size() == 9) {
+        final double signal = MathUtils.getMed(collectionMacd);
+        candlestick.getMacdIndicator().setSignal(signal);
       }
     }
   }

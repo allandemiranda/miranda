@@ -1,10 +1,12 @@
 package lu.forex.system.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serial;
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -33,15 +36,16 @@ public class MacdIndicator implements Serializable {
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @Column(name = "fast_ema")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double fastEma;
-
-  @Column(name = "slow_ema")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double slowEma;
-
   @Column(name = "macd")
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private Double macd;
+
+  @Column(name = "signal")
+  @JdbcTypeCode(SqlTypes.DOUBLE)
+  private Double signal;
+
+  @Exclude
+  @OneToOne(mappedBy = "macdIndicator", cascade = CascadeType.ALL, optional = false)
+  private Candlestick candlestick;
+
 }
