@@ -54,9 +54,10 @@ public class CandlestickProvider implements CandlestickService {
     final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
     final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
         .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
-    final Candlestick candlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) ? updateCandlestick(timeFrame, price, lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, localTimesFrame, symbol);
+    final Candlestick candlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) ? updateCandlestick(price, lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, localTimesFrame, symbol);
     this.getCandlestickRepository().save(candlestick);
-    this.calculatingIndicators(timeFrame, symbol, candlestick);
+
+    this.calculatingIndicators(candlestick);
     this.getCandlestickRepository().save(candlestick);
   }
 
@@ -77,12 +78,12 @@ public class CandlestickProvider implements CandlestickService {
     return candlestick;
   }
 
-  private void calculatingIndicators(final @NotNull TimeFrame timeFrame, final Symbol symbol, final Candlestick candlestick) {
-    this.calculateAcIndicator(timeFrame, candlestick, symbol);
-    this.calculateAdxIndicator(timeFrame, candlestick, symbol);
+  private void calculatingIndicators(final @NotNull Candlestick candlestick) {
+    this.calculateAcIndicator(candlestick);
+    this.calculateAdxIndicator(candlestick);
   }
 
-  private @NotNull Candlestick updateCandlestick(final @NotNull TimeFrame timeFrame, final double price, final @NotNull Candlestick candlestick) {
+  private @NotNull Candlestick updateCandlestick(final double price, final @NotNull Candlestick candlestick) {
     if (candlestick.getHigh() < price) {
       candlestick.setHigh(price);
     } else if (candlestick.getLow() > price) {
@@ -93,7 +94,10 @@ public class CandlestickProvider implements CandlestickService {
     return candlestick;
   }
 
-  private void calculateAcIndicator(final @NotNull TimeFrame timeFrame, final @NotNull Candlestick candlestick, final Symbol symbol) {
+  private void calculateAcIndicator(final @NotNull Candlestick candlestick) {
+    final Symbol symbol = candlestick.getSymbol();
+    final TimeFrame timeFrame = candlestick.getTimeFrame();
+
     // set the MP value
     final double mp = CandlestickApply.TYPICAL_PRICE.price(candlestick);
     candlestick.getAcIndicator().setMp(mp);
@@ -131,7 +135,10 @@ public class CandlestickProvider implements CandlestickService {
     }
   }
 
-  private void calculateAdxIndicator(final @NotNull TimeFrame timeFrame, final @NotNull Candlestick candlestick, final Symbol symbol) {
+  private void calculateAdxIndicator(final @NotNull Candlestick candlestick) {
+    final Symbol symbol = candlestick.getSymbol();
+    final TimeFrame timeFrame = candlestick.getTimeFrame();
+
     final Collection<Candlestick> collection = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(2).filter(c -> !c.getId().equals(candlestick.getId())).toList();
     if(collection.size() == 1) {
       final Candlestick lastCandlestick = collection.iterator().next();
