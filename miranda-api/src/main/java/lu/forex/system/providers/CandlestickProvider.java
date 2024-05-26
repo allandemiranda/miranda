@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Comparator;
@@ -21,6 +20,7 @@ import lu.forex.system.entities.AcIndicator;
 import lu.forex.system.entities.AdxIndicator;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.Symbol;
+import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
@@ -95,7 +95,7 @@ public class CandlestickProvider implements CandlestickService {
 
   private void calculateAcIndicator(final @NotNull TimeFrame timeFrame, final @NotNull Candlestick candlestick, final Symbol symbol) {
     // set the MP value
-    final double mp = BigDecimal.valueOf(candlestick.getHigh() + candlestick.getLow()).divide(BigDecimal.TWO, 10, RoundingMode.HALF_UP).doubleValue();
+    final double mp = CandlestickApply.TYPICAL_PRICE.price(candlestick);
     candlestick.getAcIndicator().setMp(mp);
 
     // get SMA(MP,34)
@@ -167,10 +167,10 @@ public class CandlestickProvider implements CandlestickService {
         final double nDmP = MathUtils.getSum(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14).map(c -> c.getAdxIndicator().getNDmOne()).toList());
 
         // get +DI(P)
-        final double pDiP = MathUtils.getMultiplication(100d, MathUtils.getDivision(pDmP, trP));
+        final double pDiP = MathUtils.getMultiplication(100, MathUtils.getDivision(pDmP, trP));
 
         // get -DI(P)
-        final double nDiP = MathUtils.getMultiplication(100d, MathUtils.getDivision(nDmP, trP));
+        final double nDiP = MathUtils.getMultiplication(100, MathUtils.getDivision(nDmP, trP));
 
         // get DI diff
         final double diDiff = Math.abs(BigDecimal.valueOf(pDiP).subtract(BigDecimal.valueOf(nDiP)).doubleValue());
@@ -179,7 +179,7 @@ public class CandlestickProvider implements CandlestickService {
         final double diSum = BigDecimal.valueOf(pDiP).add(BigDecimal.valueOf(nDiP)).doubleValue();
 
         // get DX
-        final double dx = MathUtils.getMultiplication(100d, MathUtils.getDivision(diDiff, diSum));
+        final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         candlestick.getAdxIndicator().setDx(dx);
 
         final Collection<Double> collectionDx = this.getCandlestickRepository()
