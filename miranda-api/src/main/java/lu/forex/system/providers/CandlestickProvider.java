@@ -98,7 +98,7 @@ public class CandlestickProvider implements CandlestickService {
     emaIndicator.setTimestamp(timestamp);
     emaIndicator.setLastEma(null);
     this.getEmaIndicatorRepository().getFirstByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameOrderByTimestampDesc(emaIndicator.getPeriod(),
-        emaIndicator.getCandlestickApply(), symbolName, timeFrame).ifPresent(indicator -> indicator.setLastEma(emaIndicator.getEma()));
+        emaIndicator.getCandlestickApply(), symbolName, timeFrame).ifPresent(indicator -> emaIndicator.setLastEma(indicator.getEma()));
     return emaIndicator;
   }
 
