@@ -36,9 +36,9 @@ public class AdxIndicator implements Serializable {
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @Column(name = "tr")
+  @Column(name = "tr_one")
   @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double tr;
+  private Double trOne;
 
   @Column(name = "p_dm_one")
   @JdbcTypeCode(SqlTypes.DOUBLE)
@@ -47,34 +47,6 @@ public class AdxIndicator implements Serializable {
   @Column(name = "n_dm_one")
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private Double nDmOne;
-
-  @Column(name = "tr_p")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double trP;
-
-  @Column(name = "p_dm_p")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double pDmP;
-
-  @Column(name = "n_dm_p")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double nDmP;
-
-  @Column(name = "p_di_p")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double pDiP;
-
-  @Column(name = "n_di_p")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double nDiP;
-
-  @Column(name = "di_p_diff")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double diPDiff;
-
-  @Column(name = "di_p_sun")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double diPSun;
 
   @Column(name = "dx")
   @JdbcTypeCode(SqlTypes.DOUBLE)

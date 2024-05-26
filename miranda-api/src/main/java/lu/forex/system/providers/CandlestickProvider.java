@@ -54,13 +54,10 @@ public class CandlestickProvider implements CandlestickService {
     final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
     final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
         .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
-    if (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) {
-      final Candlestick candlestick = updateCandlestick(timeFrame, price, lastCandlestickOptional.get(), symbol);
-      this.getCandlestickRepository().save(candlestick);
-    } else {
-      final Candlestick candlestick = createCandlestick(timeFrame, price, localTimesFrame, symbol);
-      this.getCandlestickRepository().save(candlestick);
-    }
+    final Candlestick candlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) ? updateCandlestick(timeFrame, price, lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, localTimesFrame, symbol);
+    this.getCandlestickRepository().save(candlestick);
+    this.calculatingIndicators(timeFrame, symbol, candlestick);
+    this.getCandlestickRepository().save(candlestick);
   }
 
   private @NotNull Candlestick createCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime localTimesFrame,
@@ -74,15 +71,18 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.setLow(price);
     candlestick.setOpen(price);
     candlestick.setClose(price);
-
     candlestick.setAcIndicator(new AcIndicator());
-    calculateAcIndicator(timeFrame, candlestick, symbol);
     candlestick.setAdxIndicator(new AdxIndicator());
+
     return candlestick;
   }
 
-  private @NotNull Candlestick updateCandlestick(final @NotNull TimeFrame timeFrame, final double price, final @NotNull Candlestick candlestick,
-      final Symbol symbol) {
+  private void calculatingIndicators(final @NotNull TimeFrame timeFrame, final Symbol symbol, final Candlestick candlestick) {
+    this.calculateAcIndicator(timeFrame, candlestick, symbol);
+    this.calculateAdxIndicator(timeFrame, candlestick, symbol);
+  }
+
+  private @NotNull Candlestick updateCandlestick(final @NotNull TimeFrame timeFrame, final double price, final @NotNull Candlestick candlestick) {
     if (candlestick.getHigh() < price) {
       candlestick.setHigh(price);
     } else if (candlestick.getLow() > price) {
@@ -90,7 +90,6 @@ public class CandlestickProvider implements CandlestickService {
     }
     candlestick.setClose(price);
 
-    calculateAcIndicator(timeFrame, candlestick, symbol);
     return candlestick;
   }
 
@@ -106,10 +105,10 @@ public class CandlestickProvider implements CandlestickService {
       candlestick.getAcIndicator().setAo(null);
       candlestick.getAcIndicator().setAc(null);
     } else {
-      final double smaMp34 = MathUtils.getSMA(collectionSmaMp34);
+      final double smaMp34 = MathUtils.getMed(collectionSmaMp34);
 
       // get SMA(MP,5)
-      final double smaMp5 = MathUtils.getSMA(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5)
+      final double smaMp5 = MathUtils.getMed(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5)
           .map(c -> c.getAcIndicator().getMp()).toList());
 
       // get SMA(MP,5) - SMA(MP,34)
@@ -123,7 +122,7 @@ public class CandlestickProvider implements CandlestickService {
       if (collectionSmaAo5.size() != 5) {
         candlestick.getAcIndicator().setAc(null);
       } else {
-        final double smaAo5 = MathUtils.getSMA(collectionSmaAo5);
+        final double smaAo5 = MathUtils.getMed(collectionSmaAo5);
 
         // get ao - SMA(ao,5)
         final double ac = BigDecimal.valueOf(candlestick.getAcIndicator().getAo()).subtract(BigDecimal.valueOf(smaAo5)).doubleValue();
@@ -133,8 +132,65 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private void calculateAdxIndicator(final @NotNull TimeFrame timeFrame, final @NotNull Candlestick candlestick, final Symbol symbol) {
-    // set TR1
+    final Collection<Candlestick> collection = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(2).filter(c -> !c.getId().equals(candlestick.getId())).toList();
+    if(collection.size() == 1) {
+      final Candlestick lastCandlestick = collection.iterator().next();
 
+      // get TR1
+      final double tr1 = MathUtils.getMax(
+          BigDecimal.valueOf(candlestick.getHigh()).subtract(BigDecimal.valueOf(candlestick.getLow())).doubleValue(),
+          BigDecimal.valueOf(candlestick.getHigh()).subtract(BigDecimal.valueOf(candlestick.getClose())).doubleValue(),
+          Math.abs(BigDecimal.valueOf(candlestick.getLow()).subtract(BigDecimal.valueOf(lastCandlestick.getClose())).doubleValue())
+      );
+      candlestick.getAdxIndicator().setTrOne(tr1);
+
+      // get +DM1
+      final double pDm1 = BigDecimal.valueOf(candlestick.getHigh()).subtract(BigDecimal.valueOf(lastCandlestick.getHigh())).compareTo(BigDecimal.valueOf(lastCandlestick.getLow()).subtract(BigDecimal.valueOf(candlestick.getLow()))) > 0  ?
+          MathUtils.getMax(BigDecimal.valueOf(candlestick.getHigh()).subtract(BigDecimal.valueOf(lastCandlestick.getHigh())).doubleValue(), 0d) : 0d;
+      candlestick.getAdxIndicator().setPDmOne(pDm1);
+
+      // get -DM1
+      final double nDm1 = BigDecimal.valueOf(lastCandlestick.getLow()).subtract(BigDecimal.valueOf(candlestick.getLow())).compareTo(BigDecimal.valueOf(candlestick.getHigh()).subtract(BigDecimal.valueOf(lastCandlestick.getHigh()))) > 0  ?
+          MathUtils.getMax(BigDecimal.valueOf(lastCandlestick.getLow()).subtract(BigDecimal.valueOf(candlestick.getLow())).doubleValue(), 0d) : 0d;
+      candlestick.getAdxIndicator().setNDmOne(nDm1);
+
+      final Collection<Double> collectionTrP = this.getCandlestickRepository()
+          .streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14).filter(c -> Objects.nonNull(c.getAdxIndicator().getTrOne())).map(c -> c.getAdxIndicator().getTrOne()).toList();
+      if(collectionTrP.size() == 14) {
+        // get TR(P)
+        final double trP = MathUtils.getSum(collectionTrP);
+
+        // get +DM(P)
+        final double pDmP = MathUtils.getSum(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14).map(c -> c.getAdxIndicator().getPDmOne()).toList());
+
+        // get -DM(P)
+        final double nDmP = MathUtils.getSum(this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14).map(c -> c.getAdxIndicator().getNDmOne()).toList());
+
+        // get +DI(P)
+        final double pDiP = MathUtils.getMultiplication(100d, MathUtils.getDivision(pDmP, trP));
+
+        // get -DI(P)
+        final double nDiP = MathUtils.getMultiplication(100d, MathUtils.getDivision(nDmP, trP));
+
+        // get DI diff
+        final double diDiff = Math.abs(BigDecimal.valueOf(pDiP).subtract(BigDecimal.valueOf(nDiP)).doubleValue());
+
+        // get DI sum
+        final double diSum = BigDecimal.valueOf(pDiP).add(BigDecimal.valueOf(nDiP)).doubleValue();
+
+        // get DX
+        final double dx = MathUtils.getMultiplication(100d, MathUtils.getDivision(diDiff, diSum));
+        candlestick.getAdxIndicator().setDx(dx);
+
+        final Collection<Double> collectionDx = this.getCandlestickRepository()
+            .streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14).filter(c -> Objects.nonNull(c.getAdxIndicator().getDx())).map(c -> c.getAdxIndicator().getDx()).toList();
+        if(collectionDx.size() == 14) {
+          // get ADX
+          final double adx = MathUtils.getMed(collectionDx);
+          candlestick.getAdxIndicator().setAdx(adx);
+        }
+      }
+    }
   }
 
   @Override

@@ -22,4 +22,10 @@ public interface CandlestickMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   Candlestick partialUpdate(
       CandlestickIndicatorDto candlestickIndicatorDto, @MappingTarget Candlestick candlestick);
+
+  Candlestick toEntity(CandlestickResponseDto candlestickResponseDto);
+
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Candlestick partialUpdate(
+      CandlestickResponseDto candlestickResponseDto, @MappingTarget Candlestick candlestick);
 }
