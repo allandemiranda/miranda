@@ -15,7 +15,7 @@ public enum CandlestickApply {
   TYPICAL_PRICE;
   //@formatter:on
 
-  public double price(final @NotNull Candlestick candlestick) {
+  public double getPrice(final @NotNull Candlestick candlestick) {
     return switch (this) {
       case CLOSE -> candlestick.getClose();
       case OPEN -> candlestick.getOpen();

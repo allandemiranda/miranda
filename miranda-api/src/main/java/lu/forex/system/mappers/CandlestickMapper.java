@@ -10,10 +10,16 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {SymbolMapper.class})
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {SymbolMapper.class, AcIndicatorMapper.class,
+    AdxIndicatorMapper.class, EmaIndicatorMapper.class})
 public interface CandlestickMapper {
 
   CandlestickResponseDto toDto(Candlestick candlestick);
+
+  Candlestick toEntity(CandlestickResponseDto candlestickResponseDto);
+
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Candlestick partialUpdate(CandlestickResponseDto candlestickResponseDto, @MappingTarget Candlestick candlestick);
 
   Candlestick toEntity(CandlestickIndicatorDto candlestickIndicatorDto);
 
@@ -22,10 +28,4 @@ public interface CandlestickMapper {
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
   Candlestick partialUpdate(
       CandlestickIndicatorDto candlestickIndicatorDto, @MappingTarget Candlestick candlestick);
-
-  Candlestick toEntity(CandlestickResponseDto candlestickResponseDto);
-
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  Candlestick partialUpdate(
-      CandlestickResponseDto candlestickResponseDto, @MappingTarget Candlestick candlestick);
 }

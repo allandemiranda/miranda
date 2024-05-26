@@ -117,11 +117,11 @@ class TickCreateDtoTest {
 
 //  @ParameterizedTest
 //  @ValueSource(doubles = {1.12345, 2.12345})
-//  void testTickCreateDtoWhenAskAndBidEqualsIsValid(double price) {
+//  void testTickCreateDtoWhenAskAndBidEqualsIsValid(double getPrice) {
 //    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
 //      //given
 //      final var validator = validatorFactory.getValidator();
-//      final var TickCreateDto = new TickCreateDto(null, price, price);
+//      final var TickCreateDto = new TickCreateDto(null, getPrice, getPrice);
 //      //when
 //      final var validated = validator.validate(TickCreateDto);
 //      //then
@@ -131,11 +131,11 @@ class TickCreateDtoTest {
 //
 //  @ParameterizedTest
 //  @ValueSource(doubles = {1.12345, 2.12345})
-//  void testTickCreateDtoWhenAskLowerThanBidIsInvalid(double price) {
+//  void testTickCreateDtoWhenAskLowerThanBidIsInvalid(double getPrice) {
 //    try (final var validatorFactory = Validation.buildDefaultValidatorFactory()) {
 //      //given
 //      final var validator = validatorFactory.getValidator();
-//      final var TickCreateDto = new TickCreateDto(null, price, price - 0.00001);
+//      final var TickCreateDto = new TickCreateDto(null, getPrice, getPrice - 0.00001);
 //      //when
 //      final var validated = validator.validate(TickCreateDto);
 //      //then

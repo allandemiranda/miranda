@@ -15,6 +15,6 @@ public class TickExistException extends RuntimeException {
   }
 
   public TickExistException(final @NotNull Symbol symbol) {
-    super(String.format("Tick %s with same last price", symbol.getName()));
+    super(String.format("Tick %s with same last getPrice", symbol.getName()));
   }
 }

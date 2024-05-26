@@ -1,9 +1,19 @@
 package lu.forex.system.utils;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Stream;
+import lu.forex.system.entities.Candlestick;
+import lu.forex.system.entities.EmaIndicator;
+import lu.forex.system.entities.Symbol;
+import lu.forex.system.enums.CandlestickApply;
+import lu.forex.system.enums.TimeFrame;
+import lu.forex.system.repositories.CandlestickRepository;
+import lu.forex.system.repositories.EmaIndicatorRepository;
 
 public class MathUtils {
 
@@ -31,11 +41,43 @@ public class MathUtils {
     return collection.stream().map(BigDecimal::valueOf).reduce(BigDecimal.ZERO, BigDecimal::add).doubleValue();
   }
 
+  public static double getSubtract(final double a, final double b) {
+    return BigDecimal.valueOf(a).subtract(BigDecimal.valueOf(b)).doubleValue();
+  }
+
   public static double getDivision(final double dividend, final double divisor) {
     return BigDecimal.valueOf(dividend).divide(BigDecimal.valueOf(divisor), 10, RoundingMode.HALF_UP).doubleValue();
   }
 
   public static double getMultiplication(final double a, final double b) {
     return BigDecimal.valueOf(a).multiply(BigDecimal.valueOf(b)).doubleValue();
+  }
+
+  @Nullable
+  public static Double getEma(final @NotNull EmaIndicator emaIndicator, final @NotNull CandlestickRepository candlestickRepository,
+      final @NotNull EmaIndicatorRepository emaIndicatorRepository, final @NotNull Candlestick candlestick) {
+    final Symbol symbol = candlestick.getSymbol();
+    final TimeFrame timeFrame = candlestick.getTimeFrame();
+    final int period = emaIndicator.getPeriod();
+    final CandlestickApply candlestickApply = emaIndicator.getCandlestickApply();
+
+    if (emaIndicatorRepository.existsByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameAndEmaNotNull(period, candlestickApply, symbol.getName(),
+        timeFrame)) {
+      final Double lastEma = emaIndicator.getLastEma();
+      if (Objects.nonNull(lastEma)) {
+        final double a = MathUtils.getMultiplication(candlestickApply.getPrice(candlestick), emaIndicator.getPercentagePrice());
+        final double b = MathUtils.getSubtract(1, emaIndicator.getPercentagePrice());
+        final double c = MathUtils.getMultiplication(lastEma, b);
+        return MathUtils.getSum(Stream.of(a, c).toList());
+      }
+    } else {
+      final Collection<Double> collection = candlestickRepository.streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(period)
+          .map(candlestickApply::getPrice).toList();
+      if (collection.size() == period) {
+        return MathUtils.getMed(collection);
+      }
+    }
+
+    return null;
   }
 }

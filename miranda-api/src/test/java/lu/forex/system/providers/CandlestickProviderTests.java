@@ -54,11 +54,11 @@
 ////    //given
 ////    final var symbol = Mockito.mock(Symbol.class);
 ////    final var timestamp = LocalDateTime.now();
-////    final double price = 1.1234;
+////    final double getPrice = 1.1234;
 ////    //when
 ////    Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
 ////        .thenReturn(Optional.empty());
-////    candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, price);
+////    candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, getPrice);
 ////    //then
 ////    Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
 ////        .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
@@ -71,7 +71,7 @@
 ////    final var timestamp = LocalDateTime.now();
 ////    try (final var timeFrameUtilsMockedStatic = Mockito.mockStatic(TimeFrameUtils.class)) {
 ////      final var symbol = Mockito.mock(Symbol.class);
-////      final double price = 1.1234;
+////      final double getPrice = 1.1234;
 ////      final var candlestick = Mockito.spy(new Candlestick());
 ////      //when
 ////      Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
@@ -79,16 +79,16 @@
 ////      timeFrameUtilsMockedStatic.when(() -> TimeFrameUtils.getCandlestickDateTime(Mockito.any(), Mockito.any())).thenReturn(timestamp);
 ////      Mockito.when(candlestick.getTimestamp()).thenReturn(timestamp);
 ////
-////      Mockito.when(candlestick.getHigh()).thenReturn(price);
-////      Mockito.when(candlestick.getLow()).thenReturn(price);
+////      Mockito.when(candlestick.getHigh()).thenReturn(getPrice);
+////      Mockito.when(candlestick.getLow()).thenReturn(getPrice);
 ////
-////      candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, price);
+////      candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, getPrice);
 ////      //then
 ////      Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
 ////          .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
 ////      Mockito.verify(candlestickRepository, Mockito.times(1)).saveAllAndFlush(Mockito.any());
-////      Assertions.assertEquals(price, candlestick.getHigh());
-////      Assertions.assertEquals(price, candlestick.getClose());
+////      Assertions.assertEquals(getPrice, candlestick.getHigh());
+////      Assertions.assertEquals(getPrice, candlestick.getClose());
 ////      Assertions.assertEquals(0.0, candlestick.getOpen());
 ////    }
 ////  }
@@ -99,24 +99,24 @@
 ////    final var timestamp = LocalDateTime.now();
 ////    try (final var timeFrameUtilsMockedStatic = Mockito.mockStatic(TimeFrameUtils.class)) {
 ////      final var symbol = Mockito.mock(Symbol.class);
-////      final double price = 1.1234;
+////      final double getPrice = 1.1234;
 ////      final var candlestick = Mockito.spy(new Candlestick());
 ////      candlestick.setLow(2d);
-////      candlestick.setHigh(price);
+////      candlestick.setHigh(getPrice);
 ////      //when
 ////      Mockito.when(candlestickRepository.findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class)))
 ////          .thenReturn(Optional.of(candlestick));
 ////      timeFrameUtilsMockedStatic.when(() -> TimeFrameUtils.getCandlestickDateTime(Mockito.any(), Mockito.any())).thenReturn(timestamp);
 ////      Mockito.when(candlestick.getTimestamp()).thenReturn(timestamp);
 ////
-////      candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, price);
+////      candlestickProvider.createOrUpdateCandlestickByPrice(symbol, timestamp, getPrice);
 ////      //then
 ////      Mockito.verify(candlestickRepository, Mockito.times(TimeFrame.values().length))
 ////          .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(Mockito.eq(symbol), Mockito.any(TimeFrame.class));
 ////      Mockito.verify(candlestickRepository, Mockito.times(1)).saveAllAndFlush(Mockito.any());
-////      Assertions.assertEquals(price, candlestick.getHigh());
-////      Assertions.assertEquals(price, candlestick.getLow());
-////      Assertions.assertEquals(price, candlestick.getClose());
+////      Assertions.assertEquals(getPrice, candlestick.getHigh());
+////      Assertions.assertEquals(getPrice, candlestick.getLow());
+////      Assertions.assertEquals(getPrice, candlestick.getClose());
 ////      Assertions.assertEquals(0.0, candlestick.getOpen());
 ////    }
 ////  }
