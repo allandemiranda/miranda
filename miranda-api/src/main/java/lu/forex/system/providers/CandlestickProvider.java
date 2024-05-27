@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -107,10 +105,12 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private void calculatingIndicators(final @NotNull Candlestick candlestick) {
-    this.calculateAcIndicator(candlestick);
-    this.calculateAdxIndicator(candlestick);
     candlestick.getEmaIndicators()
         .forEach(emaIndicator -> emaIndicator.setEma(MathUtils.getEma(emaIndicator, candlestickRepository, emaIndicatorRepository, candlestick)));
+    this.getCandlestickRepository().save(candlestick);
+
+    this.calculateAcIndicator(candlestick);
+    this.calculateAdxIndicator(candlestick);
     this.calculateMacdIndicator(candlestick);
   }
 
@@ -196,21 +196,22 @@ public class CandlestickProvider implements CandlestickService {
           ? MathUtils.getMax(BigDecimal.valueOf(lastCandlestick.getLow()).subtract(BigDecimal.valueOf(candlestick.getLow())).doubleValue(), 0d) : 0d;
       candlestick.getAdxIndicator().setNDmOne(nDm1);
 
-      final Collection<Double> collectionTrP = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-          .limit(14).filter(c -> Objects.nonNull(c.getAdxIndicator().getTrOne())).map(c -> c.getAdxIndicator().getTrOne()).toList();
-      if (collectionTrP.size() == 14) {
+      final Collection<double[]> collectionOne = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
+          .limit(14).filter(c -> !c.getId().equals(candlestick.getId())).filter(
+              c -> Objects.nonNull(c.getAdxIndicator().getTrOne()) && Objects.nonNull(c.getAdxIndicator().getPDmOne()) && Objects.nonNull(
+                  c.getAdxIndicator().getNDmOne()))
+          .map(c -> new double[]{c.getAdxIndicator().getTrOne(), c.getAdxIndicator().getPDmOne(), c.getAdxIndicator().getNDmOne()})
+          .collect(Collectors.toCollection(ArrayList::new));
+      if (collectionOne.size() == 13) {
+        collectionOne.add(new double[]{tr1, pDm1, nDm1});
         // get TR(P)
-        final double trP = MathUtils.getSum(collectionTrP);
+        final double trP = MathUtils.getSum(collectionOne.stream().map(doubles -> doubles[0]).toList());
 
         // get +DM(P)
-        final double pDmP = MathUtils.getSum(
-            this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14)
-                .map(c -> c.getAdxIndicator().getPDmOne()).toList());
+        final double pDmP = MathUtils.getSum(collectionOne.stream().map(doubles -> doubles[1]).toList());
 
         // get -DM(P)
-        final double nDmP = MathUtils.getSum(
-            this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(14)
-                .map(c -> c.getAdxIndicator().getNDmOne()).toList());
+        final double nDmP = MathUtils.getSum(collectionOne.stream().map(doubles -> doubles[2]).toList());
 
         // get +DI(P)
         final double pDiP = MathUtils.getMultiplication(100, MathUtils.getDivision(pDmP, trP));
@@ -229,8 +230,10 @@ public class CandlestickProvider implements CandlestickService {
         candlestick.getAdxIndicator().setDx(dx);
 
         final Collection<Double> collectionDx = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-            .limit(14).filter(c -> Objects.nonNull(c.getAdxIndicator().getDx())).map(c -> c.getAdxIndicator().getDx()).toList();
-        if (collectionDx.size() == 14) {
+            .limit(14).filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getAdxIndicator().getDx()))
+            .map(c -> c.getAdxIndicator().getDx()).collect(Collectors.toCollection(ArrayList::new));
+        if (collectionDx.size() == 13) {
+          collectionDx.add(dx);
           // get ADX
           final double adx = MathUtils.getMed(collectionDx);
           candlestick.getAdxIndicator().setAdx(adx);
@@ -240,17 +243,22 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private void calculateMacdIndicator(final @NotNull Candlestick candlestick) {
-    final EmaIndicator ema12 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 12 && Objects.nonNull(ema.getEma())).findFirst().orElse(null);
-    final EmaIndicator ema26 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 26 && Objects.nonNull(ema.getEma())).findFirst().orElse(null);
-    if(Objects.nonNull(ema12) && Objects.nonNull(ema26)) {
+    final EmaIndicator ema12 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 12 && Objects.nonNull(ema.getEma()))
+        .findFirst().orElse(null);
+    final EmaIndicator ema26 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 26 && Objects.nonNull(ema.getEma()))
+        .findFirst().orElse(null);
+    if (Objects.nonNull(ema12) && Objects.nonNull(ema26)) {
       final Symbol symbol = candlestick.getSymbol();
       final TimeFrame timeFrame = candlestick.getTimeFrame();
 
       final double macd = MathUtils.getSubtract(ema12.getEma(), ema26.getEma());
       candlestick.getMacdIndicator().setMacd(macd);
 
-      final Collection<Double> collectionMacd =  this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(9).filter(c -> Objects.nonNull(c.getMacdIndicator().getMacd())).map(c -> c.getMacdIndicator().getMacd()).toList();
-      if(collectionMacd.size() == 9) {
+      final Collection<Double> collectionMacd = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
+          .limit(9).filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getMacdIndicator().getMacd()))
+          .map(c -> c.getMacdIndicator().getMacd()).collect(Collectors.toCollection(ArrayList::new));
+      if (collectionMacd.size() == 8) {
+        collectionMacd.add(macd);
         final double signal = MathUtils.getMed(collectionMacd);
         candlestick.getMacdIndicator().setSignal(signal);
       }
