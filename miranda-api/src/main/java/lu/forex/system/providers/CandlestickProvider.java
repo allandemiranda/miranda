@@ -21,13 +21,14 @@ import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.AcIndicator;
 import lu.forex.system.entities.AdxIndicator;
 import lu.forex.system.entities.Candlestick;
-import lu.forex.system.entities.EmaIndicator;
+import lu.forex.system.entities.EmaStatistic;
 import lu.forex.system.entities.MacdIndicator;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
+import lu.forex.system.repositories.AcIndicatorRepository;
 import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.repositories.EmaIndicatorRepository;
 import lu.forex.system.repositories.SymbolRepository;
@@ -45,6 +46,7 @@ public class CandlestickProvider implements CandlestickService {
   private final CandlestickMapper candlestickMapper;
   private final SymbolRepository symbolRepository;
   private final EmaIndicatorRepository emaIndicatorRepository;
+  private final AcIndicatorRepository acIndicatorRepository;
 
   @NotNull
   @Override
@@ -57,12 +59,12 @@ public class CandlestickProvider implements CandlestickService {
   public void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
       @NotNull final LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final double price) {
     final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-    final LocalDateTime localTimesFrame = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
+    final LocalDateTime localTimestamp = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
     final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
         .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
     final Candlestick candlestick =
-        (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimesFrame)) ? updateCandlestick(price,
-            lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, localTimesFrame, symbol);
+        (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(localTimestamp)) ? updateCandlestick(price,
+            lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, localTimestamp, symbol);
     this.getCandlestickRepository().save(candlestick);
 
     this.calculatingIndicators(candlestick);
@@ -82,30 +84,34 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.setClose(price);
 
     candlestick.setAcIndicator(new AcIndicator());
+    this.getAcIndicatorRepository().getFirstByCandlestick_SymbolAndCandlestick_TimeFrameOrderByCandlestick_TimestampDesc(symbol, timeFrame).ifPresent(acIndicator -> {
+      candlestick.getAcIndicator().setLestAc(acIndicator.getAc());
+      candlestick.getAcIndicator().setLestColor(acIndicator.getColor());
+    });
     candlestick.setAdxIndicator(new AdxIndicator());
-    candlestick.getEmaIndicators().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 12, CandlestickApply.CLOSE));
-    candlestick.getEmaIndicators().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 26, CandlestickApply.CLOSE));
+    candlestick.getEmaStatistics().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 12, CandlestickApply.CLOSE));
+    candlestick.getEmaStatistics().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 26, CandlestickApply.CLOSE));
     candlestick.setMacdIndicator(new MacdIndicator());
 
     return candlestick;
   }
 
-  private @NotNull EmaIndicator emaIndicatorInit(final @NotNull TimeFrame timeFrame, final LocalDateTime timestamp, final String symbolName,
+  private @NotNull EmaStatistic emaIndicatorInit(final @NotNull TimeFrame timeFrame, final LocalDateTime timestamp, final String symbolName,
       final int period, final @NotNull CandlestickApply candlestickApply) {
-    final EmaIndicator emaIndicator = new EmaIndicator();
-    emaIndicator.setPeriod(period);
-    emaIndicator.setCandlestickApply(candlestickApply);
-    emaIndicator.setSymbolName(symbolName);
-    emaIndicator.setTimeFrame(timeFrame);
-    emaIndicator.setTimestamp(timestamp);
-    emaIndicator.setLastEma(null);
-    this.getEmaIndicatorRepository().getFirstByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameOrderByTimestampDesc(emaIndicator.getPeriod(),
-        emaIndicator.getCandlestickApply(), symbolName, timeFrame).ifPresent(indicator -> emaIndicator.setLastEma(indicator.getEma()));
-    return emaIndicator;
+    final EmaStatistic emaStatistic = new EmaStatistic();
+    emaStatistic.setPeriod(period);
+    emaStatistic.setCandlestickApply(candlestickApply);
+    emaStatistic.setSymbolName(symbolName);
+    emaStatistic.setTimeFrame(timeFrame);
+    emaStatistic.setTimestamp(timestamp);
+    emaStatistic.setLastEma(null);
+    this.getEmaIndicatorRepository().getFirstByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameOrderByTimestampDesc(emaStatistic.getPeriod(),
+        emaStatistic.getCandlestickApply(), symbolName, timeFrame).ifPresent(indicator -> emaStatistic.setLastEma(indicator.getEma()));
+    return emaStatistic;
   }
 
   private void calculatingIndicators(final @NotNull Candlestick candlestick) {
-    candlestick.getEmaIndicators()
+    candlestick.getEmaStatistics()
         .forEach(emaIndicator -> emaIndicator.setEma(MathUtils.getEma(emaIndicator, candlestickRepository, emaIndicatorRepository, candlestick)));
     this.getCandlestickRepository().save(candlestick);
 
@@ -215,9 +221,11 @@ public class CandlestickProvider implements CandlestickService {
 
         // get +DI(P)
         final double pDiP = MathUtils.getMultiplication(100, MathUtils.getDivision(pDmP, trP));
+        candlestick.getAdxIndicator().setPDiP(pDiP);
 
         // get -DI(P)
         final double nDiP = MathUtils.getMultiplication(100, MathUtils.getDivision(nDmP, trP));
+        candlestick.getAdxIndicator().setNDiP(nDiP);
 
         // get DI diff
         final double diDiff = Math.abs(BigDecimal.valueOf(pDiP).subtract(BigDecimal.valueOf(nDiP)).doubleValue());
@@ -243,9 +251,9 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private void calculateMacdIndicator(final @NotNull Candlestick candlestick) {
-    final EmaIndicator ema12 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 12 && Objects.nonNull(ema.getEma()))
+    final EmaStatistic ema12 = candlestick.getEmaStatistics().stream().filter(ema -> ema.getPeriod() == 12 && Objects.nonNull(ema.getEma()))
         .findFirst().orElse(null);
-    final EmaIndicator ema26 = candlestick.getEmaIndicators().stream().filter(ema -> ema.getPeriod() == 26 && Objects.nonNull(ema.getEma()))
+    final EmaStatistic ema26 = candlestick.getEmaStatistics().stream().filter(ema -> ema.getPeriod() == 26 && Objects.nonNull(ema.getEma()))
         .findFirst().orElse(null);
     if (Objects.nonNull(ema12) && Objects.nonNull(ema26)) {
       final Symbol symbol = candlestick.getSymbol();

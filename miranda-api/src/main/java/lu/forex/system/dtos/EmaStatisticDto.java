@@ -9,9 +9,9 @@ import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
 
 /**
- * DTO for {@link lu.forex.system.entities.EmaIndicator}
+ * DTO for {@link lu.forex.system.entities.EmaStatistic}
  */
-public record EmaIndicatorDto(UUID id, int period, CandlestickApply candlestickApply, Double ema, Double lastEma, String symbolName,
+public record EmaStatisticDto(UUID id, int period, CandlestickApply candlestickApply, Double ema, Double lastEma, String symbolName,
                               @NotNull TimeFrame timeFrame, @NotNull @PastOrPresent LocalDateTime timestamp) implements
     Serializable {
 

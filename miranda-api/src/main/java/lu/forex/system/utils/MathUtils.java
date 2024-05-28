@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
 import lu.forex.system.entities.Candlestick;
-import lu.forex.system.entities.EmaIndicator;
+import lu.forex.system.entities.EmaStatistic;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
@@ -54,19 +54,19 @@ public class MathUtils {
   }
 
   @Nullable
-  public static Double getEma(final @NotNull EmaIndicator emaIndicator, final @NotNull CandlestickRepository candlestickRepository,
+  public static Double getEma(final @NotNull EmaStatistic emaStatistic, final @NotNull CandlestickRepository candlestickRepository,
       final @NotNull EmaIndicatorRepository emaIndicatorRepository, final @NotNull Candlestick candlestick) {
     final Symbol symbol = candlestick.getSymbol();
     final TimeFrame timeFrame = candlestick.getTimeFrame();
-    final int period = emaIndicator.getPeriod();
-    final CandlestickApply candlestickApply = emaIndicator.getCandlestickApply();
+    final int period = emaStatistic.getPeriod();
+    final CandlestickApply candlestickApply = emaStatistic.getCandlestickApply();
 
     if (emaIndicatorRepository.existsByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameAndEmaNotNull(period, candlestickApply, symbol.getName(),
         timeFrame)) {
-      final Double lastEma = emaIndicator.getLastEma();
+      final Double lastEma = emaStatistic.getLastEma();
       if (Objects.nonNull(lastEma)) {
-        final double a = MathUtils.getMultiplication(candlestickApply.getPrice(candlestick), emaIndicator.getPercentagePrice());
-        final double b = MathUtils.getSubtract(1, emaIndicator.getPercentagePrice());
+        final double a = MathUtils.getMultiplication(candlestickApply.getPrice(candlestick), emaStatistic.getPercentagePrice());
+        final double b = MathUtils.getSubtract(1, emaStatistic.getPercentagePrice());
         final double c = MathUtils.getMultiplication(lastEma, b);
         return MathUtils.getSum(Stream.of(a, c).toList());
       }

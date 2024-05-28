@@ -1,16 +1,14 @@
 package lu.forex.system.dtos;
 
-import jakarta.validation.constraints.NotNull;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.UUID;
+import lu.forex.system.enums.SignalIndicatorStatus;
 
 /**
  * DTO for {@link lu.forex.system.entities.AdxIndicator}
  */
-public record AdxIndicatorDto(UUID id, Double trOne, Double pDmOne, Double nDmOne, Double dx, Double adx) implements
+public record AdxIndicatorDto(UUID id, Double trOne, Double pDmOne, Double nDmOne, Double pDiP, Double nDiP, Double dx, Double adx,
+                              SignalIndicatorStatus status) implements
     Serializable {
 
-  @Serial
-  private static final long serialVersionUID = 6316236814819223351L;
 }

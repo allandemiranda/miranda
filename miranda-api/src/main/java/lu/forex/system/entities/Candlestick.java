@@ -109,7 +109,7 @@ public class Candlestick implements Serializable {
 
   @Exclude
   @OneToMany(cascade = CascadeType.ALL)
-  private Set<EmaIndicator> emaIndicators = new LinkedHashSet<>();
+  private Set<EmaStatistic> emaStatistics = new LinkedHashSet<>();
 
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
   @JoinColumn(name = "macd_indicator_id", nullable = false, unique = true)

@@ -32,8 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "ema_indicator")
-public class EmaIndicator implements Serializable {
+@Table(name = "ema_statistic")
+public class EmaStatistic implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -9215994383059260651L;

@@ -15,7 +15,7 @@ import lu.forex.system.enums.TimeFrame;
 public record CandlestickIndicatorDto(UUID id, @NotNull SymbolResponseDto symbol, @NotNull TimeFrame timeFrame,
                                       @NotNull @PastOrPresent LocalDateTime timestamp, @Positive double high, @Positive double low,
                                       @Positive double open, @Positive double close, AcIndicatorDto acIndicator, AdxIndicatorDto adxIndicator,
-                                      Set<EmaIndicatorDto> emaIndicators, MacdIndicatorDto macdIndicator) implements
+                                      Set<EmaStatisticDto> emaStatistics, MacdIndicatorDto macdIndicator) implements
     Serializable {
 
 }

@@ -1,7 +1,7 @@
 package lu.forex.system.mappers;
 
-import lu.forex.system.dtos.EmaIndicatorDto;
-import lu.forex.system.entities.EmaIndicator;
+import lu.forex.system.dtos.EmaStatisticDto;
+import lu.forex.system.entities.EmaStatistic;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants.ComponentModel;
@@ -10,13 +10,13 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING)
-public interface EmaIndicatorMapper {
+public interface EmaStatisticMapper {
 
-  EmaIndicator toEntity(EmaIndicatorDto emaIndicatorDto);
+  EmaStatistic toEntity(EmaStatisticDto emaStatisticDto);
 
-  EmaIndicatorDto toDto(EmaIndicator emaIndicator);
+  EmaStatisticDto toDto(EmaStatistic emaStatistic);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-  EmaIndicator partialUpdate(EmaIndicatorDto emaIndicatorDto,
-      @MappingTarget EmaIndicator emaIndicator);
+  EmaStatistic partialUpdate(EmaStatisticDto emaStatisticDto,
+      @MappingTarget EmaStatistic emaStatistic);
 }
