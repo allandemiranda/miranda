@@ -9,6 +9,7 @@ import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +22,8 @@ public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>,
   @NonNull
   Optional<@NotNull Candlestick> findFirstBySymbolAndTimeFrameOrderByTimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
 
-  @NonNull
-  Stream<@NotNull Candlestick> streamBySymbolAndTimeFrameOrderByTimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
+
+  @Query("select c from Candlestick c where c.symbol = ?1 and c.timeFrame = ?2 order by c.timestamp DESC LIMIT ?3")
+  Stream<Candlestick> streamBySymbolAndTimeFrameOrderByTimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame, int limit);
 
 }

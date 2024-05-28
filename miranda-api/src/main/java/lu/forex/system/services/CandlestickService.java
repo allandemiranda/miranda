@@ -28,5 +28,5 @@ public interface CandlestickService {
   @Transactional(readOnly = true)
   @Nonnull
   Stream<@NotNull CandlestickIndicatorDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
-      final @Nonnull TimeFrame timeFrame, final @Positive int last);
+      final @Nonnull TimeFrame timeFrame, final @Positive int limit);
 }

@@ -84,10 +84,11 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.setClose(price);
 
     candlestick.setAcIndicator(new AcIndicator());
-    this.getAcIndicatorRepository().getFirstByCandlestick_SymbolAndCandlestick_TimeFrameOrderByCandlestick_TimestampDesc(symbol, timeFrame).ifPresent(acIndicator -> {
-      candlestick.getAcIndicator().setLestAc(acIndicator.getAc());
-      candlestick.getAcIndicator().setLestColor(acIndicator.getColor());
-    });
+    this.getAcIndicatorRepository().getFirstByCandlestick_SymbolAndCandlestick_TimeFrameOrderByCandlestick_TimestampDesc(symbol, timeFrame)
+        .ifPresent(acIndicator -> {
+          candlestick.getAcIndicator().setLestAc(acIndicator.getAc());
+          candlestick.getAcIndicator().setLestColor(acIndicator.getColor());
+        });
     candlestick.setAdxIndicator(new AdxIndicator());
     candlestick.getEmaStatistics().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 12, CandlestickApply.CLOSE));
     candlestick.getEmaStatistics().add(emaIndicatorInit(timeFrame, timestamp, symbol.getName(), 26, CandlestickApply.CLOSE));
@@ -140,8 +141,8 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.getAcIndicator().setMp(mp);
 
     // get SMA(MP,34)
-    final Collection<Double> collectionSmaMp34 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-        .limit(34).map(c -> c.getAcIndicator().getMp()).toList();
+    final Collection<Double> collectionSmaMp34 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 34)
+        .map(c -> c.getAcIndicator().getMp()).toList();
     if (collectionSmaMp34.size() != 34) {
       candlestick.getAcIndicator().setAo(null);
       candlestick.getAcIndicator().setAc(null);
@@ -150,16 +151,16 @@ public class CandlestickProvider implements CandlestickService {
 
       // get SMA(MP,5)
       final double smaMp5 = MathUtils.getMed(
-          this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(5)
-              .map(c -> c.getAcIndicator().getMp()).toList());
+          this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 5).map(c -> c.getAcIndicator().getMp())
+              .toList());
 
       // get SMA(MP,5) - SMA(MP,34)
       final double ao = BigDecimal.valueOf(smaMp5).subtract(BigDecimal.valueOf(smaMp34)).doubleValue();
       candlestick.getAcIndicator().setAo(ao);
 
       // get SMA(ao,5)
-      final Collection<Double> collectionSmaAo5 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-          .limit(5).filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getAcIndicator().getAo()))
+      final Collection<Double> collectionSmaAo5 = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 5)
+          .filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getAcIndicator().getAo()))
           .map(c -> c.getAcIndicator().getAo()).collect(Collectors.toCollection(ArrayList::new));
       if (collectionSmaAo5.size() == 4) {
         collectionSmaAo5.add(ao);
@@ -178,8 +179,8 @@ public class CandlestickProvider implements CandlestickService {
     final Symbol symbol = candlestick.getSymbol();
     final TimeFrame timeFrame = candlestick.getTimeFrame();
 
-    final Collection<Candlestick> collection = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-        .limit(2).filter(c -> !c.getId().equals(candlestick.getId())).toList();
+    final Collection<Candlestick> collection = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 2)
+        .filter(c -> !c.getId().equals(candlestick.getId())).toList();
     if (collection.size() == 1) {
       final Candlestick lastCandlestick = collection.iterator().next();
 
@@ -202,8 +203,8 @@ public class CandlestickProvider implements CandlestickService {
           ? MathUtils.getMax(BigDecimal.valueOf(lastCandlestick.getLow()).subtract(BigDecimal.valueOf(candlestick.getLow())).doubleValue(), 0d) : 0d;
       candlestick.getAdxIndicator().setNDmOne(nDm1);
 
-      final Collection<double[]> collectionOne = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-          .limit(14).filter(c -> !c.getId().equals(candlestick.getId())).filter(
+      final Collection<double[]> collectionOne = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 14)
+          .filter(c -> !c.getId().equals(candlestick.getId())).filter(
               c -> Objects.nonNull(c.getAdxIndicator().getTrOne()) && Objects.nonNull(c.getAdxIndicator().getPDmOne()) && Objects.nonNull(
                   c.getAdxIndicator().getNDmOne()))
           .map(c -> new double[]{c.getAdxIndicator().getTrOne(), c.getAdxIndicator().getPDmOne(), c.getAdxIndicator().getNDmOne()})
@@ -237,8 +238,8 @@ public class CandlestickProvider implements CandlestickService {
         final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         candlestick.getAdxIndicator().setDx(dx);
 
-        final Collection<Double> collectionDx = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-            .limit(14).filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getAdxIndicator().getDx()))
+        final Collection<Double> collectionDx = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 14)
+            .filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getAdxIndicator().getDx()))
             .map(c -> c.getAdxIndicator().getDx()).collect(Collectors.toCollection(ArrayList::new));
         if (collectionDx.size() == 13) {
           collectionDx.add(dx);
@@ -262,8 +263,8 @@ public class CandlestickProvider implements CandlestickService {
       final double macd = MathUtils.getSubtract(ema12.getEma(), ema26.getEma());
       candlestick.getMacdIndicator().setMacd(macd);
 
-      final Collection<Double> collectionMacd = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame)
-          .limit(9).filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getMacdIndicator().getMacd()))
+      final Collection<Double> collectionMacd = this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, 9)
+          .filter(c -> !c.getId().equals(candlestick.getId())).filter(c -> Objects.nonNull(c.getMacdIndicator().getMacd()))
           .map(c -> c.getMacdIndicator().getMacd()).collect(Collectors.toCollection(ArrayList::new));
       if (collectionMacd.size() == 8) {
         collectionMacd.add(macd);
@@ -275,9 +276,9 @@ public class CandlestickProvider implements CandlestickService {
 
   @Override
   public @NotNull Stream<CandlestickIndicatorDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
-      @NotNull final TimeFrame timeFrame, final int last) {
+      @NotNull final TimeFrame timeFrame, final int limit) {
     final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-    return this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(last)
+    return this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, limit)
         .sorted(Comparator.comparing(Candlestick::getTimestamp)).map(candlestickMapper::toDto1);
   }
 }

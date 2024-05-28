@@ -71,8 +71,7 @@ public class MathUtils {
         return MathUtils.getSum(Stream.of(a, c).toList());
       }
     } else {
-      final Collection<Double> collection = candlestickRepository.streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame).limit(period)
-          .map(candlestickApply::getPrice).toList();
+      final Collection<Double> collection = candlestickRepository.streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, period).map(candlestickApply::getPrice).toList();
       if (collection.size() == period) {
         return MathUtils.getMed(collection);
       }
