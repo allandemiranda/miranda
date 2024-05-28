@@ -52,31 +52,4 @@ public class MathUtils {
   public static double getMultiplication(final double a, final double b) {
     return BigDecimal.valueOf(a).multiply(BigDecimal.valueOf(b)).doubleValue();
   }
-
-  @Nullable
-  public static Double getEma(final @NotNull EmaStatistic emaStatistic, final @NotNull CandlestickRepository candlestickRepository,
-      final @NotNull EmaIndicatorRepository emaIndicatorRepository, final @NotNull Candlestick candlestick) {
-    final Symbol symbol = candlestick.getSymbol();
-    final TimeFrame timeFrame = candlestick.getTimeFrame();
-    final int period = emaStatistic.getPeriod();
-    final CandlestickApply candlestickApply = emaStatistic.getCandlestickApply();
-
-    if (emaIndicatorRepository.existsByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameAndEmaNotNull(period, candlestickApply, symbol.getName(),
-        timeFrame)) {
-      final Double lastEma = emaStatistic.getLastEma();
-      if (Objects.nonNull(lastEma)) {
-        final double a = MathUtils.getMultiplication(candlestickApply.getPrice(candlestick), emaStatistic.getPercentagePrice());
-        final double b = MathUtils.getSubtract(1, emaStatistic.getPercentagePrice());
-        final double c = MathUtils.getMultiplication(lastEma, b);
-        return MathUtils.getSum(Stream.of(a, c).toList());
-      }
-    } else {
-      final Collection<Double> collection = candlestickRepository.streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, period).map(candlestickApply::getPrice).toList();
-      if (collection.size() == period) {
-        return MathUtils.getMed(collection);
-      }
-    }
-
-    return null;
-  }
 }

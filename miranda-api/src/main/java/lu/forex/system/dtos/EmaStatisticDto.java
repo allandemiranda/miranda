@@ -11,7 +11,7 @@ import lu.forex.system.enums.TimeFrame;
 /**
  * DTO for {@link lu.forex.system.entities.EmaStatistic}
  */
-public record EmaStatisticDto(UUID id, int period, CandlestickApply candlestickApply, Double ema, Double lastEma, String symbolName,
+public record EmaStatisticDto(UUID id, int period, CandlestickApply candlestickApply, Double ema, EmaStatisticDto lastEmaStatistic, String symbolName,
                               @NotNull TimeFrame timeFrame, @NotNull @PastOrPresent LocalDateTime timestamp) implements
     Serializable {
 

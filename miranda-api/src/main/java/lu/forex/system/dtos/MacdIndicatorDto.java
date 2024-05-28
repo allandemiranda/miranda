@@ -7,6 +7,6 @@ import lu.forex.system.enums.SignalIndicatorStatus;
 /**
  * DTO for {@link lu.forex.system.entities.MacdIndicator}
  */
-public record MacdIndicatorDto(UUID id, Double macd, Double signal, SignalIndicatorStatus status) implements Serializable {
+public record MacdIndicatorDto(UUID id, Double macd, Double signal) implements Serializable {
 
 }

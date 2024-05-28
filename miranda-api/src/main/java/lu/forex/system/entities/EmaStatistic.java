@@ -1,15 +1,21 @@
 package lu.forex.system.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import java.io.Serial;
@@ -20,6 +26,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.utils.MathUtils;
@@ -32,7 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "ema_statistic")
+@Table(name = "ema_statistic", indexes = {
+    @Index(name = "idx_emastatistic_id_period", columnList = "id, period, candlestick_apply, symbol_name, time_frame")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_emastatistic_id_period", columnNames = {"id", "period", "candlestick_apply", "lest_ema_statistic_id", "symbol_name",
+        "time_frame", "timestamp"})})
 public class EmaStatistic implements Serializable {
 
   @Serial
@@ -44,12 +54,12 @@ public class EmaStatistic implements Serializable {
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @Column(name = "period", nullable = false)
+  @Column(name = "period", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.SMALLINT)
   private int period;
 
   @Enumerated
-  @Column(name = "candlestick_apply", nullable = false)
+  @Column(name = "candlestick_apply", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
   private CandlestickApply candlestickApply;
 
@@ -57,9 +67,10 @@ public class EmaStatistic implements Serializable {
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private Double ema;
 
-  @Column(name = "last_ema")
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private Double lastEma;
+  @Exclude
+  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @JoinColumn(name = "lest_ema_statistic_id", nullable = false, unique = true, updatable = false)
+  private EmaStatistic lestEmaStatistic;
 
   @Column(name = "symbol_name", nullable = false, length = 6, updatable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
@@ -78,7 +89,6 @@ public class EmaStatistic implements Serializable {
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
   private LocalDateTime timestamp;
 
-  @Transactional
   public double getPercentagePrice() {
     return MathUtils.getDivision(2, this.getPeriod() + 1L);
   }

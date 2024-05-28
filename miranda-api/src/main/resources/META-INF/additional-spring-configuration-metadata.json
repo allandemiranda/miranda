@@ -4,5 +4,30 @@
       "name": "adx.parameters.period",
       "type": "java.lang.Integer",
       "description": "Period to calculate the indicator ADX."
-  }
-] }
+    },
+    {
+      "name": "adx.parameters.tendencyLine",
+      "type": "java.lang.Integer",
+      "description": "Tendency line to open the status on the indicator ADX."
+    },
+    {
+      "name": "macd.parameters.fast.period",
+      "type": "java.lang.Integer",
+      "description": "Fast Period to calculate the indicator MACD."
+    },
+    {
+      "name": "macd.parameters.slow.period",
+      "type": "java.lang.Integer",
+      "description": "Slow Period to calculate the indicator MACD."
+    },
+    {
+      "name": "macd.parameters.macd.period",
+      "type": "java.lang.Integer",
+      "description": "Period to calculate the indicator MACD."
+    },
+    {
+      "name": "macd.parameters.ema.apply",
+      "type": "lu.forex.system.enums.CandlestickApply",
+      "description": "Ema Apply to the indicator MACD."
+    }
+  ] }
