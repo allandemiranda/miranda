@@ -89,7 +89,7 @@ public class AcIndicator extends Indicator implements Serializable {
   }
 
   @Override
-  public void calculateIndicator(@NotNull final Collection<Candlestick> lastCandlesticks) {
+  public void calculateIndicator(final @NotNull Collection<Candlestick> lastCandlesticks) {
     // set the MP value
     this.setMp(CandlestickApply.TYPICAL_PRICE.getPrice(this.getCandlestick()));
 

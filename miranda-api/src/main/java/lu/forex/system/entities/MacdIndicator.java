@@ -102,7 +102,7 @@ public class MacdIndicator extends Indicator implements Serializable {
   }
 
   @Override
-  public void calculateIndicator(@NotNull final Collection<Candlestick> lastCandlesticks) {
+  public void calculateIndicator(final @NotNull Collection<Candlestick> lastCandlesticks) {
     final EmaStatistic emaFast = this.getCandlestick().getEmaStatistics().stream().filter(
             ema -> ema.getPeriod() == this.getFastPeriod() && this.getEmaApply().equals(ema.getCandlestickApply()) && Objects.nonNull(ema.getEma()))
         .findFirst().orElse(null);
