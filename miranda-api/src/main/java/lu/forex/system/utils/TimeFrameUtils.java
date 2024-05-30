@@ -4,13 +4,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import lombok.experimental.UtilityClass;
 import lu.forex.system.enums.TimeFrame;
 
+@UtilityClass
 public class TimeFrameUtils {
-
-  private TimeFrameUtils() {
-    throw new IllegalStateException("Utility class");
-  }
 
   public static @NotNull LocalDateTime getCandlestickDateTime(final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame) {
     return switch (timeFrame.getFrame()) {

@@ -1,29 +1,20 @@
 package lu.forex.system.utils;
 
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Stream;
-import lu.forex.system.entities.Candlestick;
-import lu.forex.system.entities.EmaStatistic;
-import lu.forex.system.entities.Symbol;
-import lu.forex.system.enums.CandlestickApply;
-import lu.forex.system.enums.TimeFrame;
-import lu.forex.system.repositories.CandlestickRepository;
-import lu.forex.system.repositories.EmaIndicatorRepository;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class MathUtils {
 
-  private MathUtils() {
-    throw new IllegalStateException("Utility class");
-  }
+  private static final int SCALE = 10;
+  private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
 
   public static double getMed(final @NotNull Collection<Double> collection) {
     return collection.stream().map(BigDecimal::valueOf).reduce(BigDecimal.ZERO, BigDecimal::add)
-        .divide(BigDecimal.valueOf(collection.size()), 10, RoundingMode.HALF_UP).doubleValue();
+        .divide(BigDecimal.valueOf(collection.size()), SCALE, ROUNDING_MODE).doubleValue();
   }
 
   public static double getMax(final double @NotNull ... values) {
@@ -46,7 +37,7 @@ public class MathUtils {
   }
 
   public static double getDivision(final double dividend, final double divisor) {
-    return BigDecimal.valueOf(dividend).divide(BigDecimal.valueOf(divisor), 10, RoundingMode.HALF_UP).doubleValue();
+    return BigDecimal.valueOf(dividend).divide(BigDecimal.valueOf(divisor), SCALE, ROUNDING_MODE).doubleValue();
   }
 
   public static double getMultiplication(final double a, final double b) {

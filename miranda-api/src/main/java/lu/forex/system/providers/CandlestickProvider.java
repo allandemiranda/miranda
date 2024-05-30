@@ -5,35 +5,31 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lu.forex.system.dtos.CandlestickIndicatorDto;
+import lu.forex.system.batch.AcIndicatorBatch;
+import lu.forex.system.batch.AdxIndicatorBatch;
+import lu.forex.system.batch.EmaMovingAverageBatch;
+import lu.forex.system.batch.MacdIndicatorBatch;
 import lu.forex.system.dtos.CandlestickResponseDto;
-import lu.forex.system.entities.AcIndicator;
-import lu.forex.system.entities.AdxIndicator;
 import lu.forex.system.entities.Candlestick;
-import lu.forex.system.entities.EmaStatistic;
-import lu.forex.system.entities.Indicator;
-import lu.forex.system.entities.MacdIndicator;
+import lu.forex.system.entities.CandlestickBody;
+import lu.forex.system.entities.CandlestickHead;
+import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.entities.Symbol;
-import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
-import lu.forex.system.repositories.AcIndicatorRepository;
 import lu.forex.system.repositories.CandlestickRepository;
-import lu.forex.system.repositories.EmaIndicatorRepository;
 import lu.forex.system.repositories.SymbolRepository;
 import lu.forex.system.services.CandlestickService;
-import lu.forex.system.utils.MathUtils;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.stereotype.Service;
 
@@ -43,134 +39,101 @@ import org.springframework.stereotype.Service;
 public class CandlestickProvider implements CandlestickService {
 
   private final CandlestickRepository candlestickRepository;
-  private final CandlestickMapper candlestickMapper;
   private final SymbolRepository symbolRepository;
-  private final EmaIndicatorRepository emaIndicatorRepository;
-  private final AcIndicatorRepository acIndicatorRepository;
 
-  @NotNull
-  @Override
-  public Stream<CandlestickResponseDto> getCandlesticks(@NotNull final String symbolName, @NotNull final TimeFrame timeFrame) {
-    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-    return this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampAsc(symbol, timeFrame).map(this.getCandlestickMapper()::toDto);
-  }
+  private final CandlestickMapper candlestickMapper;
+
+  private final AcIndicatorBatch acIndicatorBatch;
+  private final AdxIndicatorBatch adxIndicatorBatch;
+  private final MacdIndicatorBatch macdIndicatorBatch;
+  private final EmaMovingAverageBatch emaMovingAverageBatch;
 
   @Override
-  public void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
-      @NotNull final LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final double price) {
+  public void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final double price) {
     final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
     final LocalDateTime candlestickTimestamp = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
-    final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository()
-        .findFirstBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame);
-    final Candlestick candlestick =
-        (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getTimestamp().equals(candlestickTimestamp)) ? updateCandlestick(price,
-            lastCandlestickOptional.get()) : createCandlestick(timeFrame, price, candlestickTimestamp, symbol);
-    this.getCandlestickRepository().save(candlestick);
-
-    candlestick.getEmaStatistics()
-        .forEach(emaIndicator -> emaIndicator.setEma(this.getEma(emaIndicator, candlestickRepository, emaIndicatorRepository, candlestick)));
-    this.getCandlestickRepository().save(candlestick);
-
-    this.calculatingIndicators(candlestick);
-    this.getCandlestickRepository().save(candlestick);
+    final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository().findFirstByHead_SymbolAndHead_TimeFrameOrderByHead_TimestampDesc(symbol, timeFrame);
+    final Candlestick currentCandlestick = this.calculatingCandlestick(timeFrame, price, lastCandlestickOptional, candlestickTimestamp, symbol);
+    this.calculatingIndicators(currentCandlestick);
   }
 
-  public Double getEma(final @NotNull EmaStatistic emaStatistic, final @NotNull CandlestickRepository candlestickRepository,
-      final @NotNull EmaIndicatorRepository emaIndicatorRepository, final @NotNull Candlestick candlestick) {
-    final Symbol symbol = candlestick.getSymbol();
-    final TimeFrame timeFrame = candlestick.getTimeFrame();
-    final int period = emaStatistic.getPeriod();
-    final CandlestickApply candlestickApply = emaStatistic.getCandlestickApply();
-
-    if (emaIndicatorRepository.existsByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameAndEmaNotNull(period, candlestickApply, symbol.getName(),
-        timeFrame)) {
-      final Double lastEma = emaStatistic.getLestEmaStatistic().getEma();
-      if (Objects.nonNull(lastEma)) {
-        final double a = MathUtils.getMultiplication(candlestickApply.getPrice(candlestick), emaStatistic.getPercentagePrice());
-        final double b = MathUtils.getSubtract(1, emaStatistic.getPercentagePrice());
-        final double c = MathUtils.getMultiplication(lastEma, b);
-        return MathUtils.getSum(Stream.of(a, c).toList());
-      }
-    } else {
-      final Collection<Double> collection = candlestickRepository.streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, period).map(candlestickApply::getPrice).toList();
-      if (collection.size() == period) {
-        return MathUtils.getMed(collection);
-      }
-    }
-    return null;
+  private @NotNull Candlestick calculatingCandlestick(final @NotNull TimeFrame timeFrame, final double price, final @NotNull Optional<Candlestick> lastCandlestickOptional,
+      final LocalDateTime candlestickTimestamp, final Symbol symbol) {
+    final Candlestick candlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getHead().getTimestamp().equals(candlestickTimestamp))
+      ? this.updateCandlestick(price, lastCandlestickOptional.get())
+      : this.createCandlestick(timeFrame, price, candlestickTimestamp, symbol);
+    this.getCandlestickRepository().save(candlestick);
+    return candlestick;
   }
 
-  private @NotNull Candlestick createCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp,
-      final Symbol symbol) {
+  private @NotNull Candlestick createCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp, final Symbol symbol) {
+    final Candlestick candlestick = this.initCandlestick(timeFrame, price, timestamp, symbol);
+
+    //init indicators
+    this.getAcIndicatorBatch().initIndicator(candlestick);
+    this.getAdxIndicatorBatch().initIndicator(candlestick);
+    this.getMacdIndicatorBatch().initIndicator(candlestick);
+
+    return candlestick;
+  }
+
+  private @NotNull Candlestick initCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp, final Symbol symbol) {
+    final CandlestickHead head = new CandlestickHead();
+    head.setTimestamp(timestamp);
+    head.setTimeFrame(timeFrame);
+    head.setSymbol(symbol);
+
+    final CandlestickBody body = new CandlestickBody();
+    body.setHigh(price);
+    body.setLow(price);
+    body.setOpen(price);
+    body.setClose(price);
+
     final Candlestick candlestick = new Candlestick();
-    candlestick.setTimestamp(timestamp);
-    candlestick.setTimeFrame(timeFrame);
-    candlestick.setSymbol(symbol);
-    candlestick.setHigh(price);
-    candlestick.setLow(price);
-    candlestick.setOpen(price);
-    candlestick.setClose(price);
+    candlestick.setHead(head);
+    candlestick.setBody(body);
 
-    final AcIndicator acIndicator = new AcIndicator();
-    acIndicator.setCandlestick(candlestick);
-    this.getAcIndicatorRepository().getFirstByCandlestick_SymbolAndCandlestick_TimeFrameOrderByCandlestick_TimestampDesc(symbol, timeFrame)
-        .ifPresent(acIndicator::setLestAcIndicator);
-    candlestick.setAcIndicator(acIndicator);
+    return candlestick;
+  }
 
-    final AdxIndicator adxIndicator = new AdxIndicator();
-    adxIndicator.setCandlestick(candlestick);
-    candlestick.setAdxIndicator(adxIndicator);
-
-    final MacdIndicator macdIndicator = new MacdIndicator();
-    candlestick.getEmaStatistics().add(this.emaIndicatorInit(candlestick, macdIndicator.getFastPeriod(), macdIndicator.getEmaApply()));
-    candlestick.getEmaStatistics().add(this.emaIndicatorInit(candlestick, macdIndicator.getSlowPeriod(), macdIndicator.getEmaApply()));
-    candlestick.setMacdIndicator(macdIndicator);
+  private @NotNull Candlestick updateCandlestick(final double price, final @NotNull Candlestick candlestick) {
+    final CandlestickBody body = candlestick.getBody();
+    if (body.getHigh() < price) {
+      body.setHigh(price);
+    } else if (body.getLow() > price) {
+      body.setLow(price);
+    }
+    body.setClose(price);
 
     return candlestick;
   }
 
   private void calculatingIndicators(final @NotNull Candlestick candlestick) {
-    final Collection<Indicator> indicators = Arrays.asList(candlestick.getAcIndicator(), candlestick.getAdxIndicator(),
-        candlestick.getMacdIndicator());
-    final int maxLastCandlesticks = indicators.stream().mapToInt(Indicator::numberOfCandlesticksToCalculate).max().getAsInt();
-    final List<Candlestick> lastCandlesticks = this.getCandlestickRepository()
-        .streamBySymbolAndTimeFrameOrderByTimestampDesc(candlestick.getSymbol(), candlestick.getTimeFrame(), maxLastCandlesticks + 1).toList();
-    indicators.forEach(indicator -> indicator.calculateIndicator(lastCandlesticks));
+    final int maxMaPeriod = candlestick.getMovingAverages().stream().mapToInt(MovingAverage::getPeriod).max().orElse(0);
+    final int maxIndicatorPeriod = IntStream.of(this.getAcIndicatorBatch().numberOfCandlesticksToCalculate(), this.getAdxIndicatorBatch().numberOfCandlesticksToCalculate(), this.getMacdIndicatorBatch().numberOfCandlesticksToCalculate()).max().orElse(0);
+    final int maxPeriod = maxIndicatorPeriod + maxMaPeriod;
+
+    final ArrayList<Candlestick> candlesticks = this.getCandlestickRepository().streamByHead_Symbol_NameAndHead_TimeFrameOrderByHead_TimestampDesc(candlestick.getHead().getSymbol().getName(), candlestick.getHead().getTimeFrame(), maxPeriod).collect(Collectors.toCollection(ArrayList::new));
+
+    this.getEmaMovingAverageBatch().calculateMovingAverage(candlesticks);
+    this.getAcIndicatorBatch().calculateIndicator(candlesticks);
+    this.getAdxIndicatorBatch().calculateIndicator(candlesticks);
+    this.getMacdIndicatorBatch().calculateIndicator(candlesticks);
+
+    this.getCandlestickRepository().save(candlestick);
   }
 
-  private @NotNull EmaStatistic emaIndicatorInit(final @NotNull Candlestick candlestick, final int period,
-      final @NotNull CandlestickApply candlestickApply) {
-    final String symbolName = candlestick.getSymbol().getName();
-    final TimeFrame timeFrame = candlestick.getTimeFrame();
-    final EmaStatistic emaStatistic = new EmaStatistic();
-
-    emaStatistic.setPeriod(period);
-    emaStatistic.setCandlestickApply(candlestickApply);
-    emaStatistic.setSymbolName(symbolName);
-    emaStatistic.setTimeFrame(timeFrame);
-    emaStatistic.setTimestamp(candlestick.getTimestamp());
-    this.getEmaIndicatorRepository().getFirstByPeriodAndCandlestickApplyAndSymbolNameAndTimeFrameOrderByTimestampDesc(emaStatistic.getPeriod(),
-        emaStatistic.getCandlestickApply(), symbolName, timeFrame).ifPresent(emaStatistic::setLestEmaStatistic);
-
-    return emaStatistic;
-  }
-
-  private @NotNull Candlestick updateCandlestick(final double price, final @NotNull Candlestick candlestick) {
-    if (candlestick.getHigh() < price) {
-      candlestick.setHigh(price);
-    } else if (candlestick.getLow() > price) {
-      candlestick.setLow(price);
-    }
-    candlestick.setClose(price);
-
-    return candlestick;
+  @NotNull
+  @Override
+  public Stream<CandlestickResponseDto> getCandlesticks(@NotNull final String symbolName, @NotNull final TimeFrame timeFrame) {
+    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    return this.getCandlestickRepository().streamByHead_SymbolAndHead_TimeFrameOrderByHead_TimestampAsc(symbol, timeFrame).map(this.getCandlestickMapper()::toDto);
   }
 
   @Override
-  public @NotNull Stream<CandlestickIndicatorDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName,
-      @NotNull final TimeFrame timeFrame, final int limit) {
-    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-    return this.getCandlestickRepository().streamBySymbolAndTimeFrameOrderByTimestampDesc(symbol, timeFrame, limit)
-        .sorted(Comparator.comparing(Candlestick::getTimestamp)).map(candlestickMapper::toDto1);
+  public @NotNull Stream<CandlestickResponseDto> getLastCandlesticks(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, @NotNull final TimeFrame timeFrame, final int limit) {
+//    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    return this.getCandlestickRepository().streamByHead_Symbol_NameAndHead_TimeFrameOrderByHead_TimestampDesc(symbolName, timeFrame, limit)
+        .sorted(Comparator.comparing(c -> c.getHead().getTimestamp())).map(this.getCandlestickMapper()::toDto);
   }
 }

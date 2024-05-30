@@ -1,6 +1,7 @@
 package lu.forex.system.repositories;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -17,13 +18,12 @@ import org.springframework.stereotype.Repository;
 public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>, JpaSpecificationExecutor<Candlestick> {
 
   @NotNull
-  Stream<@NotNull Candlestick> streamBySymbolAndTimeFrameOrderByTimestampAsc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
+  Stream<Candlestick> streamByHead_SymbolAndHead_TimeFrameOrderByHead_TimestampAsc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
 
   @NonNull
-  Optional<@NotNull Candlestick> findFirstBySymbolAndTimeFrameOrderByTimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
+  Optional<@NotNull Candlestick> findFirstByHead_SymbolAndHead_TimeFrameOrderByHead_TimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
 
-
-  @Query("select c from Candlestick c where c.symbol = ?1 and c.timeFrame = ?2 order by c.timestamp DESC LIMIT ?3")
-  Stream<Candlestick> streamBySymbolAndTimeFrameOrderByTimestampDesc(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame, int limit);
-
+  @Query("select c from Candlestick c where c.head.symbol.name = ?1 and c.head.timeFrame = ?2 order by c.head.timestamp DESC LIMIT ?3")
+  Stream<Candlestick> streamByHead_Symbol_NameAndHead_TimeFrameOrderByHead_TimestampDesc(@NonNull String name, @NonNull TimeFrame timeFrame,
+      @Positive int limit);
 }

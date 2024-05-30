@@ -4,7 +4,6 @@ import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lu.forex.system.dtos.CandlestickIndicatorDto;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
@@ -34,7 +33,7 @@ public class CandlestickController implements CandlestickOperations {
   // REMOVE AFTER TESTS
   @GetMapping("/{symbolName}/{timeFrame}/{limit}")
   @ResponseStatus(HttpStatus.OK)
-  public Collection<CandlestickIndicatorDto> getCandlesticksLimit(final @PathVariable("symbolName") String symbolName, final @PathVariable("timeFrame") TimeFrame timeFrame, final @PathVariable("limit") int limit) {
+  public Collection<CandlestickResponseDto> getCandlesticksLimit(final @PathVariable("symbolName") String symbolName, final @PathVariable("timeFrame") TimeFrame timeFrame, final @PathVariable("limit") int limit) {
     Symbol symbol = getSymbolRepository().findFirstByName(symbolName).orElseThrow(SymbolNotFoundException::new);
     return this.getCandlestickService().getLastCandlesticks(symbol.getName(), timeFrame, limit).toList();
   }

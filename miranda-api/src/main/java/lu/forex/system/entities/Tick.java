@@ -39,8 +39,7 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners(TickListener.class)
-@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_name", columnList = "symbol_name")}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})})
+@Table(name = "tick")
 @TickRepresentation
 public class Tick implements Serializable {
 
