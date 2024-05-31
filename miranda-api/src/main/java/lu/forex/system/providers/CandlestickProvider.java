@@ -49,21 +49,15 @@ public class CandlestickProvider implements CandlestickService {
   private final EmaMovingAverageBatch emaMovingAverageBatch;
 
   @Override
-  public void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final double price) {
-    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-    final LocalDateTime candlestickTimestamp = TimeFrameUtils.getCandlestickDateTime(timestamp, timeFrame);
+  public void createOrUpdateCandlestickByPrice(final @Nonnull Symbol symbol, final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final double price) {
     final Optional<Candlestick> lastCandlestickOptional = this.getCandlestickRepository().findFirstByHead_SymbolAndHead_TimeFrameOrderByHead_TimestampDesc(symbol, timeFrame);
-    final Candlestick currentCandlestick = this.calculatingCandlestick(timeFrame, price, lastCandlestickOptional, candlestickTimestamp, symbol);
+    final LocalDateTime candlestickTimestamp = TimeFrameUtils.getCandlestickTimestamp(timestamp, timeFrame);
+    final Candlestick currentCandlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getHead().getTimestamp().equals(candlestickTimestamp))
+        ? this.updateCandlestick(price, lastCandlestickOptional.get())
+        : this.createCandlestick(timeFrame, price, candlestickTimestamp, symbol);
+    this.getCandlestickRepository().save(currentCandlestick);
     this.calculatingIndicators(currentCandlestick);
-  }
-
-  private @NotNull Candlestick calculatingCandlestick(final @NotNull TimeFrame timeFrame, final double price, final @NotNull Optional<Candlestick> lastCandlestickOptional,
-      final LocalDateTime candlestickTimestamp, final Symbol symbol) {
-    final Candlestick candlestick = (lastCandlestickOptional.isPresent() && lastCandlestickOptional.get().getHead().getTimestamp().equals(candlestickTimestamp))
-      ? this.updateCandlestick(price, lastCandlestickOptional.get())
-      : this.createCandlestick(timeFrame, price, candlestickTimestamp, symbol);
-    this.getCandlestickRepository().save(candlestick);
-    return candlestick;
+    this.getCandlestickRepository().save(currentCandlestick);
   }
 
   private @NotNull Candlestick createCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp, final Symbol symbol) {
@@ -119,8 +113,6 @@ public class CandlestickProvider implements CandlestickService {
     this.getAcIndicatorBatch().calculateIndicator(candlesticks);
     this.getAdxIndicatorBatch().calculateIndicator(candlesticks);
     this.getMacdIndicatorBatch().calculateIndicator(candlesticks);
-
-    this.getCandlestickRepository().save(candlestick);
   }
 
   @NotNull

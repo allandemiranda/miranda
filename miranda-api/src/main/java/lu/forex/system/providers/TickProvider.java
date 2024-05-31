@@ -4,6 +4,7 @@ import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
@@ -41,38 +42,23 @@ public class TickProvider implements TickService {
   @NotNull
   @Override
   public TickResponseDto addTick(@NotNull final TickCreateDto tickCreateDto) {
-    final Symbol symbol = this.getSymbolByName(tickCreateDto.symbolName());
-    this.validateTickNotExist(tickCreateDto, symbol);
-    final Optional<Tick> optionalTick = this.findLatestTickBySymbol(symbol);
-    if (optionalTick.isPresent() && optionalTick.get().getTimestamp().isAfter(tickCreateDto.timestamp())) {
-      throw new TickConflictException(symbol.getName(), tickCreateDto.timestamp(), optionalTick.get().getTimestamp());
-    } else if (optionalTick.isPresent() && (optionalTick.get().getBid() == tickCreateDto.bid() && optionalTick.get().getAsk() == tickCreateDto.ask())) {
-      throw new TickExistException(symbol);
+    final String symbolName = tickCreateDto.symbolName();
+    final Symbol symbol = this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    if (this.getTickRepository().existsBySymbolAndTimestamp(symbol, tickCreateDto.timestamp())) {
+      throw new TickExistException(tickCreateDto, symbol);
     } else {
-      final Tick tick = this.createTickFromDto(tickCreateDto, symbol);
+      this.getTickRepository().getFirstBySymbolOrderByTimestampDesc(symbol).ifPresent(tick -> {
+        final LocalDateTime timestamp = tick.getTimestamp();
+        if (timestamp.isAfter(tickCreateDto.timestamp())) {
+          throw new TickConflictException(symbol.getName(), tickCreateDto.timestamp(), timestamp);
+        } else if (tick.getBid() == tickCreateDto.bid() && tick.getAsk() == tickCreateDto.ask()) {
+          throw new TickExistException(symbol);
+        }
+      });
+
+      final Tick tick = this.getTickMapper().toEntity(tickCreateDto, symbol);
       final Tick saved = this.getTickRepository().save(tick);
       return this.getTickMapper().toDto(saved);
     }
-  }
-
-  @Nonnull
-  private Symbol getSymbolByName(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName) {
-    return this.getSymbolRepository().findFirstByName(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
-  }
-
-  private void validateTickNotExist(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull Symbol symbol) {
-    if (this.getTickRepository().existsBySymbolAndTimestamp(symbol, tickCreateDto.timestamp())) {
-      throw new TickExistException(tickCreateDto, symbol);
-    }
-  }
-
-  @Nonnull
-  private Optional<@NotNull Tick> findLatestTickBySymbol(final @Nonnull Symbol symbol) {
-    return this.getTickRepository().findFirstBySymbolOrderByTimestampDesc(symbol);
-  }
-
-  @Nonnull
-  private Tick createTickFromDto(final @Nonnull TickCreateDto tickCreateDto, final @Nonnull Symbol symbol) {
-    return this.getTickMapper().toEntity(tickCreateDto, symbol);
   }
 }

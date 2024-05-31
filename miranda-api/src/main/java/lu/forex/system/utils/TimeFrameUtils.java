@@ -10,7 +10,7 @@ import lu.forex.system.enums.TimeFrame;
 @UtilityClass
 public class TimeFrameUtils {
 
-  public static @NotNull LocalDateTime getCandlestickDateTime(final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame) {
+  public static @NotNull LocalDateTime getCandlestickTimestamp(final @NotNull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame) {
     return switch (timeFrame.getFrame()) {
       case MINUTE -> getMinuteTime(timestamp, timeFrame);
       case HOUR -> getHourTime(timestamp, timeFrame);

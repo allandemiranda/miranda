@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 import lu.forex.system.dtos.CandlestickResponseDto;
+import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +22,7 @@ public interface CandlestickService {
       final @Nonnull TimeFrame timeFrame);
 
   @Transactional()
-  void createOrUpdateCandlestickByPrice(final @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName, final @Nonnull LocalDateTime timestamp,
-      final @NotNull TimeFrame timeFrame, final @Positive double price);
+  void createOrUpdateCandlestickByPrice(final @Nonnull Symbol symbol, final @Nonnull LocalDateTime timestamp, final @NotNull TimeFrame timeFrame, final @Positive double price);
 
   @Transactional(readOnly = true)
   @Nonnull
