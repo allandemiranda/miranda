@@ -72,22 +72,33 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private @NotNull Candlestick initCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp, final Symbol symbol) {
+    final CandlestickHead head = getHead(timeFrame, timestamp, symbol);
+    final CandlestickBody body = getBody(price);
+    return getCandlestick(head, body);
+  }
+
+  private static @NotNull CandlestickHead getHead(final @NotNull TimeFrame timeFrame, final LocalDateTime timestamp, final Symbol symbol) {
     final CandlestickHead head = new CandlestickHead();
     head.setTimestamp(timestamp);
     head.setTimeFrame(timeFrame);
     head.setSymbol(symbol);
+    return head;
+  }
 
+  private static @NotNull Candlestick getCandlestick(final CandlestickHead head, final CandlestickBody body) {
+    final Candlestick candlestick = new Candlestick();
+    candlestick.setHead(head);
+    candlestick.setBody(body);
+    return candlestick;
+  }
+
+  private static @NotNull CandlestickBody getBody(final double price) {
     final CandlestickBody body = new CandlestickBody();
     body.setHigh(price);
     body.setLow(price);
     body.setOpen(price);
     body.setClose(price);
-
-    final Candlestick candlestick = new Candlestick();
-    candlestick.setHead(head);
-    candlestick.setBody(body);
-
-    return candlestick;
+    return body;
   }
 
   private @NotNull Candlestick updateCandlestick(final double price, final @NotNull Candlestick candlestick) {

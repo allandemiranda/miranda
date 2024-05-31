@@ -2,6 +2,7 @@ package lu.forex.system.listeners;
 
 import jakarta.persistence.PrePersist;
 import jakarta.validation.constraints.NotNull;
+import java.util.Arrays;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lu.forex.system.entities.Tick;
@@ -25,14 +26,11 @@ public class TickListener {
   @Transactional()
   public void prePersist(final @NotNull Tick tick) {
     // Use bid getPrice for generate candlesticks and for make statistic calculations
-//    for (final TimeFrame timeFrame : TimeFrame.values()) {
-//      this.getCandlestickService().createOrUpdateCandlestickByPrice(tick.getSymbol(), tick.getTimestamp(), timeFrame, tick.getBid());
-//    }
+    // Arrays.stream(TimeFrame.values()).parallel().forEach(tf ->  this.getCandlestickService().createOrUpdateCandlestickByPrice(tick.getSymbol(), tick.getTimestamp(), tf, tick.getBid()));
 
     // FOR TEST!!!
-    //    for (final TimeFrame timeFrame : TimeFrame.values()) {
-      this.getCandlestickService().createOrUpdateCandlestickByPrice(tick.getSymbol(), tick.getTimestamp(), TimeFrame.M15, tick.getBid());
-//    }
+    this.getCandlestickService().createOrUpdateCandlestickByPrice(tick.getSymbol(), tick.getTimestamp(), TimeFrame.M15, tick.getBid());
+
   }
 
 }
