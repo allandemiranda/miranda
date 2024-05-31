@@ -7,7 +7,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -28,7 +30,9 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "moving_average")
+@Table(name = "moving_average", indexes = {
+    @Index(name = "idx_movingaverage_id_type_unq", columnList = "id, type, period, apply", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_movingaverage_id_type", columnNames = {"id", "type", "period", "apply"})})
 public class MovingAverage implements Serializable {
 
   @Serial

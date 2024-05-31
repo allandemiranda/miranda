@@ -4,9 +4,11 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Index;
 import jakarta.persistence.MapKeyClass;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.EnumMap;
@@ -26,7 +28,9 @@ import lu.forex.system.enums.Indicator;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "candlestick")
+@Table(name = "candlestick", indexes = {
+    @Index(name = "idx_candlestick_unq", columnList = "symbol_name, time_frame, timestamp", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_candlestick_symbol_name", columnNames = {"symbol_name", "time_frame", "timestamp"})})
 public class Candlestick implements Serializable {
 
   @Serial

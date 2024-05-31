@@ -8,7 +8,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -27,7 +29,9 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "technical_indicator")
+@Table(name = "technical_indicator", indexes = {
+    @Index(name = "idx_technicalindicator_id_unq", columnList = "id", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_technicalindicator_id", columnNames = {"id"})})
 public class TechnicalIndicator implements Serializable {
 
   @Serial
@@ -40,7 +44,6 @@ public class TechnicalIndicator implements Serializable {
   private UUID id;
 
   @ElementCollection
-  @Column(name = "data_map", nullable = false)
   private Map<String, Double> dataMap = new HashMap<>();
 
   @Enumerated(EnumType.STRING)
