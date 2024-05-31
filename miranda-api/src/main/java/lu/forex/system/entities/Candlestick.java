@@ -50,7 +50,7 @@ public class Candlestick implements Serializable {
   private Set<MovingAverage> movingAverages = new LinkedHashSet<>();
 
   @Exclude
-  @OneToMany
+  @OneToMany(cascade = CascadeType.ALL)
   @MapKeyClass(Indicator.class)
   private Map<Indicator, TechnicalIndicator> indicators = new EnumMap<>(Indicator.class);
 
