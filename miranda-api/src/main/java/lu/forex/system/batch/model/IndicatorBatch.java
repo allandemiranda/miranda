@@ -22,7 +22,9 @@ public abstract class IndicatorBatch {
   }
 
   public void initIndicator(final @NotNull Candlestick candlestick){
-    candlestick.getIndicators().put(this.getIndicator(), new TechnicalIndicator());
+    final TechnicalIndicator indicator = new TechnicalIndicator();
+    indicator.setSignalStatus(SignalIndicatorStatus.NEUTRAL);
+    candlestick.getIndicators().put(this.getIndicator(), indicator);
   }
 
 }

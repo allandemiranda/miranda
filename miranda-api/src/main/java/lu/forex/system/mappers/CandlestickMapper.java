@@ -9,12 +9,14 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING)public interface CandlestickMapper {
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING)
+public interface CandlestickMapper {
 
   Candlestick toEntity(CandlestickResponseDto candlestickResponseDto);
 
   CandlestickResponseDto toDto(Candlestick candlestick);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)Candlestick partialUpdate(
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Candlestick partialUpdate(
       CandlestickResponseDto candlestickResponseDto, @MappingTarget Candlestick candlestick);
 }

@@ -71,6 +71,8 @@ public class MacdIndicatorBatch extends IndicatorBatch {
         this.setSignal(currentCandlestick, signal);
       }
     }
+
+    this.getTechnicalIndicator(BatchUtils.getCurrentCandlestick(candlesticksDesc)).setSignalStatus(this.getStatus(candlesticksDesc));
   }
 
   @Override

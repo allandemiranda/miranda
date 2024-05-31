@@ -65,6 +65,8 @@ public class AcIndicatorBatch extends IndicatorBatch {
         this.setAc(BatchUtils.getCurrentCandlestick(candlesticksDesc),ac);
       }
     }
+
+    this.getTechnicalIndicator(BatchUtils.getCurrentCandlestick(candlesticksDesc)).setSignalStatus(this.getStatus(candlesticksDesc));
   }
 
   @Override

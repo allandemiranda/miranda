@@ -28,7 +28,7 @@ public class CandlestickHead implements Serializable {
   private static final long serialVersionUID = -4922442941366515439L;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
+  @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
   private Symbol symbol;

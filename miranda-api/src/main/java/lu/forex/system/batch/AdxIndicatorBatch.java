@@ -140,6 +140,8 @@ public class AdxIndicatorBatch extends IndicatorBatch {
         }
       }
     }
+
+    this.getTechnicalIndicator(BatchUtils.getCurrentCandlestick(candlesticksDesc)).setSignalStatus(this.getStatus(candlesticksDesc));
   }
 
   private Double getDx(final @NotNull Candlestick candlestick) {
