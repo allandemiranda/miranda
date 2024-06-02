@@ -37,7 +37,7 @@ public class Candlestick implements Serializable {
   private static final long serialVersionUID = 8655855891835745603L;
 
   @EmbeddedId
-  private CandlestickHead head;
+  private CandlestickHeader head;
 
   @Embedded
   private CandlestickBody body;

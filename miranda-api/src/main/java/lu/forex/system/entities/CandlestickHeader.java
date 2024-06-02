@@ -22,7 +22,7 @@ import org.hibernate.type.SqlTypes;
 
 @Data
 @Embeddable
-public class CandlestickHead implements Serializable {
+public class CandlestickHeader implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -4922442941366515439L;

@@ -21,7 +21,7 @@ import lu.forex.system.batch.MacdIndicatorBatch;
 import lu.forex.system.dtos.CandlestickResponseDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.CandlestickBody;
-import lu.forex.system.entities.CandlestickHead;
+import lu.forex.system.entities.CandlestickHeader;
 import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.enums.TimeFrame;
@@ -72,20 +72,20 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   private @NotNull Candlestick initCandlestick(final @NotNull TimeFrame timeFrame, final double price, final LocalDateTime timestamp, final Symbol symbol) {
-    final CandlestickHead head = getHead(timeFrame, timestamp, symbol);
+    final CandlestickHeader header = getHead(timeFrame, timestamp, symbol);
     final CandlestickBody body = getBody(price);
-    return getCandlestick(head, body);
+    return getCandlestick(header, body);
   }
 
-  private static @NotNull CandlestickHead getHead(final @NotNull TimeFrame timeFrame, final LocalDateTime timestamp, final Symbol symbol) {
-    final CandlestickHead head = new CandlestickHead();
-    head.setTimestamp(timestamp);
-    head.setTimeFrame(timeFrame);
-    head.setSymbol(symbol);
-    return head;
+  private static @NotNull CandlestickHeader getHead(final @NotNull TimeFrame timeFrame, final LocalDateTime timestamp, final Symbol symbol) {
+    final CandlestickHeader header = new CandlestickHeader();
+    header.setTimestamp(timestamp);
+    header.setTimeFrame(timeFrame);
+    header.setSymbol(symbol);
+    return header;
   }
 
-  private static @NotNull Candlestick getCandlestick(final CandlestickHead head, final CandlestickBody body) {
+  private static @NotNull Candlestick getCandlestick(final CandlestickHeader head, final CandlestickBody body) {
     final Candlestick candlestick = new Candlestick();
     candlestick.setHead(head);
     candlestick.setBody(body);
