@@ -47,10 +47,10 @@ public class AdxIndicatorBatch extends IndicatorBatch {
           final BigDecimal pDiBigDecimal = BigDecimal.valueOf(pDiP);
           final BigDecimal nDiBigDecimal = BigDecimal.valueOf(nDiP);
           if (pDiBigDecimal.compareTo(nDiBigDecimal) > 0) {
-            return SignalIndicatorStatus.BUY;
+            return SignalIndicatorStatus.BULLISH;
           }
           if (pDiBigDecimal.compareTo(nDiBigDecimal) < 0) {
-            return SignalIndicatorStatus.SELL;
+            return SignalIndicatorStatus.BEARISH;
           }
         }
       }

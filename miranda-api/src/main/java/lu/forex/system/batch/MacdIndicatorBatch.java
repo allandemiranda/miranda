@@ -85,9 +85,9 @@ public class MacdIndicatorBatch extends IndicatorBatch {
         final BigDecimal signalBigDecimal = BigDecimal.valueOf(signal);
         final BigDecimal macdBigDecimal = BigDecimal.valueOf(macd);
         if (signalBigDecimal.compareTo(macdBigDecimal) > 0) {
-          return SignalIndicatorStatus.SELL;
+          return SignalIndicatorStatus.BEARISH;
         } else if (signalBigDecimal.compareTo(macdBigDecimal) < 0) {
-          return SignalIndicatorStatus.BUY;
+          return SignalIndicatorStatus.BULLISH;
         }
       }
     }

@@ -78,9 +78,9 @@ public class AcIndicatorBatch extends IndicatorBatch {
         final BigDecimal acBigDecimal = BigDecimal.valueOf(currentAc);
         final int compared = BigDecimal.valueOf(currentAc).compareTo(BigDecimal.valueOf(lestAc));
         if (acBigDecimal.compareTo(BigDecimal.ZERO) > 0 && compared > 0) {
-          return SignalIndicatorStatus.BUY;
+          return SignalIndicatorStatus.BULLISH;
         } else if (acBigDecimal.compareTo(BigDecimal.ZERO) < 0 && compared < 0) {
-          return SignalIndicatorStatus.SELL;
+          return SignalIndicatorStatus.BEARISH;
         } else {
           return SignalIndicatorStatus.NEUTRAL;
         }
