@@ -15,6 +15,5 @@ public interface TickMapper {
   @Mapping(source = "symbol", target = "symbol")
   Tick toEntity(NewTickDto newTickDto, Symbol symbol);
 
-  @Mapping(source = "symbol.currencyPair.name", target = "symbolName")
   ResponseTickDto toDto(Tick tick);
 }
