@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import lu.forex.system.dtos.NewSymbolDto;
-import lu.forex.system.dtos.ResponseSymbolDto;
+import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,13 +20,13 @@ public interface SymbolOperation {
 
   @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  Collection<ResponseSymbolDto> getSymbols();
+  Collection<SymbolDto> getSymbols();
 
   @GetMapping("/{name}")
   @ResponseStatus(HttpStatus.OK)
-  ResponseSymbolDto getSymbol(final @PathVariable @NotBlank @Size(max = 6, min = 6) String name);
+  SymbolDto getSymbol(final @PathVariable @NotBlank @Size(max = 6, min = 6) String name);
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  ResponseSymbolDto addSymbol(final @RequestBody @Valid NewSymbolDto symbolDto);
+  Collection<ScopeDto> addSymbol(final @RequestBody @Valid NewSymbolDto newSymbolDto);
 }

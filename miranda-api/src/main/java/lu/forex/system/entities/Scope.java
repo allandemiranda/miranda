@@ -50,7 +50,7 @@ public class Scope implements Serializable {
 
   @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false)
   @JoinColumn(name = "symbol_id", nullable = false, updatable = false)
   private Symbol symbol;
 

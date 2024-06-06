@@ -55,7 +55,7 @@ public class Candlestick implements Serializable {
 
   @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Scope.class)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 

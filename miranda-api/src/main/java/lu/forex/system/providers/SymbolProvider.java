@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.NewSymbolDto;
-import lu.forex.system.dtos.ResponseSymbolDto;
+import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.entities.Symbol;
 import lu.forex.system.exceptions.SymbolNotFoundException;
 import lu.forex.system.mappers.SymbolMapper;
@@ -22,23 +22,22 @@ public class SymbolProvider implements SymbolService {
   private final SymbolRepository symbolRepository;
   private final SymbolMapper symbolMapper;
 
-  @NotNull
   @Override
-  public Collection<@NotNull ResponseSymbolDto> getSymbols() {
+  public @NotNull Collection<@NotNull SymbolDto> getSymbols() {
     return this.getSymbolRepository().findAll().stream().map(this.getSymbolMapper()::toDto).toList();
   }
 
   @NotNull
   @Override
-  public ResponseSymbolDto getSymbol(@NotNull final String symbolName) {
+  public SymbolDto getSymbol(@NotNull final String symbolName) {
     final Symbol symbol = this.getSymbolRepository().getFirstByCurrencyPair_Name(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
     return this.getSymbolMapper().toDto(symbol);
   }
 
   @NotNull
   @Override
-  public ResponseSymbolDto addSymbol(@NotNull final NewSymbolDto symbolDto) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
+  public SymbolDto addSymbol(@NotNull final NewSymbolDto newSymbolDto) {
+    final Symbol symbol = this.getSymbolMapper().toEntity(newSymbolDto);
     final Symbol savedSymbol = this.getSymbolRepository().save(symbol);
     return this.getSymbolMapper().toDto(savedSymbol);
   }

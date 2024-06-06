@@ -1,12 +1,16 @@
 package lu.forex.system.controllers;
 
+import java.util.Arrays;
 import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.NewSymbolDto;
-import lu.forex.system.dtos.ResponseSymbolDto;
+import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.SymbolOperation;
+import lu.forex.system.services.ScopeService;
 import lu.forex.system.services.SymbolService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,19 +20,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class SymbolController implements SymbolOperation {
 
   private final SymbolService symbolService;
+  private final ScopeService scopeService;
 
   @Override
-  public Collection<ResponseSymbolDto> getSymbols() {
+  public Collection<SymbolDto> getSymbols() {
     return this.getSymbolService().getSymbols();
   }
 
   @Override
-  public ResponseSymbolDto getSymbol(final String name) {
+  public SymbolDto getSymbol(final String name) {
     return this.getSymbolService().getSymbol(name);
   }
 
   @Override
-  public ResponseSymbolDto addSymbol(final NewSymbolDto symbolDto) {
-    return this.getSymbolService().addSymbol(symbolDto);
+  public Collection<ScopeDto> addSymbol(final NewSymbolDto newSymbolDto) {
+    final SymbolDto symbolDto = this.getSymbolService().addSymbol(newSymbolDto);
+    return Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame)).toList();
   }
 }

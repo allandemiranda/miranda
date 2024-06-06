@@ -6,16 +6,19 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import lu.forex.system.dtos.NewTickDto;
-import lu.forex.system.dtos.ResponseTickDto;
+import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.TickDto;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public interface TickService {
 
   @Transactional()
   @Nonnull
-  ResponseTickDto addTickBySymbolName(@NotNull NewTickDto tickDto, @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName);
+  TickDto addTickBySymbol(final @NotNull NewTickDto newTickDto, final @NotNull SymbolDto symbolDto);
 
   @Transactional(readOnly = true)
-  @Nonnull
-  Collection<@NotNull ResponseTickDto> getTicksBySymbolName(@Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName);
+  @NotNull
+  Collection<@NotNull TickDto> getTicksBySymbol(final @NotNull SymbolDto symbolDto);
 }

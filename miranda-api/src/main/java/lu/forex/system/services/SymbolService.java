@@ -1,23 +1,24 @@
 package lu.forex.system.services;
 
-import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import lu.forex.system.dtos.NewSymbolDto;
-import lu.forex.system.dtos.ResponseSymbolDto;
+import lu.forex.system.dtos.SymbolDto;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public interface SymbolService {
 
   @Transactional(readOnly = true)
-  @Nonnull
-  Collection<@NotNull ResponseSymbolDto> getSymbols();
+  @NotNull
+  Collection<@NotNull SymbolDto> getSymbols();
 
   @Transactional(readOnly = true)
-  @Nonnull
-  ResponseSymbolDto getSymbol(@Nonnull String symbolName);
+  @NotNull
+  SymbolDto getSymbol(final @NotNull String symbolName);
 
   @Transactional()
-  @Nonnull
-  ResponseSymbolDto addSymbol(@Nonnull NewSymbolDto symbolDto);
+  @NotNull
+  SymbolDto addSymbol(final @NotNull NewSymbolDto newSymbolDto);
 }
