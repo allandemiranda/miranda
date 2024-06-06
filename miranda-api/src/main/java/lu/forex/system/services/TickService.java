@@ -13,7 +13,7 @@ public interface TickService {
 
   @Transactional()
   @Nonnull
-  ResponseTickDto addTickBySymbolName(@NotNull NewTickDto tickDto, @NotNull @NotBlank String symbolName);
+  ResponseTickDto addTickBySymbolName(@NotNull NewTickDto tickDto, @Nonnull @NotBlank @Size(min = 6, max = 6) String symbolName);
 
   @Transactional(readOnly = true)
   @Nonnull
