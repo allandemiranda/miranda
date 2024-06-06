@@ -39,9 +39,7 @@ public class SymbolProvider implements SymbolService {
   @Override
   public ResponseSymbolDto addSymbol(@NotNull final NewSymbolDto symbolDto) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    System.out.println("Adding symbol: " + symbol);
     final Symbol savedSymbol = this.getSymbolRepository().save(symbol);
-    System.out.println("Added symbol: " + symbol);
     return this.getSymbolMapper().toDto(savedSymbol);
   }
 }
