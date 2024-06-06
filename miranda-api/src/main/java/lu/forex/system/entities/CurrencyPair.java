@@ -1,14 +1,18 @@
 package lu.forex.system.entities;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
@@ -23,6 +27,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.ToString.Exclude;
 import lu.forex.system.enums.Currency;
 import lu.forex.system.listeners.CurrencyPairListener;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -34,8 +39,11 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners({CurrencyPairListener.class})
-@Table(name = "currency_pair", indexes = {@Index(name = "idx_currencypair_name_unq", columnList = "name", unique = true)}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_currencypair_base_quote", columnNames = {"base", "quote", "name"})})
+@Table(name = "currency_pair", indexes = {
+    @Index(name = "idx_currencypair_name_unq", columnList = "name", unique = true)
+}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_currencypair_base_quote", columnNames = {"base", "quote", "name"})
+})
 public class CurrencyPair implements Serializable {
 
   @Serial
@@ -66,6 +74,10 @@ public class CurrencyPair implements Serializable {
   @Column(name = "name", nullable = false, unique = true, length = 6, updatable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
   private String name;
+
+  @Exclude
+  @OneToOne(mappedBy = "currencyPair", cascade = CascadeType.ALL, optional = false, orphanRemoval = true, targetEntity = Symbol.class)
+  private Symbol symbol;
 
   @NotNull
   @NotBlank

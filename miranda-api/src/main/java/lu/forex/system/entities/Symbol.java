@@ -31,9 +31,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "symbol", indexes = {
-    @Index(name = "idx_symbol_unq", columnList = "currency_pair_id", unique = true)
-})
+@Table(name = "symbol", indexes = {@Index(name = "idx_symbol_unq", columnList = "currency_pair_id", unique = true)})
 public class Symbol implements Serializable {
 
   @Serial
@@ -47,9 +45,9 @@ public class Symbol implements Serializable {
   private UUID id;
 
   @NotNull
-  @Exclude
   @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, orphanRemoval = true, targetEntity = CurrencyPair.class)
   @JoinColumn(name = "currency_pair_id", nullable = false, unique = true, updatable = false)
+  @Exclude
   private CurrencyPair currencyPair;
 
   @Positive

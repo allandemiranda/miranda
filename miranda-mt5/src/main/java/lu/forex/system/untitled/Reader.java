@@ -30,15 +30,17 @@ public class Reader {
       System.out.println("Starting");
       try (final FileReader fileReader = new FileReader(inputFile); final CSVParser csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
-          if (tick.getBid() > 0d) {
-            bidH.set(tick.getBid());
-          }
-          if (tick.getAsk() > 0d) {
-            askH.set(tick.getAsk());
-          }
-          if ((bidH.get() > 0d) && (askH.get() > 0d) && tick.getTime().isAfter(lastUpdate.get())) {
-            sent(httpClient, symbol, tick.getTime(), bidH.get(), askH.get());
-            lastUpdate.set(tick.getTime());
+          if(tick.getBid() != bidH.get() || tick.getAsk() != askH.get()) {
+            if (tick.getBid() > 0d) {
+              bidH.set(tick.getBid());
+            }
+            if (tick.getAsk() > 0d) {
+              askH.set(tick.getAsk());
+            }
+            if ((bidH.get() > 0d) && (askH.get() > 0d) && tick.getTime().isAfter(lastUpdate.get())) {
+              sent(httpClient, symbol, tick.getTime(), bidH.get(), askH.get());
+              lastUpdate.set(tick.getTime());
+            }
           }
         });
       }
@@ -62,8 +64,8 @@ public class Reader {
     final String s = localDateTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     final String s1 = String.valueOf(bid);
     final String s2 = String.valueOf(ask);
-    final String body = "{\n  \"timestamp\": \"" + s + "\",\n  \"bid\": " + s1 + ",\n  \"ask\": " + s2 + ",\n  \"symbolName\": \"" + symbol + "\"\n}";
-    HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks")).header("Content-Type", "application/json")
+    final String body = "{\n  \"timestamp\": \"" + s + "\",\n  \"bid\": " + s1 + ",\n  \"ask\": " + s2 + "\n}";
+    HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks/"+ symbol)).header("Content-Type", "application/json")
         .header("User-Agent", "insomnia/9.0.0").method("POST", HttpRequest.BodyPublishers.ofString(body)).build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     if (response.statusCode() != 201) {
