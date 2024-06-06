@@ -4,8 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
-import lu.forex.system.dtos.TickCreateDto;
-import lu.forex.system.dtos.TickResponseDto;
+import lu.forex.system.dtos.NewSymbolDto;
+import lu.forex.system.dtos.ResponseSymbolDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,14 +14,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@RequestMapping("/ticks")
-public interface TickOperations {
+@RequestMapping("/symbols")
+public interface SymbolOperation {
 
-  @GetMapping("/{symbolName}")
+  @GetMapping
   @ResponseStatus(HttpStatus.OK)
-  Collection<TickResponseDto> getTicksBySymbolName(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
+  Collection<ResponseSymbolDto> getSymbols();
 
-  @PostMapping()
+  @GetMapping("/{name}")
+  @ResponseStatus(HttpStatus.OK)
+  ResponseSymbolDto getSymbol(final @PathVariable @NotBlank @Size(max = 6, min = 6) String name);
+
+  @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  TickResponseDto addTick(final @RequestBody @Valid TickCreateDto tickCreateDto);
+  ResponseSymbolDto addSymbol(final @RequestBody @Valid NewSymbolDto symbolDto);
 }

@@ -1,25 +1,17 @@
 package lu.forex.system.repositories;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
+import java.util.UUID;
 import lu.forex.system.entities.Symbol;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface SymbolRepository extends JpaRepository<Symbol, String>, JpaSpecificationExecutor<Symbol> {
+public interface SymbolRepository extends JpaRepository<Symbol, UUID>, JpaSpecificationExecutor<Symbol> {
 
   @NonNull
-  Optional<@NotNull Symbol> findFirstByName(@NonNull String name);
-
-  void deleteByName(@NonNull String name);
-
-  @Modifying
-  @Query("update Symbol s set s.digits = ?1, s.swapLong = ?2, s.swapShort = ?3 where s.name = ?4")
-  void updateDigitsAndSwapLongAndSwapShortByName(@NonNull int digits, @NonNull double swapLong, @NonNull double swapShort, @NonNull String name);
+  Optional<Symbol> getFirstByCurrencyPair_Name(@NonNull String name);
 
 }

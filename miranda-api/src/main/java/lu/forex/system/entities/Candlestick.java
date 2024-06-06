@@ -1,27 +1,37 @@
 package lu.forex.system.entities;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.MapKeyClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.EnumMap;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
-import lu.forex.system.enums.Indicator;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -29,27 +39,46 @@ import lu.forex.system.enums.Indicator;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "candlestick", indexes = {
-    @Index(name = "idx_candlestick_unq", columnList = "symbol_name, time_frame, timestamp", unique = true)}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_candlestick_symbol_name", columnNames = {"symbol_name", "time_frame", "timestamp"})})
+    @Index(name = "idx_candlestick_scope_id_unq", columnList = "scope_id, timestamp", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_candlestick_scope_id", columnNames = {"scope_id", "timestamp"})})
 public class Candlestick implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 8655855891835745603L;
+  private static final long serialVersionUID = 3872595660375685420L;
 
-  @EmbeddedId
-  private CandlestickHeader head;
+  @Id
+  @NotNull
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id", nullable = false, updatable = false, unique = true)
+  @JdbcTypeCode(SqlTypes.UUID)
+  private UUID id;
 
+  @Exclude
+  @NotNull
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Scope.class)
+  @JoinColumn(name = "scope_id", nullable = false, updatable = false)
+  private Scope scope;
+
+  @NotNull
+  @PastOrPresent
+  @Temporal(TemporalType.TIMESTAMP)
+  @Column(name = "timestamp", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.TIMESTAMP)
+  private LocalDateTime timestamp;
+
+  @NotNull
   @Embedded
   private CandlestickBody body;
 
   @Exclude
-  @OneToMany(cascade = CascadeType.ALL)
+  @NotNull
+  @OneToMany(mappedBy = "candlestick", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, targetEntity = MovingAverage.class)
   private Set<MovingAverage> movingAverages = new LinkedHashSet<>();
 
   @Exclude
-  @OneToMany(cascade = CascadeType.ALL)
-  @MapKeyClass(Indicator.class)
-  private Map<Indicator, TechnicalIndicator> indicators = new EnumMap<>(Indicator.class);
+  @NotNull
+  @OneToMany(mappedBy = "candlestick", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, targetEntity = TechnicalIndicator.class)
+  private Set<TechnicalIndicator> technicalIndicators = new LinkedHashSet<>();
 
   @Override
   public boolean equals(final Object o) {
@@ -60,11 +89,12 @@ public class Candlestick implements Serializable {
       return false;
     }
     final Candlestick that = (Candlestick) o;
-    return Objects.equals(this.getHead(), that.getHead());
+    return Objects.equals(getScope(), that.getScope()) && Objects.equals(getTimestamp(), that.getTimestamp());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.getHead());
+    return Objects.hash(getScope(), getTimestamp());
   }
+
 }

@@ -2,18 +2,19 @@ package lu.forex.system.entities;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.enums.TimeFrame;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -31,13 +33,13 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "symbol", indexes = {
-    @Index(name = "idx_symbol_unq", columnList = "currency_pair_id", unique = true)
-})
-public class Symbol implements Serializable {
+@Table(name = "scope", indexes = {
+    @Index(name = "idx_scope_symbol_id_unq", columnList = "symbol_id, time_frame", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_scope_symbol_id_time_frame", columnNames = {"symbol_id", "time_frame"})})
+public class Scope implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = -8701110002032902053L;
+  private static final long serialVersionUID = -2777335827353556499L;
 
   @Id
   @NotNull
@@ -46,20 +48,17 @@ public class Symbol implements Serializable {
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @NotNull
   @Exclude
-  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, orphanRemoval = true, targetEntity = CurrencyPair.class)
-  @JoinColumn(name = "currency_pair_id", nullable = false, unique = true, updatable = false)
-  private CurrencyPair currencyPair;
-
-  @Positive
-  @Column(name = "digits", nullable = false)
-  @JdbcTypeCode(SqlTypes.SMALLINT)
-  private int digits;
+  @NotNull
+  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false)
+  @JoinColumn(name = "symbol_id", nullable = false, updatable = false)
+  private Symbol symbol;
 
   @NotNull
-  @Embedded
-  private Swap swap;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "time_frame", nullable = false, length = 3, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  private TimeFrame timeFrame;
 
   @Override
   public boolean equals(final Object o) {
@@ -69,12 +68,12 @@ public class Symbol implements Serializable {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    final Symbol symbol = (Symbol) o;
-    return Objects.equals(getCurrencyPair(), symbol.getCurrencyPair());
+    final Scope scope = (Scope) o;
+    return Objects.equals(getSymbol(), scope.getSymbol()) && getTimeFrame() == scope.getTimeFrame();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getCurrencyPair());
+    return Objects.hash(getSymbol(), getTimeFrame());
   }
 }

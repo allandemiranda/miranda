@@ -1,5 +1,5 @@
 package lu.forex.system.enums;
 
-public enum SignalIndicatorStatus {
+public enum SignalIndicator {
   BULLISH, BEARISH, NEUTRAL
 }

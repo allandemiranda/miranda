@@ -3,7 +3,6 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,8 +27,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
-import lu.forex.system.annotations.TickRepresentation;
-import lu.forex.system.listeners.TickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -38,27 +35,24 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@EntityListeners(TickListener.class)
-@Table(name = "tick", indexes = {
-    @Index(name = "idx_tick_id_symbol_name_unq", columnList = "id, symbol_name, timestamp", unique = true)}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_tick_id_symbol_name", columnNames = {"id", "symbol_name", "timestamp"})})
-@TickRepresentation
+@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_id_unq", columnList = "symbol_id, timestamp", unique = true)}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_tick_symbol_id_timestamp", columnNames = {"symbol_id", "timestamp"})})
 public class Tick implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = 8640594898040399917L;
+  private static final long serialVersionUID = 6203104273208402242L;
 
   @Id
+  @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false, unique = true)
+  @Column(name = "id", nullable = false, unique = true, updatable = false)
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @NotNull
   @Exclude
+  @NotNull
   @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Symbol.class)
-  @JoinColumn(name = "symbol_name", referencedColumnName = "name", nullable = false, updatable = false)
-  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @JoinColumn(name = "symbol_id", nullable = false, updatable = false)
   private Symbol symbol;
 
   @NotNull
@@ -87,12 +81,11 @@ public class Tick implements Serializable {
       return false;
     }
     final Tick tick = (Tick) o;
-    return Double.compare(this.getBid(), tick.getBid()) == 0 && Double.compare(this.getAsk(), tick.getAsk()) == 0 && Objects.equals(this.getId(),
-        tick.getId()) && Objects.equals(this.getSymbol(), tick.getSymbol()) && Objects.equals(this.getTimestamp(), tick.getTimestamp());
+    return Objects.equals(getSymbol(), tick.getSymbol()) && Objects.equals(getTimestamp(), tick.getTimestamp());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.getId(), this.getSymbol(), this.getTimestamp(), this.getBid(), this.getAsk());
+    return Objects.hash(getSymbol(), getTimestamp());
   }
 }
