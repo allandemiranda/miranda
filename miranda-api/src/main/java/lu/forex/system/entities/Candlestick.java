@@ -4,6 +4,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.listeners.CandlestickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -38,6 +40,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
+@EntityListeners({CandlestickListener.class})
 @Table(name = "candlestick", indexes = {
     @Index(name = "idx_candlestick_scope_id_unq", columnList = "scope_id, timestamp", unique = true)}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_scope_id", columnNames = {"scope_id", "timestamp"})})

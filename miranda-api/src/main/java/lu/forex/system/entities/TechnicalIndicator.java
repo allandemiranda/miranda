@@ -10,9 +10,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,7 +37,8 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "technical_indicator")
+@Table(name = "technical_indicator", indexes = {@Index(name = "idx_technicalindicator", columnList = "indicator")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_technicalindicator", columnNames = {"indicator", "candlestick_id"})})
 public class TechnicalIndicator implements Serializable {
 
   @Serial

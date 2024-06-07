@@ -36,7 +36,8 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "moving_average")
+@Table(name = "moving_average", indexes = {@Index(name = "idx_movingaverage_type_period", columnList = "type, period, apply")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_movingaverage_type_period", columnNames = {"type", "period", "apply", "candlestick_id"})})
 public class MovingAverage implements Serializable {
 
   @Serial

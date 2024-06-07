@@ -17,5 +17,5 @@ public interface CandlestickService {
 
   @Transactional()
   @NotNull
-  CandlestickDto updateCandlestick(final @NotNull TickDto tickDto, final @NotNull ScopeDto scopeDto);
+  CandlestickDto processingCandlestick(final @NotNull TickDto tickDto, final @NotNull ScopeDto scopeDto);
 }

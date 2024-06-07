@@ -36,6 +36,6 @@ public class TickController implements TickOperation {
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
     return this.getScopeService().getScopesBySymbol(symbolDto).stream()
-        .map(scopeDto -> this.getCandlestickService().updateCandlestick(tickDto, scopeDto)).toList();
+        .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto)).toList();
   }
 }
