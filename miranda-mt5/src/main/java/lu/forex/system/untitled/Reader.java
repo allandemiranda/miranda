@@ -75,6 +75,7 @@ public class Reader {
       } else {
         System.err.println("Error " + response.statusCode());
         System.err.println("body: " + body);
+        System.err.println("Response: " + response.body());
       }
     }
   }

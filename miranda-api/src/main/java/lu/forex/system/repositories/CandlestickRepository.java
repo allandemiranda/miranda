@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>, JpaSpecificationExecutor<Candlestick> {
@@ -19,6 +20,7 @@ public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>,
   @NonNull
   Optional<Candlestick> getFirstByScopeAndTimestamp(@NonNull Scope scope, @NonNull LocalDateTime timestamp);
 
+  @Transactional(readOnly = true)
   @Query("select c from Candlestick c where c.scope = ?1 order by c.timestamp DESC LIMIT ?2")
   List<Candlestick> findByScopeOrderByTimestampDesc(@NonNull Scope scope, @Positive int limit);
 

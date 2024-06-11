@@ -11,11 +11,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalTime;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -33,7 +35,10 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "trade")
+@Table(name = "trade", uniqueConstraints = {
+    @UniqueConstraint(name = "uc_trade_scope_id_stop_loss", columnNames = {"scope_id", "stop_loss", "take_profit", "spread_max", "slot_start",
+        "slot_end"})
+})
 public class Trade implements Serializable {
 
   @Serial
@@ -66,6 +71,16 @@ public class Trade implements Serializable {
   @Column(name = "spread_max", nullable = false)
   @JdbcTypeCode(SqlTypes.SMALLINT)
   private int spreadMax;
+
+  @NotNull
+  @Column(name = "slot_start", nullable = false, unique = true)
+  @JdbcTypeCode(SqlTypes.TIME)
+  private LocalTime slotStart;
+
+  @NotNull
+  @Column(name = "slot_end", nullable = false, unique = true)
+  @JdbcTypeCode(SqlTypes.TIME)
+  private LocalTime slotEnd;
 
   @Exclude
   @NotNull

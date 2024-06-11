@@ -14,7 +14,9 @@ import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.CandlestickBody;
+import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.entities.Scope;
+import lu.forex.system.entities.TechnicalIndicator;
 import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.mappers.MovingAverageMapper;
 import lu.forex.system.mappers.ScopeMapper;
@@ -39,7 +41,11 @@ public class CandlestickProvider implements CandlestickService {
   @Override
   public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull ScopeDto scopeDto, final int limit) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
-    return this.getCandlestickRepository().findByScopeOrderByTimestampDesc(scope, limit).stream().map(this.getCandlestickMapper()::toDto).toList();
+    final List<Candlestick> byScopeOrderByTimestampDesc = this.getCandlestickRepository().findByScopeOrderByTimestampDesc(scope, limit);
+    if(byScopeOrderByTimestampDesc.isEmpty()) {
+      System.out.println();
+    }
+    return byScopeOrderByTimestampDesc.stream().map(this.getCandlestickMapper()::toDto).toList();
   }
 
   @NotNull
@@ -57,7 +63,8 @@ public class CandlestickProvider implements CandlestickService {
   @Override
   public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull CandlestickDto candlestickDto) {
     final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
-    technicalIndicators.stream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).forEach(ti ->candlestick.getTechnicalIndicators().add(ti));
+    final Collection<TechnicalIndicator> collection = technicalIndicators.stream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).toList();
+    candlestick.getTechnicalIndicators().addAll(collection);
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(saved);
   }
@@ -65,7 +72,8 @@ public class CandlestickProvider implements CandlestickService {
   @Override
   public @NotNull CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull CandlestickDto candlestickDto) {
     final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
-    movingAverages.stream().map(maDto -> this.getMovingAverageMapper().toEntity(maDto)).forEach(ma -> candlestick.getMovingAverages().add(ma));
+    final Collection<MovingAverage> collection = movingAverages.stream().map(maDto -> this.getMovingAverageMapper().toEntity(maDto)).toList();
+    candlestick.getMovingAverages().addAll(collection);
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(saved);
   }

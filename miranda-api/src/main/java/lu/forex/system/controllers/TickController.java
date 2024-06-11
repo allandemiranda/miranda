@@ -1,5 +1,6 @@
 package lu.forex.system.controllers;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class TickController implements TickOperation {
 
   @Override
   public Collection<CandlestickDto> addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
+    System.out.println(newTickDto);
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
 
@@ -67,7 +69,7 @@ public class TickController implements TickOperation {
     final Collection<MovingAverageService> movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
     final int technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max().orElse(0);
 
-    final Collection<ScopeDto> scopeDtos = this.getScopeService().getScopesBySymbol(symbolDto).stream()
+    final Collection<ScopeDto> scopeDtos = this.getScopeService().getScopesBySymbol(symbolDto).parallelStream()
       .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto))
       .map(candlestickDto -> {
         if (candlestickDto.technicalIndicators().isEmpty()) {
@@ -91,15 +93,11 @@ public class TickController implements TickOperation {
         }
       }).map(CandlestickDto::scope).collect(Collectors.toSet());
 
-    scopeDtos.forEach(scopeDto -> {
-      final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize);
-      movingAverageServices.parallelStream().forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks));
-    });
+    final Collection<List<@NotNull CandlestickDto>> preMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
+    preMa.parallelStream().forEach(lastCandlesticks ->  movingAverageServices.parallelStream().forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks)));
 
-    scopeDtos.forEach(scopeDto -> {
-      final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize);
-      indicatorServices.parallelStream().forEach(service -> service.calculateTechnicalIndicator(lastCandlesticks));
-    });
+    final Collection<List<@NotNull CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
+    postMa.parallelStream().forEach(lastCandlesticks -> indicatorServices.parallelStream().forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
     return scopeDtos.stream().flatMap(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 1).stream()).toList();
 
