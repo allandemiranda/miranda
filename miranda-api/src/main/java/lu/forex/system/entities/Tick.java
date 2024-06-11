@@ -15,7 +15,6 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import java.io.Serial;
 import java.io.Serializable;
@@ -56,7 +55,6 @@ public class Tick implements Serializable {
   private Symbol symbol;
 
   @NotNull
-  @PastOrPresent
   @Temporal(TemporalType.TIMESTAMP)
   @Column(name = "timestamp", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIMESTAMP)
