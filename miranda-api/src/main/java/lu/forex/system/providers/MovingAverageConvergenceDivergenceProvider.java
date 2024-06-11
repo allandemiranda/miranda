@@ -38,16 +38,16 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
   private static final String KEY_SIGNAL = "signal";
   private static final String KEY_MACD = "macd";
 
-  @Value("${macd.parameters.fast.period:12}")
+  @Value("${indicator.macd.parameters.fast.period:12}")
   private int fastPeriod;
 
-  @Value("${macd.parameters.slow.period:26}")
+  @Value("${indicator.macd.parameters.slow.period:26}")
   private int slowPeriod;
 
-  @Value("${macd.parameters.macd.period:9}")
+  @Value("${indicator.macd.parameters.macd.period:9}")
   private int period;
 
-  @Value("${macd.parameters.ema.apply:CLOSE}")
+  @Value("${indicator.macd.parameters.ema.apply:CLOSE}")
   private PriceType emaApply;
 
   @Getter(AccessLevel.PUBLIC)

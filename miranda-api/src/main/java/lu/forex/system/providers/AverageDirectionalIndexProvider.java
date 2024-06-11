@@ -38,10 +38,10 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   private static final String KEY_N_DM_1 = "-dm1";
   private static final String KEY_DX = "dx";
 
-  @Value("${adx.parameters.period:14}")
+  @Value("${indicator.adx.parameters.period:14}")
   private int period;
 
-  @Value("${adx.parameters.tendencyLine:50}")
+  @Value("${indicator.adx.parameters.tendencyLine:50}")
   private int tendencyLine;
 
   @Getter(AccessLevel.PUBLIC)

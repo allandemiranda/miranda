@@ -1,32 +1,32 @@
 {
   "properties": [
     {
-      "name": "adx.parameters.period",
+      "name": "indicator.adx.parameters.period",
       "type": "java.lang.Integer",
       "description": "Period to calculate the indicator ADX."
     },
     {
-      "name": "adx.parameters.tendencyLine",
+      "name": "indicator.adx.parameters.tendencyLine",
       "type": "java.lang.Integer",
       "description": "Tendency line to open the status on the indicator ADX."
     },
     {
-      "name": "macd.parameters.fast.period",
+      "name": "indicator.macd.parameters.fast.period",
       "type": "java.lang.Integer",
       "description": "Fast Period to calculate the indicator MACD."
     },
     {
-      "name": "macd.parameters.slow.period",
+      "name": "indicator.macd.parameters.slow.period",
       "type": "java.lang.Integer",
       "description": "Slow Period to calculate the indicator MACD."
     },
     {
-      "name": "macd.parameters.macd.period",
+      "name": "indicator.macd.parameters.macd.period",
       "type": "java.lang.Integer",
       "description": "Period to calculate the indicator MACD."
     },
     {
-      "name": "macd.parameters.ema.apply",
+      "name": "indicator.macd.parameters.ema.apply",
       "type": "lu.forex.system.enums.PriceType",
       "description": "Ema Apply to the indicator MACD."
     }
