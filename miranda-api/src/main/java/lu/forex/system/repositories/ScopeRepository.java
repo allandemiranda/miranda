@@ -16,6 +16,7 @@ public interface ScopeRepository extends JpaRepository<Scope, UUID>, JpaSpecific
 
   Collection<Scope> findBySymbol(@NonNull Symbol symbol);
 
+  @NonNull
   Optional<Scope> getBySymbolAndTimeFrame(@NonNull Symbol symbol, @NonNull TimeFrame timeFrame);
 
 }

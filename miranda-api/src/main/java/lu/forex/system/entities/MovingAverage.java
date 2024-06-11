@@ -1,19 +1,13 @@
 package lu.forex.system.entities;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -25,9 +19,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.ToString.Exclude;
-import lu.forex.system.enums.CandlestickApply;
 import lu.forex.system.enums.MovingAverageType;
+import lu.forex.system.enums.PriceType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -36,8 +29,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "moving_average", indexes = {@Index(name = "idx_movingaverage_type_period", columnList = "type, period, apply")}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_movingaverage_type_period", columnNames = {"type", "period", "apply", "candlestick_id"})})
+@Table(name = "moving_average")
 public class MovingAverage implements Serializable {
 
   @Serial
@@ -62,20 +54,14 @@ public class MovingAverage implements Serializable {
 
   @NotNull
   @Enumerated(EnumType.STRING)
-  @Column(name = "apply", nullable = false, updatable = false)
+  @Column(name = "price_type", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
-  private CandlestickApply apply;
+  private PriceType priceType;
 
   @PositiveOrZero
   @Column(name = "value_ma")
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private Double value;
-
-  @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Candlestick.class)
-  @JoinColumn(name = "candlestick_id", nullable = false, updatable = false)
-  @Exclude
-  private Candlestick candlestick;
 
   @Override
   public boolean equals(final Object o) {
@@ -86,11 +72,11 @@ public class MovingAverage implements Serializable {
       return false;
     }
     final MovingAverage that = (MovingAverage) o;
-    return getPeriod() == that.getPeriod() && getType() == that.getType() && getApply() == that.getApply();
+    return getPeriod() == that.getPeriod() && getType() == that.getType() && getPriceType() == that.getPriceType();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getType(), getPeriod(), getApply());
+    return Objects.hash(getType(), getPeriod(), getPriceType());
   }
 }

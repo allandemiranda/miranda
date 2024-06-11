@@ -1,20 +1,14 @@
 package lu.forex.system.entities;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
@@ -26,7 +20,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.ToString.Exclude;
 import lu.forex.system.enums.Indicator;
 import lu.forex.system.enums.SignalIndicator;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -37,8 +30,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "technical_indicator", indexes = {@Index(name = "idx_technicalindicator", columnList = "indicator")}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_technicalindicator", columnNames = {"indicator", "candlestick_id"})})
+@Table(name = "technical_indicator")
 public class TechnicalIndicator implements Serializable {
 
   @Serial
@@ -67,12 +59,6 @@ public class TechnicalIndicator implements Serializable {
   @Column(name = "signal", nullable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
   private SignalIndicator signal;
-
-  @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Candlestick.class)
-  @JoinColumn(name = "candlestick_id", nullable = false, updatable = false)
-  @Exclude
-  private Candlestick candlestick;
 
   @Override
   public boolean equals(final Object o) {

@@ -27,7 +27,8 @@ public class CandlestickController implements CandlestickOperation {
   public Collection<CandlestickDto> getCandlesticks(final String symbolName, final TimeFrame timeFrame) {
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final ScopeDto scopeDto = this.getScopeService().getScope(symbolDto, timeFrame);
-    return this.getCandlestickService().getCandlesticks(scopeDto);
+    // NEED BE UPDATE TO THE FRONT END WITH PAGINABLE
+    return this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 5);
   }
 
 }

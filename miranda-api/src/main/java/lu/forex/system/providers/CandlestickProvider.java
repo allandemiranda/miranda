@@ -3,17 +3,22 @@ package lu.forex.system.providers;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
+import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.CandlestickBody;
 import lu.forex.system.entities.Scope;
 import lu.forex.system.mappers.CandlestickMapper;
+import lu.forex.system.mappers.MovingAverageMapper;
 import lu.forex.system.mappers.ScopeMapper;
+import lu.forex.system.mappers.TechnicalIndicatorMapper;
 import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.utils.TimeFrameUtils;
@@ -27,12 +32,14 @@ public class CandlestickProvider implements CandlestickService {
   private final CandlestickRepository candlestickRepository;
   private final CandlestickMapper candlestickMapper;
   private final ScopeMapper scopeMapper;
+  private final TechnicalIndicatorMapper technicalIndicatorMapper;
+  private final MovingAverageMapper movingAverageMapper;
 
   @NotNull
   @Override
-  public Collection<@NotNull CandlestickDto> getCandlesticks(final @NotNull ScopeDto scopeDto) {
+  public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull ScopeDto scopeDto, final int limit) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
-    return this.getCandlestickRepository().findByScope(scope).stream().map(this.getCandlestickMapper()::toDto).toList();
+    return this.getCandlestickRepository().findByScopeOrderByTimestampDesc(scope, limit).stream().map(this.getCandlestickMapper()::toDto).toList();
   }
 
   @NotNull
@@ -45,6 +52,22 @@ public class CandlestickProvider implements CandlestickService {
     candlestick.getBody().setClose(price);
     final Candlestick savedCandlestick = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(savedCandlestick);
+  }
+
+  @Override
+  public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull CandlestickDto candlestickDto) {
+    final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
+    technicalIndicators.stream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).forEach(ti ->candlestick.getTechnicalIndicators().add(ti));
+    final Candlestick saved = this.getCandlestickRepository().save(candlestick);
+    return this.getCandlestickMapper().toDto(saved);
+  }
+
+  @Override
+  public @NotNull CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull CandlestickDto candlestickDto) {
+    final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
+    movingAverages.stream().map(maDto -> this.getMovingAverageMapper().toEntity(maDto)).forEach(ma -> candlestick.getMovingAverages().add(ma));
+    final Candlestick saved = this.getCandlestickRepository().save(candlestick);
+    return this.getCandlestickMapper().toDto(saved);
   }
 
   private @NotNull Candlestick createCandlestick(final double price, final @NotNull Scope scope, final @NotNull LocalDateTime timestamp) {

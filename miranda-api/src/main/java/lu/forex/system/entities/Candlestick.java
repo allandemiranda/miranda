@@ -74,13 +74,13 @@ public class Candlestick implements Serializable {
   private CandlestickBody body;
 
   @Exclude
-  @NotNull
-  @OneToMany(mappedBy = "candlestick", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, targetEntity = MovingAverage.class)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "candlestick_id")
   private Set<MovingAverage> movingAverages = new LinkedHashSet<>();
 
   @Exclude
-  @NotNull
-  @OneToMany(mappedBy = "candlestick", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, targetEntity = TechnicalIndicator.class)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "candlestick_id")
   private Set<TechnicalIndicator> technicalIndicators = new LinkedHashSet<>();
 
   @Override

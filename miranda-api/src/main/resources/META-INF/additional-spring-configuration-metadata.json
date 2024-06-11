@@ -27,7 +27,7 @@
     },
     {
       "name": "macd.parameters.ema.apply",
-      "type": "lu.forex.system.enums.CandlestickApply",
+      "type": "lu.forex.system.enums.PriceType",
       "description": "Ema Apply to the indicator MACD."
     }
   ] }
