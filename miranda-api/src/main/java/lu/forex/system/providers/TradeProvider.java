@@ -6,15 +6,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.entities.Symbol;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.mappers.ScopeMapper;
+import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TradeMapper;
 import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
@@ -35,9 +39,10 @@ public class TradeProvider implements TradeService {
   private final TradeRepository tradeRepository;
   private final TradeMapper tradeMapper;
   private final ScopeMapper scopeMapper;
+  private final SymbolMapper symbolMapper;
 
   @Override
-  public @NotNull Collection<TradeDto> generateTrades(final Set<ScopeDto> scopeDtos) {
+  public @NotNull Collection<TradeDto> generateTrades(final @NotNull Set<ScopeDto> scopeDtos) {
 
     final int subTime = 1440 / this.getSlotMinutes();
     final Collection<LocalTime[]> localTimes = IntStream.range(0, subTime).parallel().mapToObj(i -> {
@@ -74,4 +79,11 @@ public class TradeProvider implements TradeService {
 
     }).map(trade -> this.getTradeRepository().save(trade)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
+
+  @Override
+  public @NotNull List<TradeDto> getTradesBySymbolByBalanceDesc(final @NotNull SymbolDto symbolDto) {
+    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
+    return this.getTradeRepository().findByScope_SymbolOrderByBalanceDesc(symbol).stream().map(this.getTradeMapper()::toDto).toList();
+  }
+
 }
