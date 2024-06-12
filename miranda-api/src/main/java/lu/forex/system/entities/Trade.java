@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -35,10 +36,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "trade", uniqueConstraints = {
-    @UniqueConstraint(name = "uc_trade_scope_id_stop_loss", columnNames = {"scope_id", "stop_loss", "take_profit", "spread_max", "slot_start",
-        "slot_end"})
-})
+@Table(name = "trade")
 public class Trade implements Serializable {
 
   @Serial
@@ -52,9 +50,8 @@ public class Trade implements Serializable {
   private UUID id;
 
   @Exclude
-  @NotNull
-  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, orphanRemoval = true, targetEntity = Scope.class)
-  @JoinColumn(name = "scope_id", nullable = false, unique = true, updatable = false)
+  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false, targetEntity = Scope.class)
+  @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
   @PositiveOrZero
@@ -73,14 +70,18 @@ public class Trade implements Serializable {
   private int spreadMax;
 
   @NotNull
-  @Column(name = "slot_start", nullable = false, unique = true)
+  @Column(name = "slot_start", nullable = false)
   @JdbcTypeCode(SqlTypes.TIME)
   private LocalTime slotStart;
 
   @NotNull
-  @Column(name = "slot_end", nullable = false, unique = true)
+  @Column(name = "slot_end", nullable = false)
   @JdbcTypeCode(SqlTypes.TIME)
   private LocalTime slotEnd;
+
+  @Column(name = "is_activate", nullable = false)
+  @JdbcTypeCode(SqlTypes.BOOLEAN)
+  private boolean isActivate;
 
   @Exclude
   @NotNull

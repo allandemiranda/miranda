@@ -2,16 +2,20 @@ package lu.forex.system.controllers;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.NewSymbolDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.SymbolOperation;
 import lu.forex.system.services.ScopeService;
 import lu.forex.system.services.SymbolService;
+import lu.forex.system.services.TradeService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,6 +25,7 @@ public class SymbolController implements SymbolOperation {
 
   private final SymbolService symbolService;
   private final ScopeService scopeService;
+  private final TradeService tradeService;
 
   @Override
   public Collection<SymbolDto> getSymbols() {
@@ -33,8 +38,9 @@ public class SymbolController implements SymbolOperation {
   }
 
   @Override
-  public Collection<ScopeDto> addSymbol(final NewSymbolDto newSymbolDto) {
+  public Collection<TradeDto> addSymbol(final NewSymbolDto newSymbolDto) {
     final SymbolDto symbolDto = this.getSymbolService().addSymbol(newSymbolDto);
-    return Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame)).toList();
+    final Set<ScopeDto> scopeDtos = Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame)).collect(Collectors.toSet());
+    return this.getTradeService().generateTrades(scopeDtos);
   }
 }

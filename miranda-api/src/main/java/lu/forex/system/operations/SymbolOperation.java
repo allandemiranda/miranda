@@ -7,7 +7,9 @@ import java.util.Collection;
 import lu.forex.system.dtos.NewSymbolDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.TradeDto;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,5 +30,6 @@ public interface SymbolOperation {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  Collection<ScopeDto> addSymbol(final @RequestBody @Valid NewSymbolDto newSymbolDto);
+  @Transactional
+  Collection<TradeDto> addSymbol(final @RequestBody @Valid NewSymbolDto newSymbolDto);
 }

@@ -29,5 +29,15 @@
       "name": "indicator.macd.parameters.ema.apply",
       "type": "lu.forex.system.enums.PriceType",
       "description": "Ema Apply to the indicator MACD."
+    },
+    {
+      "name": "trade.slot.minutes",
+      "type": "java.lang.String",
+      "description": "Time split by minutes to Trade."
+    },
+    {
+      "name": "trade.slot.config",
+      "type": "java.lang.String",
+      "description": "Slot configuration."
     }
   ] }

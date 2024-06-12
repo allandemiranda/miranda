@@ -42,9 +42,6 @@ public class CandlestickProvider implements CandlestickService {
   public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull ScopeDto scopeDto, final int limit) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     final List<Candlestick> byScopeOrderByTimestampDesc = this.getCandlestickRepository().findByScopeOrderByTimestampDesc(scope, limit);
-    if(byScopeOrderByTimestampDesc.isEmpty()) {
-      System.out.println();
-    }
     return byScopeOrderByTimestampDesc.stream().map(this.getCandlestickMapper()::toDto).toList();
   }
 

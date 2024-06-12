@@ -61,7 +61,6 @@ public class TickController implements TickOperation {
 
   @Override
   public Collection<CandlestickDto> addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
-    System.out.println(newTickDto);
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
 

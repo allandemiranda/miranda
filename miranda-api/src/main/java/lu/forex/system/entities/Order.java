@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -68,6 +69,16 @@ public class Order implements Serializable {
   @JoinColumn(name = "trade_id", nullable = false, updatable = false)
   @Exclude
   private Trade trade;
+
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "order_status", nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  private OrderStatus orderStatus;
+
+  @Column(name = "is_simulator", nullable = false)
+  @JdbcTypeCode(SqlTypes.BOOLEAN)
+  private boolean isSimulator;
 
   @Transient
   public double getProfit() {
