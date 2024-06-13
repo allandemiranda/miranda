@@ -3,6 +3,7 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,6 +17,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.exceptions.TickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -34,6 +37,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
+@EntityListeners(TickListener.class)
 @Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_id_unq", columnList = "symbol_id, timestamp", unique = true)}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_tick_symbol_id_timestamp", columnNames = {"symbol_id", "timestamp"})})
 public class Tick implements Serializable {
@@ -69,6 +73,11 @@ public class Tick implements Serializable {
   @Column(name = "ask", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double ask;
+
+  @PositiveOrZero
+  @Column(name = "spread", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
+  private double spread;
 
   @Override
   public boolean equals(final Object o) {
