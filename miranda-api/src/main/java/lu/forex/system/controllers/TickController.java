@@ -68,18 +68,18 @@ public class TickController implements TickOperation {
     final Collection<MovingAverageService> movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
     final int technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max().orElse(0);
 
-    final Collection<ScopeDto> scopeDtos = this.getScopeService().getScopesBySymbol(symbolDto).parallelStream()
+    final Collection<ScopeDto> scopeDtos = this.getScopeService().getScopesBySymbol(symbolDto).stream()
       .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto))
       .map(candlestickDto -> {
         if (candlestickDto.technicalIndicators().isEmpty()) {
-          final Collection<TechnicalIndicatorDto> newTechnicalIndicators = indicatorServices.parallelStream().map(TechnicalIndicatorService::initTechnicalIndicator).toList();
+          final Collection<TechnicalIndicatorDto> newTechnicalIndicators = indicatorServices.stream().map(TechnicalIndicatorService::initTechnicalIndicator).toList();
           return this.getCandlestickService().addingTechnicalIndicators(newTechnicalIndicators, candlestickDto);
         } else {
           return candlestickDto;
         }
       }).map(candlestickDto -> {
         if(candlestickDto.movingAverages().isEmpty()) {
-          final Collection<MovingAverageDto> newMovingAverages = indicatorServices.parallelStream().flatMap(indicatorService -> indicatorService.generateMAs().stream()).distinct().map(newMovingAverageDto ->
+          final Collection<MovingAverageDto> newMovingAverages = indicatorServices.stream().flatMap(indicatorService -> indicatorService.generateMAs().stream()).distinct().map(newMovingAverageDto ->
             switch (newMovingAverageDto.type()) {
               case EMA -> this.getExponentialMovingAverageService().createMovingAverage(newMovingAverageDto);
               case SMA -> this.getSimpleMovingAverageService().createMovingAverage(newMovingAverageDto);
@@ -93,10 +93,10 @@ public class TickController implements TickOperation {
       }).map(CandlestickDto::scope).collect(Collectors.toSet());
 
     final Collection<List<@NotNull CandlestickDto>> preMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
-    preMa.parallelStream().forEach(lastCandlesticks ->  movingAverageServices.parallelStream().forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks)));
+    preMa.forEach(lastCandlesticks ->  movingAverageServices.forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks)));
 
     final Collection<List<@NotNull CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
-    postMa.parallelStream().forEach(lastCandlesticks -> indicatorServices.parallelStream().forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
+    postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
     return scopeDtos.stream().flatMap(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 1).stream()).toList();
 

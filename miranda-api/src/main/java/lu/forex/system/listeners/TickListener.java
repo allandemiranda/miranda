@@ -1,4 +1,4 @@
-package lu.forex.system.exceptions;
+package lu.forex.system.listeners;
 
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
