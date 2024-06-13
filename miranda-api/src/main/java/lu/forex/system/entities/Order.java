@@ -3,6 +3,7 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -11,13 +12,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.io.Serializable;
-import java.math.BigDecimal;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
+import lu.forex.system.listeners.OrderListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -34,6 +37,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
+@EntityListeners(OrderListener.class)
 @Table(name = "order_operation")
 public class Order implements Serializable {
 
@@ -65,12 +69,6 @@ public class Order implements Serializable {
   private OrderType orderType;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Trade.class)
-  @JoinColumn(name = "trade_id", nullable = false, updatable = false)
-  @Exclude
-  private Trade trade;
-
-  @NotNull
   @Enumerated(EnumType.STRING)
   @Column(name = "order_status", nullable = false)
   @JdbcTypeCode(SqlTypes.VARCHAR)
@@ -80,13 +78,15 @@ public class Order implements Serializable {
   @JdbcTypeCode(SqlTypes.BOOLEAN)
   private boolean isSimulator;
 
-  @Transient
-  public double getProfit() {
-    return switch (this.getOrderType()) {
-      case BUY -> BigDecimal.valueOf(this.getCloseTick().getBid()).subtract(BigDecimal.valueOf(this.getOpenTick().getAsk())).doubleValue();
-      case SELL -> BigDecimal.valueOf(this.getOpenTick().getBid()).subtract(BigDecimal.valueOf(this.getCloseTick().getAsk())).doubleValue();
-    };
-  }
+  @Column(name = "profit", nullable = false)
+  @JdbcTypeCode(SqlTypes.DOUBLE)
+  private double profit;
+
+  @Exclude
+  @NotNull
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "order_id", nullable = false)
+  private Set<OrderProfit> historicProfit = new LinkedHashSet<>();
 
   @Override
   public boolean equals(final Object o) {

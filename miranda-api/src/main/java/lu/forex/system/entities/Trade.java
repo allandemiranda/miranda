@@ -3,6 +3,8 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,19 +12,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -50,32 +55,39 @@ public class Trade implements Serializable {
   private UUID id;
 
   @Exclude
+  @NotNull
   @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
   @PositiveOrZero
-  @Column(name = "stop_loss", nullable = false)
+  @Column(name = "stop_loss", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.SMALLINT)
   private int stopLoss;
 
   @Positive
-  @Column(name = "take_profit", nullable = false)
+  @Column(name = "take_profit", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.SMALLINT)
   private int takeProfit;
 
   @PositiveOrZero
-  @Column(name = "spread_max", nullable = false)
+  @Column(name = "spread_max", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.SMALLINT)
   private int spreadMax;
 
   @NotNull
-  @Column(name = "slot_start", nullable = false)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "slot_week", nullable = false, updatable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  private DayOfWeek slotWeek;
+
+  @NotNull
+  @Column(name = "slot_start", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIME)
   private LocalTime slotStart;
 
   @NotNull
-  @Column(name = "slot_end", nullable = false)
+  @Column(name = "slot_end", nullable = false, updatable = false)
   @JdbcTypeCode(SqlTypes.TIME)
   private LocalTime slotEnd;
 
@@ -85,12 +97,20 @@ public class Trade implements Serializable {
 
   @Exclude
   @NotNull
-  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true, targetEntity = Order.class)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "trade_id", nullable = false)
   private Set<Order> orders = new LinkedHashSet<>();
 
-  @Column(name = "balance", nullable = false)
-  @JdbcTypeCode(SqlTypes.DOUBLE)
-  private double balance;
+  @Transient
+  public double getBalance() {
+    return this.getOrders().stream().mapToDouble(Order::getProfit).sum();
+  }
+
+  @Transient
+  @NotNull
+  public Set<Entry<LocalDateTime, Double>> getBalanceHistoric() {
+    return this.getOrders().stream().flatMap(order -> order.getHistoricProfit().stream()).collect(Collectors.toMap(OrderProfit::getTimestamp, OrderProfit::getProfit, Double::sum)).entrySet();
+  }
 
   @Override
   public boolean equals(final Object o) {

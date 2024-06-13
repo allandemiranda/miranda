@@ -22,6 +22,7 @@ public class TradeController implements TradeOperation {
   @Override
   public List<TradeDto> getTrades(final String symbolName) {
     final SymbolDto symbol = this.getSymbolService().getSymbol(symbolName);
-    return this.getTradeService().getTradesBySymbolByBalanceDesc(symbol);
+    // UPDATE !!!
+    return List.of();
   }
 }
