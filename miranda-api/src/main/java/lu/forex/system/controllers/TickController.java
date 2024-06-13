@@ -92,10 +92,10 @@ public class TickController implements TickOperation {
         }
       }).map(CandlestickDto::scope).collect(Collectors.toSet());
 
-    final Collection<List<@NotNull CandlestickDto>> preMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
+    final Collection<List<CandlestickDto>> preMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
     preMa.forEach(lastCandlesticks ->  movingAverageServices.forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks)));
 
-    final Collection<List<@NotNull CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
+    final Collection<List<CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
     return scopeDtos.stream().flatMap(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 1).stream()).toList();
