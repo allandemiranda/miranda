@@ -28,12 +28,13 @@ import org.hibernate.type.SqlTypes;
 public class OrderProfit implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = -6044706172102811278L;
+  private static final long serialVersionUID = 7437617879703072199L;
 
   @Id
   @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false, updatable = false, unique = true)
+  @Column(name = "id", nullable = false, unique = true, updatable = false)
+  @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
   @NotNull

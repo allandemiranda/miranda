@@ -3,7 +3,6 @@ package lu.forex.system.entities;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -28,7 +27,6 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
-import lu.forex.system.listeners.OrderListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -37,7 +35,6 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@EntityListeners(OrderListener.class)
 @Table(name = "order_operation")
 public class Order implements Serializable {
 
@@ -47,17 +44,18 @@ public class Order implements Serializable {
   @Id
   @NotNull
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "id", nullable = false, updatable = false, unique = true)
+  @Column(name = "id", nullable = false, unique = true, updatable = false)
+  @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Tick.class)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Tick.class)
   @JoinColumn(name = "open_tick_id", nullable = false, updatable = false)
   @Exclude
   private Tick openTick;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, targetEntity = Tick.class)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Tick.class)
   @JoinColumn(name = "close_tick_id", nullable = false)
   @Exclude
   private Tick closeTick;

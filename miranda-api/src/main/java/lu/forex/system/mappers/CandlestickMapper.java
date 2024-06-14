@@ -15,16 +15,6 @@ public interface CandlestickMapper {
 
   Candlestick toEntity(CandlestickDto candlestickDto);
 
-//  @AfterMapping
-//  default void linkMovingAverages(@MappingTarget Candlestick candlestick) {
-//    candlestick.getMovingAverages().forEach(movingAverage -> movingAverage.setCandlestick(candlestick));
-//  }
-
-//  @AfterMapping
-//  default void linkTechnicalIndicators(@MappingTarget Candlestick candlestick) {
-//    candlestick.getTechnicalIndicators().forEach(technicalIndicator -> technicalIndicator.setCandlestick(candlestick));
-//  }
-
   CandlestickDto toDto(Candlestick candlestick);
 
   @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

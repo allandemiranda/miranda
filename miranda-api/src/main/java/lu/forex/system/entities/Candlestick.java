@@ -5,6 +5,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.ToString.Exclude;
+import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.listeners.CandlestickListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -80,6 +83,12 @@ public class Candlestick implements Serializable {
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "candlestick_id")
   private Set<TechnicalIndicator> technicalIndicators = new LinkedHashSet<>();
+
+  @NotNull
+  @Enumerated(EnumType.STRING)
+  @Column(name = "signal_indicator", nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  private SignalIndicator signalIndicator;
 
   @Override
   public boolean equals(final Object o) {

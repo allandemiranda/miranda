@@ -8,6 +8,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.StreamSupport;
@@ -68,15 +69,19 @@ public class Reader {
     HttpRequest request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks/"+ symbol)).header("Content-Type", "application/json")
         .header("User-Agent", "insomnia/9.0.0").method("POST", HttpRequest.BodyPublishers.ofString(body)).build();
     HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    if (response.statusCode() != 201) {
-      if (response.statusCode() == 409) {
-        System.err.println("Conflict: " + body);
-        System.err.println("Response: " + response.body());
-      } else {
-        System.err.println("Error " + response.statusCode());
-        System.err.println("body: " + body);
-        System.err.println("Response: " + response.body());
-      }
+//    if (response.statusCode() != 201) {
+//      System.err.println("Error " + response.statusCode());
+//      System.err.println("body: " + body);
+//      System.err.println("Response: " + response.body());
+//    }
+
+    if(!response.body().equals("[]")) {
+      System.out.println(response.body());
+    }
+
+    if(response.statusCode() == 500) {
+      Arrays.stream(response.body().split("\r\n\tat")).forEachOrdered(System.out::println);
+      throw new RuntimeException(String.valueOf(response.statusCode()));
     }
   }
 

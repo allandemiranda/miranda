@@ -3,6 +3,7 @@ package lu.forex.system.services;
 import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.Optional;
 import lu.forex.system.dtos.NewTickDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
@@ -19,4 +20,8 @@ public interface TickService {
   @Transactional(readOnly = true)
   @NotNull
   Collection<@NotNull TickDto> getTicksBySymbol(final @NotNull SymbolDto symbolDto);
+
+  @Transactional(readOnly = true)
+  @NotNull
+  Optional<@NotNull TickDto> getLestTickBySymbol(final @NotNull SymbolDto symbolDto);
 }

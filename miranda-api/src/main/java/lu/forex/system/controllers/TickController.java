@@ -1,6 +1,5 @@
 package lu.forex.system.controllers;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,10 +8,13 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
+import lu.forex.system.enums.OrderType;
+import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.operations.TickOperation;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
@@ -20,6 +22,8 @@ import lu.forex.system.services.ScopeService;
 import lu.forex.system.services.SymbolService;
 import lu.forex.system.services.TechnicalIndicatorService;
 import lu.forex.system.services.TickService;
+import lu.forex.system.services.TradeService;
+import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,12 +40,13 @@ public class TickController implements TickOperation {
   private final TechnicalIndicatorService movingAverageConvergenceDivergenceService;
   private final MovingAverageService simpleMovingAverageService;
   private final MovingAverageService exponentialMovingAverageService;
+  private final TradeService tradeService;
 
   public TickController(final TickService tickService, final SymbolService symbolService, final CandlestickService candlestickService,
       final ScopeService scopeService, @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
       @Qualifier("averageDirectionalIndex") final TechnicalIndicatorService averageDirectionalIndexService,
       @Qualifier("movingAverageConvergenceDivergence") final TechnicalIndicatorService movingAverageConvergenceDivergenceService, @Qualifier("simpleMovingAverage") final MovingAverageService simpleMovingAverageService,
-      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService) {
+      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService, final TradeService tradeService) {
     this.tickService = tickService;
     this.symbolService = symbolService;
     this.candlestickService = candlestickService;
@@ -51,6 +56,7 @@ public class TickController implements TickOperation {
     this.movingAverageConvergenceDivergenceService = movingAverageConvergenceDivergenceService;
     this.simpleMovingAverageService = simpleMovingAverageService;
     this.exponentialMovingAverageService = exponentialMovingAverageService;
+    this.tradeService = tradeService;
   }
 
   @Override
@@ -60,7 +66,7 @@ public class TickController implements TickOperation {
   }
 
   @Override
-  public Collection<CandlestickDto> addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
+  public Collection<OrderDto> addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
 
@@ -98,7 +104,19 @@ public class TickController implements TickOperation {
     final Collection<List<CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
-    return scopeDtos.stream().flatMap(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 1).stream()).toList();
+    final TickDto lastTickDto = this.getTickService().getLestTickBySymbol(symbolDto).orElse(tickDto);
+
+    return scopeDtos.stream()
+        .filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame()).equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
+        .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, 2))
+        .map(List::getLast)
+        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
+        .flatMap(candlestickDto -> {
+          final ScopeDto scopeDto = candlestickDto.scope();
+          final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
+          return this.getTradeService().getTradesForOpenPosition(scopeDto, tickDto).stream().map(tradeDto -> this.getTradeService().addOrder(tickDto, orderType, true, tradeDto));
+        }).flatMap(tradeDto -> tradeDto.orders().stream().filter(orderDto -> orderDto.openTick().equals(tickDto)))
+        .toList();
 
   }
 }

@@ -9,12 +9,13 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {ScopeMapper.class, OrderMapper.class})public interface TradeMapper {
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {ScopeMapper.class, OrderMapper.class})
+public interface TradeMapper {
 
   Trade toEntity(TradeDto tradeDto);
 
   TradeDto toDto(Trade trade);
 
-  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)Trade partialUpdate(TradeDto tradeDto,
-      @MappingTarget Trade trade);
+  @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+  Trade partialUpdate(TradeDto tradeDto, @MappingTarget Trade trade);
 }

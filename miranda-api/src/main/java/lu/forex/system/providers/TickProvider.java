@@ -2,6 +2,8 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,4 +48,18 @@ public class TickProvider implements TickService {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
     return this.getTickRepository().findBySymbol(symbol).stream().map(this.getTickMapper()::toDto).toList();
   }
+
+  @Override
+  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbol(final @NotNull SymbolDto symbolDto) {
+    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
+    final List<Tick> collection = this.getTickRepository().findBySymbolOrderByTimestampDescLimitTwo(symbol);
+    if(collection.size() == 2) {
+      final Tick tick = collection.getLast();
+      final TickDto tickDto = this.getTickMapper().toDto(tick);
+      return Optional.of(tickDto);
+    } else {
+      return Optional.empty();
+    }
+  }
+
 }

@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
 import lu.forex.system.dtos.NewTickDto;
-import lu.forex.system.dtos.CandlestickDto;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.http.HttpStatus;
@@ -29,6 +29,6 @@ public interface TickOperation {
   @ResponseStatus(HttpStatus.CREATED)
   @Lock(LockModeType.NONE)
   @Transactional
-  Collection<CandlestickDto> addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
+  Collection<OrderDto> addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
 }

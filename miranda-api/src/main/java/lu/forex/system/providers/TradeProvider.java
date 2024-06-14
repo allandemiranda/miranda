@@ -14,15 +14,25 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
-import lu.forex.system.entities.Symbol;
+import lu.forex.system.entities.Order;
+import lu.forex.system.entities.OrderProfit;
+import lu.forex.system.entities.Scope;
+import lu.forex.system.entities.Tick;
 import lu.forex.system.entities.Trade;
+import lu.forex.system.enums.OrderStatus;
+import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.TimeFrame;
+import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.SymbolMapper;
+import lu.forex.system.mappers.TickMapper;
 import lu.forex.system.mappers.TradeMapper;
+import lu.forex.system.repositories.TickRepository;
 import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
+import lu.forex.system.utils.OrderUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +41,7 @@ import org.springframework.stereotype.Service;
 @Getter(AccessLevel.PRIVATE)
 public class TradeProvider implements TradeService {
 
+  private final TickRepository tickRepository;
   @Value("${trade.slot.minutes:15}")
   private int slotMinutes;
 
@@ -41,6 +52,8 @@ public class TradeProvider implements TradeService {
   private final TradeMapper tradeMapper;
   private final ScopeMapper scopeMapper;
   private final SymbolMapper symbolMapper;
+  private final OrderMapper orderMapper;
+  private final TickMapper tickMapper;
 
   @Override
   public @NotNull Collection<TradeDto> generateTrades(final @NotNull Set<ScopeDto> scopeDtos) {
@@ -80,6 +93,42 @@ public class TradeProvider implements TradeService {
               }))))));
 
     }).map(trade -> this.getTradeRepository().save(trade)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
+  }
+
+  @Override
+  public @NotNull List<TradeDto> testServiceRemove(final SymbolDto symbol) {
+    return tradeRepository.findByScope_Symbol(symbolMapper.toEntity(symbol)).stream().filter(trade -> !trade.getOrders().isEmpty()).map(tradeMapper::toDto).toList();
+  }
+
+  @Override
+  public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
+    final Scope scope = this.getScopeMapper().toEntity(scopeDto);
+    final Collection<Trade> collection = this.getTradeRepository().findTradeToOpenOrder(scope, (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime());
+    return collection.stream().map(this.getTradeMapper()::toDto).toList();
+  }
+
+  @Override
+  public @NotNull TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator, final @NotNull TradeDto tradeDto) {
+    final Tick tick = this.getTickMapper().toEntity(openTick);
+
+    final Order order = new Order();
+    order.setOpenTick(tick);
+    order.setCloseTick(tick);
+    order.setOrderType(orderType);
+    order.setOrderStatus(OrderStatus.OPEN);
+    order.setSimulator(isSimulator);
+    final double profit = OrderUtils.getProfit(order);
+    order.setProfit(profit);
+
+    final OrderProfit orderProfit = new OrderProfit();
+    orderProfit.setTimestamp(tick.getTimestamp());
+    orderProfit.setProfit(order.getProfit());
+    order.getHistoricProfit().add(orderProfit);
+
+    final Trade trade = this.getTradeRepository().getReferenceById(tradeDto.id());
+    trade.getOrders().add(order);
+    final Trade saved = this.getTradeRepository().save(trade);
+    return this.getTradeMapper().toDto(saved);
   }
 
 }
