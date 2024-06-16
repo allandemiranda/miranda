@@ -111,7 +111,6 @@ public class TickController implements TickOperation {
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
     final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolName).orElse(tickDto);
-
     return scopeDtos.stream().filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame())
             .equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
         .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), 2)).map(List::getLast)
