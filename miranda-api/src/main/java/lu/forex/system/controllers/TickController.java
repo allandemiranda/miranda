@@ -18,6 +18,7 @@ import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.operations.TickOperation;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
+import lu.forex.system.services.OrderService;
 import lu.forex.system.services.ScopeService;
 import lu.forex.system.services.SymbolService;
 import lu.forex.system.services.TechnicalIndicatorService;
@@ -41,13 +42,15 @@ public class TickController implements TickOperation {
   private final MovingAverageService simpleMovingAverageService;
   private final MovingAverageService exponentialMovingAverageService;
   private final TradeService tradeService;
+  private final OrderService orderService;
 
   public TickController(final TickService tickService, final SymbolService symbolService, final CandlestickService candlestickService,
       final ScopeService scopeService, @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
       @Qualifier("averageDirectionalIndex") final TechnicalIndicatorService averageDirectionalIndexService,
       @Qualifier("movingAverageConvergenceDivergence") final TechnicalIndicatorService movingAverageConvergenceDivergenceService,
       @Qualifier("simpleMovingAverage") final MovingAverageService simpleMovingAverageService,
-      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService, final TradeService tradeService) {
+      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService, final TradeService tradeService,
+      final OrderService orderService) {
     this.tickService = tickService;
     this.symbolService = symbolService;
     this.candlestickService = candlestickService;
@@ -58,6 +61,7 @@ public class TickController implements TickOperation {
     this.simpleMovingAverageService = simpleMovingAverageService;
     this.exponentialMovingAverageService = exponentialMovingAverageService;
     this.tradeService = tradeService;
+    this.orderService = orderService;
   }
 
   @Override
@@ -109,6 +113,8 @@ public class TickController implements TickOperation {
     final Collection<List<CandlestickDto>> postMa = scopeDtos.stream()
         .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize)).toList();
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
+
+    this.getOrderService().updateOrders(tickDto);
 
     final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolName).orElse(tickDto);
     return scopeDtos.stream().filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame())
