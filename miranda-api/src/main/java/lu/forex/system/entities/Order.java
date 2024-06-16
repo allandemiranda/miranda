@@ -87,6 +87,12 @@ public class Order implements Serializable {
   @JoinColumn(name = "order_id", nullable = false)
   private Set<OrderProfit> historicProfit = new LinkedHashSet<>();
 
+  @NotNull
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "trade_id", nullable = false)
+  @Exclude
+  private Trade trade;
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) {

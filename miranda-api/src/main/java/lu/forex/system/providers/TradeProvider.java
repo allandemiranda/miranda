@@ -65,16 +65,16 @@ public class TradeProvider implements TradeService {
     final Collection<DayOfWeek> validWeeks = Arrays.stream(DayOfWeek.values())
         .filter(dayOfWeek -> !DayOfWeek.SATURDAY.equals(dayOfWeek) && !DayOfWeek.SUNDAY.equals(dayOfWeek)).toList();
 
-    return this.getTradeConfig().entrySet().stream().flatMap(timeFrameInput -> {
+    final Collection<Trade> collection = this.getTradeConfig().entrySet().stream().flatMap(timeFrameInput -> {
       final TimeFrame timeFrame = TimeFrame.valueOf(timeFrameInput.getKey());
 
       final Collection<Integer> spreads = timeFrameInput.getValue().get("spread");
       final Collection<Integer> tps = timeFrameInput.getValue().get("tp");
       final Collection<Integer> sls = timeFrameInput.getValue().get("sl");
 
-      return scopeDtos.stream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame)).map(scopeDto -> this.getScopeMapper().toEntity(scopeDto))
-          .flatMap(scope -> spreads.stream().flatMap(spread -> tps.stream().flatMap(tp -> sls.stream().filter(sl -> sl <= tp && sl > spread)
-              .flatMap(sl -> validWeeks.stream().flatMap(week -> localTimes.stream().map(time -> {
+      return scopeDtos.parallelStream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame)).map(scopeDto -> this.getScopeMapper().toEntity(scopeDto))
+          .flatMap(scope -> spreads.parallelStream().flatMap(spread -> tps.parallelStream().flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp && sl > spread)
+              .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> localTimes.parallelStream().map(time -> {
                 final Trade trade = new Trade();
                 trade.setScope(scope);
                 trade.setStopLoss(sl);
@@ -87,7 +87,9 @@ public class TradeProvider implements TradeService {
                 return trade;
               }))))));
 
-    }).map(trade -> this.getTradeRepository().save(trade)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
+    }).toList();
+
+    return this.getTradeRepository().saveAll(collection).stream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
   @Override
@@ -124,6 +126,7 @@ public class TradeProvider implements TradeService {
     order.getHistoricProfit().add(orderProfit);
 
     final Trade trade = this.getTradeRepository().getReferenceById(tradeDto.id());
+    order.setTrade(trade);
     trade.getOrders().add(order);
     final Trade saved = this.getTradeRepository().save(trade);
     return this.getTradeMapper().toDto(saved);

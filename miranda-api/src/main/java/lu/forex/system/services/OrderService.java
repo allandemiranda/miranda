@@ -14,4 +14,8 @@ public interface OrderService {
   @NotNull
   Collection<@NotNull OrderDto> updateOrders(@NotNull TickDto tickDto);
 
+  @Transactional(readOnly = true)
+  @NotNull
+  Collection<@NotNull OrderDto> getOrdersByTick(@NotNull TickDto tickDto);
+
 }

@@ -114,18 +114,19 @@ public class TickController implements TickOperation {
         .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize)).toList();
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
-    this.getOrderService().updateOrders(tickDto);
-
     final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolName).orElse(tickDto);
-    return scopeDtos.stream().filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame())
+    scopeDtos.stream().filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame())
             .equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
         .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), 2)).map(List::getLast)
-        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator())).flatMap(candlestickDto -> {
+        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator())).forEach(candlestickDto -> {
           final ScopeDto scopeDto = candlestickDto.scope();
           final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
-          return this.getTradeService().getTradesForOpenPosition(scopeDto, tickDto).stream()
-              .map(tradeDto -> this.getTradeService().addOrder(tickDto, orderType, true, tradeDto));
-        }).flatMap(tradeDto -> tradeDto.orders().stream().filter(orderDto -> orderDto.openTick().equals(tickDto))).toList();
+          this.getTradeService().getTradesForOpenPosition(scopeDto, tickDto)
+              .forEach(tradeDto -> this.getTradeService().addOrder(tickDto, orderType, true, tradeDto));
+        });
 
+    this.getOrderService().updateOrders(tickDto);
+
+    return this.getOrderService().getOrdersByTick(tickDto);
   }
 }

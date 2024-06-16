@@ -99,10 +99,9 @@ public class Trade implements Serializable {
   @JdbcTypeCode(SqlTypes.BOOLEAN)
   private boolean isActivate;
 
-  @Exclude
   @NotNull
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "trade_id", nullable = false)
+  @Exclude
+  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Order> orders = new LinkedHashSet<>();
 
   @Transient

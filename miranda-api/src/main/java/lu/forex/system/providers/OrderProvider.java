@@ -38,7 +38,20 @@ public class OrderProvider implements OrderService {
           orderProfit.setProfit(profit);
           orderProfit.setTimestamp(currentTick.getTimestamp());
           order.getHistoricProfit().add(orderProfit);
+
+          if (profit <= 0D && Math.abs(profit) > order.getTrade().getStopLoss()) {
+            order.setOrderStatus(OrderStatus.STOP_LOSS);
+          } else if (order.getProfit() >= order.getTrade().getTakeProfit()) {
+            order.setOrderStatus(OrderStatus.TAKE_PROFIT);
+          }
+
           return this.getOrderRepository().save(order);
         }).map(order -> this.getOrderMapper().toDto(order)).toList();
+  }
+
+  @Override
+  public @NotNull Collection<@NotNull OrderDto> getOrdersByTick(@NotNull final TickDto tickDto) {
+    return this.getOrderRepository().findByOpenTick_Id(tickDto.id()).stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus()))
+        .map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 }
