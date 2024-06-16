@@ -1,5 +1,6 @@
 package lu.forex.system.repositories;
 
+import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 import java.util.UUID;
 import lu.forex.system.entities.Symbol;
@@ -12,6 +13,6 @@ import org.springframework.stereotype.Repository;
 public interface SymbolRepository extends JpaRepository<Symbol, UUID>, JpaSpecificationExecutor<Symbol> {
 
   @NonNull
-  Optional<Symbol> getFirstByCurrencyPair_Name(@NonNull String symbolName);
+  Optional<@NotNull Symbol> getFirstByCurrencyPair_Name(@NonNull String symbolName);
 
 }

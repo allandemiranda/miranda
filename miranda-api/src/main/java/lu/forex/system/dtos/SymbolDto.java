@@ -11,6 +11,7 @@ import java.util.UUID;
  */
 public record SymbolDto(@NotNull UUID id, @NotNull CurrencyPairDto currencyPair, @Positive int digits, @NotNull SwapDto swap) implements
     Serializable {
+
   @Serial
   private static final long serialVersionUID = 976211379668406865L;
-  }
+}

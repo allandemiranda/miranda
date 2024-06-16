@@ -30,7 +30,8 @@ public class SymbolProvider implements SymbolService {
   @NotNull
   @Override
   public SymbolDto getSymbol(@NotNull final String symbolName) {
-    final Symbol symbol = this.getSymbolRepository().getFirstByCurrencyPair_Name(symbolName).orElseThrow(() -> new SymbolNotFoundException(symbolName));
+    final Symbol symbol = this.getSymbolRepository().getFirstByCurrencyPair_Name(symbolName)
+        .orElseThrow(() -> new SymbolNotFoundException(symbolName));
     return this.getSymbolMapper().toDto(symbol);
   }
 
