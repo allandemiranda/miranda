@@ -72,20 +72,21 @@ public class TradeProvider implements TradeService {
       final Collection<Integer> tps = timeFrameInput.getValue().get("tp");
       final Collection<Integer> sls = timeFrameInput.getValue().get("sl");
 
-      return scopeDtos.parallelStream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame)).map(scopeDto -> this.getScopeMapper().toEntity(scopeDto))
-          .flatMap(scope -> spreads.parallelStream().flatMap(spread -> tps.parallelStream().flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp && sl > spread)
-              .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> localTimes.parallelStream().map(time -> {
-                final Trade trade = new Trade();
-                trade.setScope(scope);
-                trade.setStopLoss(sl);
-                trade.setTakeProfit(tp);
-                trade.setSpreadMax(spread);
-                trade.setSlotWeek(week);
-                trade.setSlotStart(time[0]);
-                trade.setSlotEnd(time[1]);
-                trade.setActivate(false);
-                return trade;
-              }))))));
+      return scopeDtos.parallelStream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame))
+          .map(scopeDto -> this.getScopeMapper().toEntity(scopeDto)).flatMap(scope -> spreads.parallelStream().flatMap(spread -> tps.parallelStream()
+              .flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp && sl > spread)
+                  .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> localTimes.parallelStream().map(time -> {
+                    final Trade trade = new Trade();
+                    trade.setScope(scope);
+                    trade.setStopLoss(sl);
+                    trade.setTakeProfit(tp);
+                    trade.setSpreadMax(spread);
+                    trade.setSlotWeek(week);
+                    trade.setSlotStart(time[0]);
+                    trade.setSlotEnd(time[1]);
+                    trade.setActivate(false);
+                    return trade;
+                  }))))));
 
     }).toList();
 
@@ -101,9 +102,9 @@ public class TradeProvider implements TradeService {
   @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
-    final Collection<Trade> collection = this.getTradeRepository()
-        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime());
-    return collection.stream().map(this.getTradeMapper()::toDto).toList();
+    return this.getTradeRepository()
+        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime()).stream()
+        .map(this.getTradeMapper()::toDto).toList();
   }
 
   @Override
