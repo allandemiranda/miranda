@@ -1,5 +1,6 @@
 package lu.forex.system.controllers;
 
+import java.util.Comparator;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,6 @@ public class TradeController implements TradeOperation {
   public List<TradeDto> getTrades(final String symbolName) {
     final SymbolDto symbol = this.getSymbolService().getSymbol(symbolName);
     // REMOVER TUDO ISSO DEPOIS
-    return tradeService.testServiceRemove(symbol).stream()
-        .filter(tradeDto -> tradeDto.orders().stream().anyMatch(orderDto -> !orderDto.historicProfit().isEmpty())).toList();
+    return tradeService.testServiceRemove(symbol).stream().sorted(Comparator.comparingDouble(TradeDto::balance).reversed()).toList();
   }
 }
