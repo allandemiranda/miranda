@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.Collection;
+import java.util.List;
 import lu.forex.system.dtos.NewTickDto;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
@@ -23,7 +24,7 @@ public interface TickOperation {
 
   @GetMapping("/{symbolName}")
   @ResponseStatus(HttpStatus.OK)
-  Collection<TickDto> getTicksBySymbolName(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
+  List<TickDto> getTicksBySymbolName(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
   @PostMapping("/{symbolName}")
   @ResponseStatus(HttpStatus.CREATED)

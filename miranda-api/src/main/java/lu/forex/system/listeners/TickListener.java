@@ -1,7 +1,6 @@
 package lu.forex.system.listeners;
 
 import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import lu.forex.system.entities.Tick;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class TickListener {
 
   @PrePersist
-  @PreUpdate
   public void prePersistOrUpdate(@NotNull Tick tick) {
     final double spread = this.getSpread(tick);
     tick.setSpread(spread);

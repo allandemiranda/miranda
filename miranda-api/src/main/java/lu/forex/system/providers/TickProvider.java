@@ -1,9 +1,9 @@
 package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,14 +25,14 @@ import org.springframework.stereotype.Service;
 public class TickProvider implements TickService {
 
   private final TickRepository tickRepository;
-  private final SymbolMapper symbolMapper;
   private final TickMapper tickMapper;
+  private final SymbolMapper symbolMapper;
 
   @NotNull
   @Override
   public TickDto addTickBySymbol(@NotNull final NewTickDto newTickDto, final @NotNull SymbolDto symbolDto) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final boolean valid = this.getTickRepository().getFirstBySymbolOrderByTimestampDesc(symbol)
+    final boolean valid = this.getTickRepository().getFirstBySymbol_IdOrderByTimestampDesc(symbol.getId())
         .map(tick -> tick.getTimestamp().isBefore(newTickDto.timestamp())).orElse(true);
     if (valid) {
       final Tick tick = this.getTickMapper().toEntity(newTickDto, symbol);
@@ -44,16 +44,14 @@ public class TickProvider implements TickService {
   }
 
   @Override
-  public @NotNull Collection<@NotNull TickDto> getTicksBySymbol(final @NotNull SymbolDto symbolDto) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    return this.getTickRepository().findBySymbol(symbol).stream().map(this.getTickMapper()::toDto).toList();
+  public @NotNull List<@NotNull TickDto> getTicksBySymbolName(final @NotNull String symbolName) {
+    return this.getTickRepository().findBySymbol_CurrencyPair_NameOrderByTimestampAsc(symbolName).stream().map(this.getTickMapper()::toDto).toList();
   }
 
   @Override
-  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbol(final @NotNull SymbolDto symbolDto) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final List<Tick> collection = this.getTickRepository().findBySymbolOrderByTimestampDescLimitTwo(symbol);
-    if(collection.size() == 2) {
+  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbolId(final @NotNull UUID symbolId) {
+    final List<Tick> collection = this.getTickRepository().findBySymbol_IdOrderByTimestampDescLimitTwo(symbolId);
+    if (collection.size() == 2) {
       final Tick tick = collection.getLast();
       final TickDto tickDto = this.getTickMapper().toDto(tick);
       return Optional.of(tickDto);

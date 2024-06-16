@@ -60,9 +60,8 @@ public class TickController implements TickOperation {
   }
 
   @Override
-  public Collection<TickDto> getTicksBySymbolName(final String symbolName) {
-    final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
-    return this.getTickService().getTicksBySymbol(symbolDto);
+  public List<TickDto> getTicksBySymbolName(final String symbolName) {
+    return this.getTickService().getTicksBySymbolName(symbolName);
   }
 
   @Override
@@ -104,7 +103,7 @@ public class TickController implements TickOperation {
     final Collection<List<CandlestickDto>> postMa = scopeDtos.stream().map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto, technicalIndicatorSize)).toList();
     postMa.forEach(lastCandlesticks -> indicatorServices.forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks)));
 
-    final TickDto lastTickDto = this.getTickService().getLestTickBySymbol(symbolDto).orElse(tickDto);
+    final TickDto lastTickDto = this.getTickService().getLestTickBySymbolId(symbolDto.id()).orElse(tickDto);
 
     return scopeDtos.stream()
         .filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame()).equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))

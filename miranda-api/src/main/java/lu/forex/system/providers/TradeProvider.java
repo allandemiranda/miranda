@@ -29,7 +29,6 @@ import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TickMapper;
 import lu.forex.system.mappers.TradeMapper;
-import lu.forex.system.repositories.TickRepository;
 import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Service;
 @Getter(AccessLevel.PRIVATE)
 public class TradeProvider implements TradeService {
 
-  private final TickRepository tickRepository;
   @Value("${trade.slot.minutes:15}")
   private int slotMinutes;
 

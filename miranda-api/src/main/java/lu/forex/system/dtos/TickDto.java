@@ -11,8 +11,9 @@ import java.util.UUID;
 /**
  * DTO for {@link lu.forex.system.entities.Tick}
  */
-public record TickDto(@NotNull UUID id, @NotNull LocalDateTime timestamp, @Positive double bid, @Positive double ask, @PositiveOrZero double spread) implements Serializable {
+public record TickDto(@NotNull UUID id, @NotNull SymbolDto symbol, @NotNull LocalDateTime timestamp, @Positive double bid, @Positive double ask,
+                      @PositiveOrZero double spread) implements Serializable {
 
   @Serial
-  private static final long serialVersionUID = -2044172470840995958L;
+  private static final long serialVersionUID = 3967193703565468347L;
 }
