@@ -12,6 +12,7 @@ import lu.forex.system.enums.PriceType;
  * DTO for {@link lu.forex.system.entities.MovingAverage}
  */
 public record NewMovingAverageDto(@NotNull MovingAverageType type, @Positive int period, @NotNull PriceType priceType) implements Serializable {
+
   @Serial
   private static final long serialVersionUID = 6735763909170414963L;
 

@@ -43,7 +43,7 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners({CandlestickListener.class})
-@Table(name = "candlestick", indexes = {
+@Table(name = "candlestick", indexes = {@Index(name = "idx_candlestick_scope_id", columnList = "scope_id"),
     @Index(name = "idx_candlestick_scope_id_unq", columnList = "scope_id, timestamp", unique = true)}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_candlestick_scope_id", columnNames = {"scope_id", "timestamp"})})
 public class Candlestick implements Serializable {
@@ -60,7 +60,7 @@ public class Candlestick implements Serializable {
 
   @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false, targetEntity = Scope.class)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
@@ -99,12 +99,11 @@ public class Candlestick implements Serializable {
       return false;
     }
     final Candlestick that = (Candlestick) o;
-    return Objects.equals(getScope(), that.getScope()) && Objects.equals(getTimestamp(), that.getTimestamp());
+    return Objects.equals(getId(), that.getId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getScope(), getTimestamp());
+    return Objects.hashCode(getId());
   }
-
 }

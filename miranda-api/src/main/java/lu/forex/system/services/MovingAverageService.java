@@ -1,7 +1,6 @@
 package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
@@ -29,7 +28,6 @@ public interface MovingAverageService {
   }
 
   @Transactional
-  @NotNull
-  Collection<MovingAverageDto> calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos);
+  void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos);
 
 }

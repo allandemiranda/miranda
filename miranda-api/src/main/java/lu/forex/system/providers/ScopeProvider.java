@@ -37,16 +37,14 @@ public class ScopeProvider implements ScopeService {
   }
 
   @Override
-  public @NotNull Collection<ScopeDto> getScopesBySymbol(final @NotNull SymbolDto symbolDto) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    return this.getScopeRepository().findBySymbol(symbol).stream().map(this.getScopeMapper()::toDto).toList();
+  public @NotNull Collection<ScopeDto> getScopesBySymbolName(final @NotNull String symbolName) {
+    return this.getScopeRepository().findBySymbolName(symbolName).stream().map(this.getScopeMapper()::toDto).toList();
   }
 
   @Override
-  public @NotNull ScopeDto getScope(final @NotNull SymbolDto symbolDto, final @NotNull TimeFrame timeFrame) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final Scope scope = this.getScopeRepository().getBySymbolAndTimeFrame(symbol, timeFrame)
-        .orElseThrow(() -> new ScopeNotFoundException(timeFrame, symbol.getCurrencyPair().getName()));
+  public @NotNull ScopeDto getScope(final @NotNull String symbolName, final @NotNull TimeFrame timeFrame) {
+    final Scope scope = this.getScopeRepository().getBySymbolNameAndTimeFrame(symbolName, timeFrame)
+        .orElseThrow(() -> new ScopeNotFoundException(timeFrame, symbolName));
     return this.getScopeMapper().toDto(scope);
   }
 }

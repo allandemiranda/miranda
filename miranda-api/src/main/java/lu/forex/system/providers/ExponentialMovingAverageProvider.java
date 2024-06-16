@@ -2,7 +2,6 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,19 +38,19 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
   }
 
   @Override
-  public @NotNull Collection<MovingAverageDto> calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
+  public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    return currentCandlestick.getMovingAverages().stream()
-        .filter(movingAverage -> this.getMovingAverageType().equals(movingAverage.getType()))
-        .map(ma -> this.getMovingAverageRepository().save(this.getMovingAverageConsumer(ma, candlestickDtos, currentCandlestick))).map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
+    currentCandlestick.getMovingAverages().stream().filter(movingAverage -> this.getMovingAverageType().equals(movingAverage.getType()))
+        .forEach(ma -> this.getMovingAverageRepository().save(this.getMovingAverageConsumer(ma, candlestickDtos, currentCandlestick)));
   }
 
   @NotNull
-  private MovingAverage getMovingAverageConsumer(final @NotNull MovingAverage movingAverage, final @NotNull List<CandlestickDto> candlesticksDesc, final @NotNull Candlestick currentCandlestick) {
+  private MovingAverage getMovingAverageConsumer(final @NotNull MovingAverage movingAverage, final @NotNull List<CandlestickDto> candlesticksDesc,
+      final @NotNull Candlestick currentCandlestick) {
     final int period = movingAverage.getPeriod();
     final PriceType candlestickApply = movingAverage.getPriceType();
 
-    if(candlesticksDesc.size() > period) {
+    if (candlesticksDesc.size() > period) {
       final Optional<MovingAverageDto> lestMA = candlesticksDesc.get(1).movingAverages().stream()
           .filter(ma -> this.getMovingAverageType().equals(ma.type()) && period == ma.period() && candlestickApply.equals(ma.priceType()))
           .findFirst();
@@ -66,7 +65,7 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
           movingAverage.setValue(ema);
         }
       }
-    } else if(candlesticksDesc.size() == period) {
+    } else if (candlesticksDesc.size() == period) {
       final List<Double> collection = candlesticksDesc.stream().map(candlestickApply::getPrice).toList();
       final double ema = MathUtils.getMed(collection);
       movingAverage.setValue(ema);

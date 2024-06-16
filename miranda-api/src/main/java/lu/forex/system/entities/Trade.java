@@ -9,11 +9,13 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -41,7 +43,9 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "trade")
+@Table(name = "trade", indexes = {@Index(name = "idx_trade_scope_id", columnList = "scope_id")}, uniqueConstraints = {
+    @UniqueConstraint(name = "uc_trade_scope_id_stop_loss", columnNames = {"scope_id", "stop_loss", "take_profit", "spread_max", "slot_week",
+        "slot_start", "slot_end"})})
 public class Trade implements Serializable {
 
   @Serial
@@ -56,7 +60,7 @@ public class Trade implements Serializable {
 
   @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.REFRESH}, optional = false, targetEntity = Scope.class)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
@@ -109,7 +113,8 @@ public class Trade implements Serializable {
   @Transient
   @NotNull
   public Set<Entry<LocalDateTime, Double>> getBalanceHistoric() {
-    return this.getOrders().stream().flatMap(order -> order.getHistoricProfit().stream()).collect(Collectors.toMap(OrderProfit::getTimestamp, OrderProfit::getProfit, Double::sum)).entrySet();
+    return this.getOrders().stream().flatMap(order -> order.getHistoricProfit().stream())
+        .collect(Collectors.toMap(OrderProfit::getTimestamp, OrderProfit::getProfit, Double::sum)).entrySet();
   }
 
   @Override
@@ -121,11 +126,11 @@ public class Trade implements Serializable {
       return false;
     }
     final Trade trade = (Trade) o;
-    return Objects.equals(getScope(), trade.getScope());
+    return Objects.equals(getId(), trade.getId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getScope());
+    return Objects.hashCode(getId());
   }
 }

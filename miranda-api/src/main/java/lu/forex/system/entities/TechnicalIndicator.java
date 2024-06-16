@@ -69,11 +69,11 @@ public class TechnicalIndicator implements Serializable {
       return false;
     }
     final TechnicalIndicator that = (TechnicalIndicator) o;
-    return getIndicator() == that.getIndicator();
+    return Objects.equals(getId(), that.getId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(getIndicator());
+    return Objects.hashCode(getId());
   }
 }

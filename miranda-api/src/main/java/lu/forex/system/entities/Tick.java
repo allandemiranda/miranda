@@ -38,7 +38,7 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners(TickListener.class)
-@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_id_unq", columnList = "symbol_id, timestamp", unique = true)}, uniqueConstraints = {
+@Table(name = "tick", indexes = {@Index(name = "idx_tick_symbol_id", columnList = "symbol_id")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_tick_symbol_id_timestamp", columnNames = {"symbol_id", "timestamp"})})
 public class Tick implements Serializable {
 
@@ -88,11 +88,11 @@ public class Tick implements Serializable {
       return false;
     }
     final Tick tick = (Tick) o;
-    return Objects.equals(getSymbol(), tick.getSymbol()) && Objects.equals(getTimestamp(), tick.getTimestamp());
+    return Objects.equals(getId(), tick.getId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getSymbol(), getTimestamp());
+    return Objects.hashCode(getId());
   }
 }

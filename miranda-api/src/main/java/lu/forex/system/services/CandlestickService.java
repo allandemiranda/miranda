@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
@@ -17,7 +18,7 @@ public interface CandlestickService {
 
   @Transactional(readOnly = true)
   @NotNull
-  List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull ScopeDto scopeDto, final @Positive int limit);
+  List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull UUID scopeId, final @Positive int limit);
 
   @Transactional()
   @NotNull
@@ -25,9 +26,9 @@ public interface CandlestickService {
 
   @Transactional()
   @NotNull
-  CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull CandlestickDto candlestickDto);
+  CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull UUID candlestickId);
 
   @Transactional()
   @NotNull
-  CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull CandlestickDto candlestickDto);
+  CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull UUID candlestickId);
 }

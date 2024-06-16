@@ -9,7 +9,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.CandlestickDto;
-import lu.forex.system.dtos.NewMovingAverageDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.CandlestickBody;
@@ -37,18 +36,15 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   private static final String KEY_P_DM_1 = "+dm1";
   private static final String KEY_N_DM_1 = "-dm1";
   private static final String KEY_DX = "dx";
-
-  @Value("${indicator.adx.parameters.period:14}")
-  private int period;
-
-  @Value("${indicator.adx.parameters.tendencyLine:50}")
-  private int tendencyLine;
-
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorRepository technicalIndicatorRepository;
   private final CandlestickMapper candlestickMapper;
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorMapper technicalIndicatorMapper;
+  @Value("${indicator.adx.parameters.period:14}")
+  private int period;
+  @Value("${indicator.adx.parameters.tendencyLine:50}")
+  private int tendencyLine;
 
   @Override
   public Indicator getIndicator() {
@@ -63,7 +59,9 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   @Override
   public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).map(c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst().orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
+    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).map(
+        c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
+            .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
 
     if (candlestickDtos.size() > 1) {
@@ -79,20 +77,23 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
       final BigDecimal lastLow = BigDecimal.valueOf(lastCandlestickCandlestickBody.getLow());
 
       // get TR1
-      final double trOne = MathUtils.getMax(cHigh.subtract(cLow).doubleValue(), cHigh.subtract(cClose).doubleValue(), Math.abs(cLow.subtract(lastClose).doubleValue()));
+      final double trOne = MathUtils.getMax(cHigh.subtract(cLow).doubleValue(), cHigh.subtract(cClose).doubleValue(),
+          Math.abs(cLow.subtract(lastClose).doubleValue()));
       currentTechnicalIndicatorDto.data().put(KEY_TR_1, trOne);
 
       // get +DM1
-      final double pDmOne = cHigh.subtract(lastHigh).compareTo(lastLow.subtract(cLow)) > 0 ? MathUtils.getMax(cHigh.subtract(lastHigh).doubleValue(), 0d) : 0d;
+      final double pDmOne =
+          cHigh.subtract(lastHigh).compareTo(lastLow.subtract(cLow)) > 0 ? MathUtils.getMax(cHigh.subtract(lastHigh).doubleValue(), 0d) : 0d;
       currentTechnicalIndicatorDto.data().put(KEY_P_DM_1, pDmOne);
 
       // get -DM1
-      final double nDmOne = lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0d) : 0d;
+      final double nDmOne =
+          lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0d) : 0d;
       currentTechnicalIndicatorDto.data().put(KEY_N_DM_1, nDmOne);
 
-      final Collection<double[]> collectionOne = technicalIndicatorDtos.stream()
-          .limit(this.getPeriod())
-          .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_TR_1)) && Objects.nonNull(tiDto.data().get(KEY_P_DM_1)) && Objects.nonNull(tiDto.data().get(KEY_N_DM_1)))
+      final Collection<double[]> collectionOne = technicalIndicatorDtos.stream().limit(this.getPeriod()).filter(
+              tiDto -> Objects.nonNull(tiDto.data().get(KEY_TR_1)) && Objects.nonNull(tiDto.data().get(KEY_P_DM_1)) && Objects.nonNull(
+                  tiDto.data().get(KEY_N_DM_1)))
           .map(tiDto -> new double[]{tiDto.data().get(KEY_TR_1), tiDto.data().get(KEY_P_DM_1), tiDto.data().get(KEY_N_DM_1)}).toList();
       if (collectionOne.size() == this.getPeriod()) {
         // get TR(P)
@@ -122,11 +123,8 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
         final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         currentTechnicalIndicatorDto.data().put(KEY_DX, dx);
 
-        final Collection<Double> collectionDx = technicalIndicatorDtos.stream()
-            .limit(this.getPeriod())
-            .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_DX)))
-            .map(tiDto -> tiDto.data().get(KEY_DX))
-            .toList();
+        final Collection<Double> collectionDx = technicalIndicatorDtos.stream().limit(this.getPeriod())
+            .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_DX))).map(tiDto -> tiDto.data().get(KEY_DX)).toList();
         if (collectionDx.size() == this.getPeriod()) {
           // get ADX
           final double adx = MathUtils.getMed(collectionDx);
@@ -142,7 +140,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   }
 
   private SignalIndicator processingSignal(final @NotNull List<TechnicalIndicatorDto> technicalIndicatorDtos) {
-    if(technicalIndicatorDtos.size() > 1) {
+    if (technicalIndicatorDtos.size() > 1) {
       final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
       final Double adx = currentTechnicalIndicatorDto.data().get(KEY_ADX);
       final Double pDiP = currentTechnicalIndicatorDto.data().get(KEY_P_DI_P);

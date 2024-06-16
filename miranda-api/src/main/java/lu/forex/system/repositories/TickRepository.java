@@ -20,7 +20,7 @@ public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificat
   @NonNull
   List<@NotNull Tick> findBySymbol_CurrencyPair_NameOrderByTimestampAsc(@NonNull String name);
 
-  @Query("select t from Tick t where t.symbol.id = ?1 order by t.timestamp DESC LIMIT 2")
-  List<Tick> findBySymbol_IdOrderByTimestampDescLimitTwo(@NonNull UUID symbolId);
+  @Query("select t from Tick t where t.symbol.currencyPair.name = ?1 order by t.timestamp DESC LIMIT 2")
+  List<Tick> findBySymbolNameOrderByTimestampDescLimitTwo(@NonNull String symbolName);
 
 }

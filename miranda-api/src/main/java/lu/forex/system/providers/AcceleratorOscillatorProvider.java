@@ -12,8 +12,8 @@ import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.TechnicalIndicator;
-import lu.forex.system.enums.PriceType;
 import lu.forex.system.enums.Indicator;
+import lu.forex.system.enums.PriceType;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.exceptions.TechnicalIndicatorNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
@@ -51,7 +51,9 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
   @Override
   public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(34).map(c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst().orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
+    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(34).map(
+        c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
+            .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
 
     // set the MP value
@@ -72,11 +74,8 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
       currentTechnicalIndicatorDto.data().put(KEY_AO, ao);
 
       // get SMA(ao,5)
-      final Collection<Double> collectionSmaAo5 = technicalIndicatorDtos.stream()
-          .limit(5)
-          .filter(ti -> Objects.nonNull(ti.data().get(KEY_AO)))
-          .map(ti -> ti.data().get(KEY_AO))
-          .toList();
+      final Collection<Double> collectionSmaAo5 = technicalIndicatorDtos.stream().limit(5).filter(ti -> Objects.nonNull(ti.data().get(KEY_AO)))
+          .map(ti -> ti.data().get(KEY_AO)).toList();
       if (collectionSmaAo5.size() == 4) {
         final double smaAo5 = MathUtils.getMed(collectionSmaAo5);
 
@@ -93,10 +92,10 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
   }
 
   private SignalIndicator processingSignal(final @NotNull List<TechnicalIndicatorDto> technicalIndicatorDtos) {
-    if(technicalIndicatorDtos.size() >= 2) {
+    if (technicalIndicatorDtos.size() >= 2) {
       final Double currentAc = technicalIndicatorDtos.getFirst().data().get(KEY_AC);
       final Double lestAc = technicalIndicatorDtos.get(1).data().get(KEY_AC);
-      if(Objects.nonNull(currentAc) && Objects.nonNull(lestAc)) {
+      if (Objects.nonNull(currentAc) && Objects.nonNull(lestAc)) {
         final BigDecimal acBigDecimal = BigDecimal.valueOf(currentAc);
         final int compared = BigDecimal.valueOf(currentAc).compareTo(BigDecimal.valueOf(lestAc));
         if (acBigDecimal.compareTo(BigDecimal.ZERO) > 0 && compared > 0) {

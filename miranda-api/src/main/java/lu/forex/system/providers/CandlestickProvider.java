@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import lu.forex.system.entities.CandlestickBody;
 import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.TechnicalIndicator;
+import lu.forex.system.exceptions.CandlestickNotFoundException;
 import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.mappers.MovingAverageMapper;
 import lu.forex.system.mappers.ScopeMapper;
@@ -39,10 +41,9 @@ public class CandlestickProvider implements CandlestickService {
 
   @NotNull
   @Override
-  public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull ScopeDto scopeDto, final int limit) {
-    final Scope scope = this.getScopeMapper().toEntity(scopeDto);
-    final List<Candlestick> byScopeOrderByTimestampDesc = this.getCandlestickRepository().findByScopeOrderByTimestampDesc(scope, limit);
-    return byScopeOrderByTimestampDesc.stream().map(this.getCandlestickMapper()::toDto).toList();
+  public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull UUID scopeId, final int limit) {
+    return this.getCandlestickRepository().findByScope_IdOrderByTimestampDescWithLimit(scopeId, limit).stream()
+        .map(this.getCandlestickMapper()::toDto).toList();
   }
 
   @NotNull
@@ -51,24 +52,27 @@ public class CandlestickProvider implements CandlestickService {
     final double price = tickDto.bid();
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     final LocalDateTime candlestickTimestamp = TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scope.getTimeFrame());
-    final Candlestick candlestick = this.getCandlestickRepository().getFirstByScopeAndTimestamp(scope, candlestickTimestamp).orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
+    final Candlestick candlestick = this.getCandlestickRepository().getFirstByScope_IdAndTimestamp(scope.getId(), candlestickTimestamp)
+        .orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
     candlestick.getBody().setClose(price);
     final Candlestick savedCandlestick = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(savedCandlestick);
   }
 
   @Override
-  public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull CandlestickDto candlestickDto) {
-    final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
-    final Collection<TechnicalIndicator> collection = technicalIndicators.stream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).toList();
+  public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators,
+      final @NotNull UUID candlestickId) {
+    final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
+    final Collection<TechnicalIndicator> collection = technicalIndicators.stream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto))
+        .toList();
     candlestick.getTechnicalIndicators().addAll(collection);
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(saved);
   }
 
   @Override
-  public @NotNull CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull CandlestickDto candlestickDto) {
-    final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
+  public @NotNull CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull UUID candlestickId) {
+    final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
     final Collection<MovingAverage> collection = movingAverages.stream().map(maDto -> this.getMovingAverageMapper().toEntity(maDto)).toList();
     candlestick.getMovingAverages().addAll(collection);
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);

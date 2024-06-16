@@ -40,7 +40,8 @@ public class SymbolController implements SymbolOperation {
   @Override
   public Collection<TradeDto> addSymbol(final NewSymbolDto newSymbolDto) {
     final SymbolDto symbolDto = this.getSymbolService().addSymbol(newSymbolDto);
-    final Set<ScopeDto> scopeDtos = Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame)).collect(Collectors.toSet());
+    final Set<ScopeDto> scopeDtos = Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame))
+        .collect(Collectors.toSet());
     return this.getTradeService().generateTrades(scopeDtos);
   }
 }

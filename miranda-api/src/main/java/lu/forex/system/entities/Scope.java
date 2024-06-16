@@ -32,8 +32,8 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "scope", indexes = {
-    @Index(name = "idx_scope_symbol_id_unq", columnList = "symbol_id, time_frame", unique = true)}, uniqueConstraints = {
+@Table(name = "scope", indexes = {@Index(name = "idx_scope_symbol_id_unq", columnList = "symbol_id, time_frame", unique = true),
+    @Index(name = "idx_scope_symbol_id", columnList = "symbol_id")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_scope_symbol_id_time_frame", columnNames = {"symbol_id", "time_frame"})})
 public class Scope implements Serializable {
 
@@ -68,11 +68,11 @@ public class Scope implements Serializable {
       return false;
     }
     final Scope scope = (Scope) o;
-    return Objects.equals(getSymbol(), scope.getSymbol()) && getTimeFrame() == scope.getTimeFrame();
+    return Objects.equals(getId(), scope.getId());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getSymbol(), getTimeFrame());
+    return Objects.hashCode(getId());
   }
 }

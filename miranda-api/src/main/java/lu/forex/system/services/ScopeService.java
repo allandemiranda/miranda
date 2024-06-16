@@ -1,12 +1,13 @@
 package lu.forex.system.services;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.enums.TimeFrame;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lu.forex.system.dtos.SymbolDto;
 
 @Service
 public interface ScopeService {
@@ -17,9 +18,9 @@ public interface ScopeService {
 
   @Transactional(readOnly = true)
   @NotNull
-  Collection<ScopeDto> getScopesBySymbol(final @NotNull SymbolDto symbolDto);
+  Collection<ScopeDto> getScopesBySymbolName(final @NotNull @NotBlank String symbolName);
 
   @Transactional(readOnly = true)
   @NotNull
-  ScopeDto getScope(final @NotNull SymbolDto symbolDto, final @NotNull TimeFrame timeFrame);
+  ScopeDto getScope(final @NotNull @NotBlank String symbolName, final @NotNull TimeFrame timeFrame);
 }

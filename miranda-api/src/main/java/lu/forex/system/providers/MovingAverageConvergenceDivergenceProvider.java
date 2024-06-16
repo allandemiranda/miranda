@@ -37,25 +37,20 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
 
   private static final String KEY_SIGNAL = "signal";
   private static final String KEY_MACD = "macd";
-
-  @Value("${indicator.macd.parameters.fast.period:12}")
-  private int fastPeriod;
-
-  @Value("${indicator.macd.parameters.slow.period:26}")
-  private int slowPeriod;
-
-  @Value("${indicator.macd.parameters.macd.period:9}")
-  private int period;
-
-  @Value("${indicator.macd.parameters.ema.apply:CLOSE}")
-  private PriceType emaApply;
-
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorRepository technicalIndicatorRepository;
   private final CandlestickMapper candlestickMapper;
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorMapper technicalIndicatorMapper;
   private final MovingAverageMapper movingAverageMapper;
+  @Value("${indicator.macd.parameters.fast.period:12}")
+  private int fastPeriod;
+  @Value("${indicator.macd.parameters.slow.period:26}")
+  private int slowPeriod;
+  @Value("${indicator.macd.parameters.macd.period:9}")
+  private int period;
+  @Value("${indicator.macd.parameters.ema.apply:CLOSE}")
+  private PriceType emaApply;
 
   @Override
   public Indicator getIndicator() {
@@ -79,34 +74,32 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
     emaSlow.setPeriod(this.getSlowPeriod());
     emaSlow.setPriceType(PriceType.CLOSE);
 
-    return Stream.of(emaFast, emaSlow).map(this.getMovingAverageMapper()::toDto1).toList();
+    return Stream.of(emaFast, emaSlow).map(this.getMovingAverageMapper()::toNewDto).toList();
   }
 
   @Override
   public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).map(c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst().orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
+    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream()
+        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).map(
+            c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
+                .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
 
     final MovingAverage emaFast = currentCandlestick.getMovingAverages().stream()
         .filter(ema -> ema.getPeriod() == this.getFastPeriod() && this.getEmaApply().equals(ema.getPriceType()) && Objects.nonNull(ema.getValue()))
-        .findFirst()
-        .orElse(null);
+        .findFirst().orElse(null);
 
     final MovingAverage emaSlow = currentCandlestick.getMovingAverages().stream()
         .filter(ema -> ema.getPeriod() == this.getSlowPeriod() && this.getEmaApply().equals(ema.getPriceType()) && Objects.nonNull(ema.getValue()))
-        .findFirst()
-        .orElse(null);
+        .findFirst().orElse(null);
 
     if (Objects.nonNull(emaFast) && Objects.nonNull(emaSlow)) {
       final double macd = MathUtils.getSubtract(emaFast.getValue(), emaSlow.getValue());
       currentTechnicalIndicatorDto.data().put(KEY_MACD, macd);
 
-      final Collection<Double> collectionMacd = technicalIndicatorDtos.stream()
-          .limit(this.getPeriod())
-          .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD)))
-          .map(tiDto -> tiDto.data().get(KEY_MACD))
-          .toList();
+      final Collection<Double> collectionMacd = technicalIndicatorDtos.stream().limit(this.getPeriod())
+          .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD))).map(tiDto -> tiDto.data().get(KEY_MACD)).toList();
       if (collectionMacd.size() == this.getPeriod()) {
         final double signal = MathUtils.getMed(collectionMacd);
         currentTechnicalIndicatorDto.data().put(KEY_SIGNAL, signal);
@@ -120,10 +113,10 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
   }
 
   private SignalIndicator processingSignal(final @NotNull List<TechnicalIndicatorDto> technicalIndicatorDtos) {
-    if(technicalIndicatorDtos.size() > 1) {
+    if (technicalIndicatorDtos.size() > 1) {
       final Double signal = technicalIndicatorDtos.getFirst().data().get(KEY_SIGNAL);
       final Double macd = technicalIndicatorDtos.getFirst().data().get(KEY_MACD);
-      if(Objects.nonNull(signal) && Objects.nonNull(macd)) {
+      if (Objects.nonNull(signal) && Objects.nonNull(macd)) {
         final BigDecimal signalBigDecimal = BigDecimal.valueOf(signal);
         final BigDecimal macdBigDecimal = BigDecimal.valueOf(macd);
         if (signalBigDecimal.compareTo(macdBigDecimal) > 0) {

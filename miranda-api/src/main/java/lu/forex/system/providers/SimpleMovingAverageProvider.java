@@ -7,7 +7,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.CandlestickDto;
-import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.entities.Candlestick;
 import lu.forex.system.enums.MovingAverageType;
 import lu.forex.system.mappers.CandlestickMapper;
@@ -34,12 +33,13 @@ public class SimpleMovingAverageProvider implements MovingAverageService {
   }
 
   @Override
-  public @NotNull Collection<MovingAverageDto> calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
+  public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    return currentCandlestick.getMovingAverages().stream().filter(ma -> this.getMovingAverageType().equals(ma.getType())).map(movingAverage -> {
-      final Collection<Double> prices = candlestickDtos.stream().limit(movingAverage.getPeriod()).map(c -> movingAverage.getPriceType().getPrice(c)).toList();
+    currentCandlestick.getMovingAverages().stream().filter(ma -> this.getMovingAverageType().equals(ma.getType())).forEach(movingAverage -> {
+      final Collection<Double> prices = candlestickDtos.stream().limit(movingAverage.getPeriod()).map(c -> movingAverage.getPriceType().getPrice(c))
+          .toList();
       movingAverage.setValue(MathUtils.getMed(prices));
-      return this.getMovingAverageRepository().save(movingAverage);
-    }).map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
+      this.getMovingAverageRepository().save(movingAverage);
+    });
   }
 }

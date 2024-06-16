@@ -1,11 +1,10 @@
 package lu.forex.system.services;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lu.forex.system.dtos.NewTickDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
@@ -21,9 +20,9 @@ public interface TickService {
 
   @Transactional(readOnly = true)
   @NotNull
-  List<@NotNull TickDto> getTicksBySymbolName(final @NotNull String symbolName);
+  List<@NotNull TickDto> getTicksBySymbolName(final @NotNull @NotBlank String symbolName);
 
   @Transactional(readOnly = true)
   @NotNull
-  Optional<@NotNull TickDto> getLestTickBySymbolId(final @NotNull UUID symbolId);
+  Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull @NotBlank String symbolName);
 }

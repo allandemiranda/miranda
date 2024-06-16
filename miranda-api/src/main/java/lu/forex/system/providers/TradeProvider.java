@@ -24,7 +24,6 @@ import lu.forex.system.entities.Trade;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.TimeFrame;
-import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TickMapper;
@@ -40,18 +39,15 @@ import org.springframework.stereotype.Service;
 @Getter(AccessLevel.PRIVATE)
 public class TradeProvider implements TradeService {
 
-  @Value("${trade.slot.minutes:15}")
-  private int slotMinutes;
-
-  @Value("#{${trade.slot.config}}")
-  private Map<String, Map<String, List<Integer>>> tradeConfig;
-
   private final TradeRepository tradeRepository;
   private final TradeMapper tradeMapper;
   private final ScopeMapper scopeMapper;
   private final SymbolMapper symbolMapper;
-  private final OrderMapper orderMapper;
   private final TickMapper tickMapper;
+  @Value("${trade.slot.minutes:15}")
+  private int slotMinutes;
+  @Value("#{${trade.slot.config}}")
+  private Map<String, Map<String, List<Integer>>> tradeConfig;
 
   @Override
   public @NotNull Collection<TradeDto> generateTrades(final @NotNull Set<ScopeDto> scopeDtos) {
@@ -66,7 +62,8 @@ public class TradeProvider implements TradeService {
       final LocalTime initialFinal = hourFinal == 24 ? LocalTime.of(23, 59, 59) : LocalTime.of(hourFinal, minuteFinal).minusSeconds(1);
       return new LocalTime[]{initialTime, initialFinal};
     }).toList();
-    final Collection<DayOfWeek> validWeeks = Arrays.stream(DayOfWeek.values()).filter(dayOfWeek -> !DayOfWeek.SATURDAY.equals(dayOfWeek) && !DayOfWeek.SUNDAY.equals(dayOfWeek)).toList();
+    final Collection<DayOfWeek> validWeeks = Arrays.stream(DayOfWeek.values())
+        .filter(dayOfWeek -> !DayOfWeek.SATURDAY.equals(dayOfWeek) && !DayOfWeek.SUNDAY.equals(dayOfWeek)).toList();
 
     return this.getTradeConfig().entrySet().stream().flatMap(timeFrameInput -> {
       final TimeFrame timeFrame = TimeFrame.valueOf(timeFrameInput.getKey());
@@ -75,9 +72,9 @@ public class TradeProvider implements TradeService {
       final Collection<Integer> tps = timeFrameInput.getValue().get("tp");
       final Collection<Integer> sls = timeFrameInput.getValue().get("sl");
 
-      return scopeDtos.stream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame)).map(scopeDto -> this.getScopeMapper().toEntity(scopeDto)).flatMap(scope -> spreads.stream().flatMap(
-          spread -> tps.stream()
-              .flatMap(tp -> sls.stream().filter(sl -> sl <= tp && sl > spread).flatMap(sl -> validWeeks.stream().flatMap(week -> localTimes.stream().map(time -> {
+      return scopeDtos.stream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame)).map(scopeDto -> this.getScopeMapper().toEntity(scopeDto))
+          .flatMap(scope -> spreads.stream().flatMap(spread -> tps.stream().flatMap(tp -> sls.stream().filter(sl -> sl <= tp && sl > spread)
+              .flatMap(sl -> validWeeks.stream().flatMap(week -> localTimes.stream().map(time -> {
                 final Trade trade = new Trade();
                 trade.setScope(scope);
                 trade.setStopLoss(sl);
@@ -95,18 +92,21 @@ public class TradeProvider implements TradeService {
 
   @Override
   public @NotNull List<TradeDto> testServiceRemove(final SymbolDto symbol) {
-    return tradeRepository.findByScope_Symbol(symbolMapper.toEntity(symbol)).stream().filter(trade -> !trade.getOrders().isEmpty()).map(tradeMapper::toDto).toList();
+    return tradeRepository.findByScope_Symbol(symbolMapper.toEntity(symbol)).stream().filter(trade -> !trade.getOrders().isEmpty())
+        .map(tradeMapper::toDto).toList();
   }
 
   @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
-    final Collection<Trade> collection = this.getTradeRepository().findTradeToOpenOrder(scope, (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime());
+    final Collection<Trade> collection = this.getTradeRepository()
+        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime());
     return collection.stream().map(this.getTradeMapper()::toDto).toList();
   }
 
   @Override
-  public @NotNull TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator, final @NotNull TradeDto tradeDto) {
+  public @NotNull TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator,
+      final @NotNull TradeDto tradeDto) {
     final Tick tick = this.getTickMapper().toEntity(openTick);
 
     final Order order = new Order();
