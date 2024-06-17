@@ -4,10 +4,8 @@ import jakarta.persistence.LockModeType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import java.util.Collection;
 import java.util.List;
 import lu.forex.system.dtos.NewTickDto;
-import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.http.HttpStatus;
@@ -30,6 +28,6 @@ public interface TickOperation {
   @ResponseStatus(HttpStatus.CREATED)
   @Lock(LockModeType.NONE)
   @Transactional
-  Collection<OrderDto> addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
+  String addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
 }

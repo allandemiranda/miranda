@@ -69,7 +69,7 @@ public class TickController implements TickOperation {
   }
 
   @Override
-  public Collection<OrderDto> addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
+  public String addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
 
@@ -121,6 +121,16 @@ public class TickController implements TickOperation {
 
     this.getOrderService().updateOrders(tickDto);
 
-    return this.getOrderService().getOrdersByTick(tickDto);
+    return this.getOrderService().getOrdersByTick(tickDto).stream()
+//        .filter(OrderDto::tradeIsActivate)
+        .map(orderDto -> String.format("%s %s %s %s", orderDto.openTick().timestamp(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeTakeProfit()))
+        .distinct()
+        .reduce("", (a, b) -> {
+          if (a.isEmpty()) {
+            return b;
+          } else {
+            return a.concat(",").concat(b);
+          }
+        });
   }
 }
