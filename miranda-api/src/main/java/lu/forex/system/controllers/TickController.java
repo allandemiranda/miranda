@@ -7,7 +7,6 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
-import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
