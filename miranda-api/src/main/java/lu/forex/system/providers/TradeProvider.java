@@ -2,18 +2,20 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.ScopeDto;
-import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
@@ -94,12 +96,6 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
-  public @NotNull List<TradeDto> testServiceRemove(final SymbolDto symbol) {
-    return tradeRepository.findByScope_Symbol(symbolMapper.toEntity(symbol)).stream().filter(trade -> !trade.getOrders().isEmpty())
-        .map(tradeMapper::toDto).toList();
-  }
-
-  @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     return this.getTradeRepository()
@@ -133,4 +129,20 @@ public class TradeProvider implements TradeService {
     return this.getTradeMapper().toDto(saved);
   }
 
+  @Override
+  public @NotNull List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName) {
+    return this.getTradeRepository().findBySymbolName(symbolName).stream().filter(trade -> {
+      if (trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).count() > 2) {
+        if (trade.getBalance() > 0 && trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
+          return true;
+        } else if (trade.getBalance() > 0) {
+          final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
+          final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
+          final long percentage = (totalOrdersTP * 100L) / totalOrdersClose;
+          return 66L > percentage;
+        }
+      }
+      return false;
+    }).sorted(Comparator.comparingDouble(Trade::getBalance)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
+  }
 }

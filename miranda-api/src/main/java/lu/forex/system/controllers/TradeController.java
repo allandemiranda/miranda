@@ -1,11 +1,9 @@
 package lu.forex.system.controllers;
 
-import java.util.Comparator;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.operations.TradeOperation;
 import lu.forex.system.services.SymbolService;
@@ -21,9 +19,8 @@ public class TradeController implements TradeOperation {
   private final SymbolService symbolService;
 
   @Override
-  public List<TradeDto> getTrades(final String symbolName) {
-    final SymbolDto symbol = this.getSymbolService().getSymbol(symbolName);
-    // REMOVER TUDO ISSO DEPOIS
-    return tradeService.testServiceRemove(symbol).stream().sorted(Comparator.comparingDouble(TradeDto::balance).reversed()).toList();
+  public List<TradeDto> managementOfTradeActivation(final String symbolName) {
+    return this.getTradeService().managementEfficientTradesScenariosToBeActivated(symbolName);
   }
+
 }

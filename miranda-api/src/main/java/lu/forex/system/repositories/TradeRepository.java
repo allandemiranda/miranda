@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
-import lu.forex.system.entities.Symbol;
 import lu.forex.system.entities.Trade;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -21,8 +19,7 @@ public interface TradeRepository extends JpaRepository<Trade, UUID>, JpaSpecific
   @Query("select t from Trade t where t.scope.id = ?1 and t.spreadMax >= ?2 and t.slotWeek = ?3 and ?4 between t.slotStart and t.slotEnd")
   Collection<Trade> findTradeToOpenOrder(@NonNull UUID scopeId, @NonNull int spread, @NonNull DayOfWeek week, @NonNull LocalTime time);
 
-  // REMOVA TODA A CADEIA DE METHODOS QUE USA ESSE AQUI
-  List<Trade> findByScope_Symbol(@NonNull Symbol symbol);
-
-
+  @NotNull
+  @Query("select t from Trade t where t.scope.symbol.currencyPair.name = ?1")
+  Collection<Trade> findBySymbolName(@NonNull String symbolName);
 }

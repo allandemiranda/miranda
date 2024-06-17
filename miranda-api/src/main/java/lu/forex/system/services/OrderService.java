@@ -1,6 +1,7 @@
 package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.Collection;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
@@ -17,5 +18,8 @@ public interface OrderService {
   @Transactional(readOnly = true)
   @NotNull
   Collection<@NotNull OrderDto> getOrdersByTick(@NotNull TickDto tickDto);
+
+  @Transactional
+  void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final @Positive int days);
 
 }

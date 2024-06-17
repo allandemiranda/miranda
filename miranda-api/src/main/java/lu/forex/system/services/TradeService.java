@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import lu.forex.system.dtos.ScopeDto;
-import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.enums.OrderType;
@@ -22,14 +21,14 @@ public interface TradeService {
 
   @Transactional(readOnly = true)
   @NotNull
-  List<TradeDto> testServiceRemove(SymbolDto symbol);
-
-  @Transactional(readOnly = true)
-  @NotNull
   Collection<TradeDto> getTradesForOpenPosition(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
   @Transactional
   @NotNull
   TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator, final @NotNull TradeDto tradeDto);
+
+  @Transactional
+  @NotNull
+  List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName);
 
 }

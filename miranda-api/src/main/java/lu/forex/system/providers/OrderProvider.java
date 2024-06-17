@@ -1,12 +1,14 @@
 package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
+import lu.forex.system.entities.Order;
 import lu.forex.system.entities.OrderProfit;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.enums.OrderStatus;
@@ -53,5 +55,13 @@ public class OrderProvider implements OrderService {
   public @NotNull Collection<@NotNull OrderDto> getOrdersByTick(@NotNull final TickDto tickDto) {
     return this.getOrderRepository().findByOpenTick_Id(tickDto.id()).stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus()))
         .map(order -> this.getOrderMapper().toDto(order)).toList();
+  }
+
+  @Override
+  public void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final int days) {
+    final LocalDateTime timeAfter = LocalDateTime.now().minusDays(days);
+    final Collection<Order> collection = this.getOrderRepository().findBySymbolName(symbolName).stream()
+        .filter(order -> order.getOpenTick().getTimestamp().isBefore(timeAfter)).toList();
+    this.getOrderRepository().findAll().removeAll(collection);
   }
 }
