@@ -134,6 +134,8 @@ public class TickController implements TickOperation {
         .reduce("", (a, b) -> {
           if (a.isEmpty()) {
             return b;
+          } else if(b.isEmpty()) {
+            return a;
           } else {
             return a.concat(",").concat(b);
           }
