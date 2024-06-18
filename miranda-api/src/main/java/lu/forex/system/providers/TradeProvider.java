@@ -151,6 +151,6 @@ public class TradeProvider implements TradeService {
       return trade;
     }).toList();
     return this.getTradeRepository().saveAll(collection).stream().sorted(Comparator.comparingDouble(Trade::getBalance))
-        .map(trade -> this.getTradeMapper().toDto(trade)).limit(2).toList();
+        .map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 }
