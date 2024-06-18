@@ -12,6 +12,7 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
@@ -132,7 +133,7 @@ public class TickController implements TickOperation {
     this.getOrderService().updateOrders(tickDto);
 
     final String ordersAnswer = this.getOrderService().getOrdersByTick(tickDto).parallelStream()
-//        .filter(OrderDto::tradeIsActivate)
+        .filter(OrderDto::tradeIsActivate)
         .map(orderDto -> String.format("%s %s %s %s %s", orderDto.openTick().timestamp(), orderDto.tradeScope().timeFrame(), orderDto.orderType(),
             orderDto.tradeTakeProfit(), orderDto.tradeStopLoss())).distinct().reduce("", (a, b) -> {
           if (a.isEmpty()) {

@@ -98,8 +98,8 @@ public class TradeProvider implements TradeService {
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     return this.getTradeRepository()
-        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime()).parallelStream()
-        .map(this.getTradeMapper()::toDto).toList();
+        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime())
+        .parallelStream().map(this.getTradeMapper()::toDto).toList();
   }
 
   @Override
@@ -134,7 +134,7 @@ public class TradeProvider implements TradeService {
 
   @Override
   public @NotNull List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName) {
-    return this.getTradeRepository().findBySymbolName(symbolName).stream().filter(trade -> {
+    final Collection<Trade> collection = this.getTradeRepository().findBySymbolName(symbolName).parallelStream().filter(trade -> {
       if (trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).count() > 2) {
         if (trade.getBalance() > 0 && trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
           return true;
@@ -146,6 +146,11 @@ public class TradeProvider implements TradeService {
         }
       }
       return false;
-    }).sorted(Comparator.comparingDouble(Trade::getBalance)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
+    }).map(trade -> {
+      trade.setActivate(true);
+      return trade;
+    }).toList();
+    return this.getTradeRepository().saveAll(collection).stream().sorted(Comparator.comparingDouble(Trade::getBalance))
+        .map(trade -> this.getTradeMapper().toDto(trade)).limit(2).toList();
   }
 }
