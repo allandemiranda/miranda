@@ -47,6 +47,8 @@ public class TickController implements TickOperation {
   private final TradeService tradeService;
   private final OrderService orderService;
 
+  private boolean flag = true;
+
   public TickController(final TickService tickService, final SymbolService symbolService, final CandlestickService candlestickService,
       final ScopeService scopeService, @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
       @Qualifier("averageDirectionalIndex") final TechnicalIndicatorService averageDirectionalIndexService,
@@ -69,6 +71,7 @@ public class TickController implements TickOperation {
 
   @Override
   public List<TickDto> getTicksBySymbolName(final String symbolName) {
+    flag = true;
     return this.getTickService().getTicksBySymbolName(symbolName);
   }
 
@@ -77,14 +80,16 @@ public class TickController implements TickOperation {
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
 
-    final Collection<TechnicalIndicatorService> indicatorServices = List.of(this.getAcceleratorOscillatorService(),this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService());
-    final Collection<MovingAverageService> movingAverageServices = List.of(this.getSimpleMovingAverageService(),this.getExponentialMovingAverageService());
-    final int technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max().orElse(0);
+    final Collection<TechnicalIndicatorService> indicatorServices = List.of(this.getAcceleratorOscillatorService(),
+        this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService());
+    final Collection<MovingAverageService> movingAverageServices = List.of(this.getSimpleMovingAverageService(),
+        this.getExponentialMovingAverageService());
+    final int technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max()
+        .orElse(0);
     final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolName).orElse(tickDto);
 
     this.getScopeService().getScopesBySymbolName(symbolName).parallelStream()
-        .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto))
-        .map(candlestickDto -> {
+        .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto)).map(candlestickDto -> {
           if (candlestickDto.technicalIndicators().isEmpty()) {
             final Collection<TechnicalIndicatorDto> newTechnicalIndicators = indicatorServices.stream()
                 .map(TechnicalIndicatorService::initTechnicalIndicator).toList();
@@ -92,8 +97,7 @@ public class TickController implements TickOperation {
           } else {
             return candlestickDto;
           }
-        })
-        .map(candlestickDto -> {
+        }).map(candlestickDto -> {
           if (candlestickDto.movingAverages().isEmpty()) {
             final Collection<MovingAverageDto> newMovingAverages = indicatorServices.parallelStream()
                 .flatMap(indicatorService -> indicatorService.generateMAs().stream()).distinct()
@@ -106,39 +110,44 @@ public class TickController implements TickOperation {
           } else {
             return candlestickDto.scope();
           }
-        })
-        .map(scopeDto -> {
+        }).map(scopeDto -> {
           final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize);
           movingAverageServices.parallelStream().forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks));
-          final List<CandlestickDto> lastCandlesticksAfterTi = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize);
+          final List<CandlestickDto> lastCandlesticksAfterTi = this.getCandlestickService()
+              .findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize);
           indicatorServices.parallelStream().forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticksAfterTi));
           return scopeDto;
-        })
-        .filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame()).equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
+        }).filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame())
+            .equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
         .map(scopeDto -> this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), 2)).map(List::getLast)
-        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
-        .map(candlestickDto -> {
+        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator())).map(candlestickDto -> {
           final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
-          final Set<UUID> tradeIds = this.getTradeService().getTradesForOpenPosition(candlestickDto.scope(), tickDto).parallelStream().map(TradeDto::id).collect(Collectors.toSet());
+          final Set<UUID> tradeIds = this.getTradeService().getTradesForOpenPosition(candlestickDto.scope(), tickDto).parallelStream().map(TradeDto::id)
+              .collect(Collectors.toSet());
           return new SimpleEntry<>(orderType, tradeIds);
-        })
-        .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue, (uuids, uuids2) -> Stream.concat(uuids.stream(), uuids2.stream()).collect(Collectors.toSet())))
+        }).collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue,
+            (uuids, uuids2) -> Stream.concat(uuids.stream(), uuids2.stream()).collect(Collectors.toSet())))
         .forEach((key, value) -> this.getTradeService().addOrder(tickDto, key, value));
 
     this.getOrderService().updateOrders(tickDto);
 
-    return this.getOrderService().getOrdersByTick(tickDto).parallelStream()
+    final String ordersAnswer = this.getOrderService().getOrdersByTick(tickDto).parallelStream()
 //        .filter(OrderDto::tradeIsActivate)
-        .map(orderDto -> String.format("%s %s %s %s %s", orderDto.openTick().timestamp(), orderDto.tradeScope().timeFrame(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeTakeProfit()))
-        .distinct()
-        .reduce("", (a, b) -> {
+        .map(orderDto -> String.format("%s %s %s %s %s", orderDto.openTick().timestamp(), orderDto.tradeScope().timeFrame(), orderDto.orderType(),
+            orderDto.tradeTakeProfit(), orderDto.tradeStopLoss())).distinct().reduce("", (a, b) -> {
           if (a.isEmpty()) {
             return b;
-          } else if(b.isEmpty()) {
+          } else if (b.isEmpty()) {
             return a;
           } else {
             return a.concat(",").concat(b);
           }
         });
+
+    if (!ordersAnswer.isEmpty()) {
+      return "NOT NOW";
+    } else {
+      return ordersAnswer;
+    }
   }
 }
