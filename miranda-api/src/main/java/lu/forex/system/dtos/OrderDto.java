@@ -13,7 +13,7 @@ import lu.forex.system.enums.OrderType;
  */
 public record OrderDto(@NotNull UUID id, @NotNull TickDto openTick, @NotNull TickDto closeTick, @NotNull OrderType orderType,
                        @NotNull OrderStatus orderStatus, double profit, @NotNull Set<OrderProfitDto> historicProfit,
-                       UUID tradeId, int tradeStopLoss, int tradeTakeProfit, boolean tradeIsActivate) implements Serializable {
+                       @NotNull UUID tradeId, int tradeStopLoss, int tradeTakeProfit, boolean tradeIsActivate, @NotNull ScopeDto tradeScope) implements Serializable {
 
   @Serial
   private static final long serialVersionUID = -3428499167913412098L;

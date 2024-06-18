@@ -129,7 +129,7 @@ public class TickController implements TickOperation {
 
     return this.getOrderService().getOrdersByTick(tickDto).parallelStream()
 //        .filter(OrderDto::tradeIsActivate)
-        .map(orderDto -> String.format("%s %s %s %s", orderDto.openTick().timestamp(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeTakeProfit()))
+        .map(orderDto -> String.format("%s %s %s %s %s", orderDto.openTick().timestamp(), orderDto.tradeScope().timeFrame(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeTakeProfit()))
         .distinct()
         .reduce("", (a, b) -> {
           if (a.isEmpty()) {

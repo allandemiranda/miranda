@@ -11,9 +11,11 @@ import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.OrderProfitDto;
 import lu.forex.system.entities.Order;
 import lu.forex.system.entities.OrderProfit;
+import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.OrderProfitMapper;
+import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.TickMapper;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 public class OrderMapperImpl implements OrderMapper {
 
   private final TickMapper tickMapper;
+  private final ScopeMapper scopeMapper;
   private final OrderProfitMapper orderProfitMapper;
 
   @Override
@@ -49,6 +52,8 @@ public class OrderMapperImpl implements OrderMapper {
     final var tradeTakeProfit = this.orderTradeTakeProfit(order);
     final var tradeStopLoss = this.orderTradeStopLoss(order);
     final var tradeId = this.orderTradeId(order);
+    final var scope = this.orderTradeScope(order);
+    final var tradeScope = this.getScopeMapper().toDto(scope);
     final var id = order.getId();
     final var openTick = this.getTickMapper().toDto(order.getOpenTick());
     final var closeTick = this.getTickMapper().toDto(order.getCloseTick());
@@ -57,7 +62,7 @@ public class OrderMapperImpl implements OrderMapper {
     final var profit = order.getProfit();
     final var historicProfit = this.orderProfitSetToOrderProfitDtoSet(order.getHistoricProfit());
     return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, historicProfit, tradeId, tradeStopLoss, tradeTakeProfit,
-        tradeIsActivate);
+        tradeIsActivate, tradeScope);
   }
 
   private @NotNull Trade orderDtoToTrade(final @NotNull OrderDto orderDto) {
@@ -84,6 +89,10 @@ public class OrderMapperImpl implements OrderMapper {
 
   private @NotNull UUID orderTradeId(final @NotNull Order order) {
     return order.getTrade().getId();
+  }
+
+  private @NotNull Scope orderTradeScope(final @NotNull Order order) {
+    return order.getTrade().getScope();
   }
 
   private @NotNull Set<@NotNull OrderProfitDto> orderProfitSetToOrderProfitDtoSet(final @NotNull Set<@NotNull OrderProfit> set) {
