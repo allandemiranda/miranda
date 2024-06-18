@@ -4,7 +4,8 @@ public class Main {
 
   public static void main(String[] args) {
     Reader reader = new Reader();
-    reader.start("EURUSD", TimeFrame.M15);
+    reader.start("EURUSD");
+//    reader.start("EURUSD", TimeFrame.M15);
   }
 
 

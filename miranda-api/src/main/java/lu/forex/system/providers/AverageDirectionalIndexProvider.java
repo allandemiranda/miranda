@@ -8,15 +8,13 @@ import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lu.forex.system.dtos.CandlestickBodyDto;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
-import lu.forex.system.entities.Candlestick;
-import lu.forex.system.entities.CandlestickBody;
 import lu.forex.system.entities.TechnicalIndicator;
 import lu.forex.system.enums.Indicator;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.exceptions.TechnicalIndicatorNotFoundException;
-import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.mappers.TechnicalIndicatorMapper;
 import lu.forex.system.repositories.TechnicalIndicatorRepository;
 import lu.forex.system.services.TechnicalIndicatorService;
@@ -38,7 +36,6 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   private static final String KEY_DX = "dx";
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorRepository technicalIndicatorRepository;
-  private final CandlestickMapper candlestickMapper;
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorMapper technicalIndicatorMapper;
   @Value("${indicator.adx.parameters.period:14}")
@@ -58,23 +55,23 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
 
   @Override
   public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
-    final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).map(
+    final CandlestickDto currentCandlestick = candlestickDtos.getFirst();
+    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).parallel().map(
         c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
-            .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
+            .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.scope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
 
     if (candlestickDtos.size() > 1) {
-      final CandlestickBody candlestickCandlestickBody = currentCandlestick.getBody();
-      final BigDecimal cHigh = BigDecimal.valueOf(candlestickCandlestickBody.getHigh());
-      final BigDecimal cLow = BigDecimal.valueOf(candlestickCandlestickBody.getLow());
-      final BigDecimal cClose = BigDecimal.valueOf(candlestickCandlestickBody.getClose());
+      final CandlestickBodyDto candlestickCandlestickBody = currentCandlestick.body();
+      final BigDecimal cHigh = BigDecimal.valueOf(candlestickCandlestickBody.high());
+      final BigDecimal cLow = BigDecimal.valueOf(candlestickCandlestickBody.low());
+      final BigDecimal cClose = BigDecimal.valueOf(candlestickCandlestickBody.close());
 
-      final Candlestick lastCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.get(1));
-      final CandlestickBody lastCandlestickCandlestickBody = lastCandlestick.getBody();
-      final BigDecimal lastClose = BigDecimal.valueOf(lastCandlestickCandlestickBody.getClose());
-      final BigDecimal lastHigh = BigDecimal.valueOf(lastCandlestickCandlestickBody.getHigh());
-      final BigDecimal lastLow = BigDecimal.valueOf(lastCandlestickCandlestickBody.getLow());
+      final CandlestickDto lastCandlestick = candlestickDtos.get(1);
+      final CandlestickBodyDto lastCandlestickCandlestickBody = lastCandlestick.body();
+      final BigDecimal lastClose = BigDecimal.valueOf(lastCandlestickCandlestickBody.close());
+      final BigDecimal lastHigh = BigDecimal.valueOf(lastCandlestickCandlestickBody.high());
+      final BigDecimal lastLow = BigDecimal.valueOf(lastCandlestickCandlestickBody.low());
 
       // get TR1
       final double trOne = MathUtils.getMax(cHigh.subtract(cLow).doubleValue(), cHigh.subtract(cClose).doubleValue(),
@@ -91,7 +88,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
           lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0d) : 0d;
       currentTechnicalIndicatorDto.data().put(KEY_N_DM_1, nDmOne);
 
-      final Collection<double[]> collectionOne = technicalIndicatorDtos.stream().limit(this.getPeriod()).filter(
+      final Collection<double[]> collectionOne = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel().filter(
               tiDto -> Objects.nonNull(tiDto.data().get(KEY_TR_1)) && Objects.nonNull(tiDto.data().get(KEY_P_DM_1)) && Objects.nonNull(
                   tiDto.data().get(KEY_N_DM_1)))
           .map(tiDto -> new double[]{tiDto.data().get(KEY_TR_1), tiDto.data().get(KEY_P_DM_1), tiDto.data().get(KEY_N_DM_1)}).toList();
@@ -123,7 +120,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
         final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         currentTechnicalIndicatorDto.data().put(KEY_DX, dx);
 
-        final Collection<Double> collectionDx = technicalIndicatorDtos.stream().limit(this.getPeriod())
+        final Collection<Double> collectionDx = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel()
             .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_DX))).map(tiDto -> tiDto.data().get(KEY_DX)).toList();
         if (collectionDx.size() == this.getPeriod()) {
           // get ADX

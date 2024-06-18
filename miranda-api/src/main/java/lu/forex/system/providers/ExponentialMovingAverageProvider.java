@@ -66,7 +66,7 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
         }
       }
     } else if (candlesticksDesc.size() == period) {
-      final List<Double> collection = candlesticksDesc.stream().map(candlestickApply::getPrice).toList();
+      final List<Double> collection = candlesticksDesc.parallelStream().map(candlestickApply::getPrice).toList();
       final double ema = MathUtils.getMed(collection);
       movingAverage.setValue(ema);
     }

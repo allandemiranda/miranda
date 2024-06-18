@@ -5,15 +5,16 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.CandlestickDto;
+import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewMovingAverageDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
-import lu.forex.system.entities.Candlestick;
 import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.entities.TechnicalIndicator;
 import lu.forex.system.enums.Indicator;
@@ -21,7 +22,6 @@ import lu.forex.system.enums.MovingAverageType;
 import lu.forex.system.enums.PriceType;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.exceptions.TechnicalIndicatorNotFoundException;
-import lu.forex.system.mappers.CandlestickMapper;
 import lu.forex.system.mappers.MovingAverageMapper;
 import lu.forex.system.mappers.TechnicalIndicatorMapper;
 import lu.forex.system.repositories.TechnicalIndicatorRepository;
@@ -39,7 +39,6 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
   private static final String KEY_MACD = "macd";
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorRepository technicalIndicatorRepository;
-  private final CandlestickMapper candlestickMapper;
   @Getter(AccessLevel.PUBLIC)
   private final TechnicalIndicatorMapper technicalIndicatorMapper;
   private final MovingAverageMapper movingAverageMapper;
@@ -79,26 +78,26 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
 
   @Override
   public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
-    final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
     final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream()
-        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).map(
+        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).parallel().map(
             c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
-                .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.getScope().toString()))).toList();
+                .orElseThrow(() -> new TechnicalIndicatorNotFoundException(candlestickDtos.getFirst().scope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
+    final Set<MovingAverageDto> currentMovingAverageDtos = candlestickDtos.getFirst().movingAverages();
 
-    final MovingAverage emaFast = currentCandlestick.getMovingAverages().stream()
-        .filter(ema -> ema.getPeriod() == this.getFastPeriod() && this.getEmaApply().equals(ema.getPriceType()) && Objects.nonNull(ema.getValue()))
+    final MovingAverageDto emaFast = currentMovingAverageDtos.stream()
+        .filter(ema -> ema.period() == this.getFastPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value()))
         .findFirst().orElse(null);
 
-    final MovingAverage emaSlow = currentCandlestick.getMovingAverages().stream()
-        .filter(ema -> ema.getPeriod() == this.getSlowPeriod() && this.getEmaApply().equals(ema.getPriceType()) && Objects.nonNull(ema.getValue()))
+    final MovingAverageDto emaSlow = currentMovingAverageDtos.stream()
+        .filter(ema -> ema.period() == this.getSlowPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value()))
         .findFirst().orElse(null);
 
     if (Objects.nonNull(emaFast) && Objects.nonNull(emaSlow)) {
-      final double macd = MathUtils.getSubtract(emaFast.getValue(), emaSlow.getValue());
+      final double macd = MathUtils.getSubtract(emaFast.value(), emaSlow.value());
       currentTechnicalIndicatorDto.data().put(KEY_MACD, macd);
 
-      final Collection<Double> collectionMacd = technicalIndicatorDtos.stream().limit(this.getPeriod())
+      final Collection<Double> collectionMacd = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel()
           .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD))).map(tiDto -> tiDto.data().get(KEY_MACD)).toList();
       if (collectionMacd.size() == this.getPeriod()) {
         final double signal = MathUtils.getMed(collectionMacd);

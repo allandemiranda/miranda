@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
@@ -23,9 +24,8 @@ public interface TradeService {
   @NotNull
   Collection<TradeDto> getTradesForOpenPosition(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
-  @Transactional
-  @NotNull
-  TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator, final @NotNull TradeDto tradeDto);
+  @Transactional()
+  void addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds);
 
   @Transactional
   @NotNull

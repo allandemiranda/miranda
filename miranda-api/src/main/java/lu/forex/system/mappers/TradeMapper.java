@@ -1,15 +1,14 @@
 package lu.forex.system.mappers;
 
+import jakarta.validation.constraints.NotNull;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Trade;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants.ComponentModel;
-import org.mapstruct.ReportingPolicy;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING, uses = {ScopeMapper.class, OrderMapper.class})
 public interface TradeMapper {
 
-  Trade toEntity(TradeDto tradeDto);
+  @NotNull
+  Trade toEntity(final @NotNull TradeDto tradeDto);
 
-  TradeDto toDto(Trade trade);
+  @NotNull
+  TradeDto toDto(final @NotNull Trade trade);
 }

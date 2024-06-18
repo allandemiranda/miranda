@@ -34,7 +34,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.ToString.Exclude;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -58,9 +57,8 @@ public class Trade implements Serializable {
   @JdbcTypeCode(SqlTypes.UUID)
   private UUID id;
 
-  @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Scope.class)
+  @ManyToOne(optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
@@ -100,8 +98,7 @@ public class Trade implements Serializable {
   private boolean isActivate;
 
   @NotNull
-  @Exclude
-  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   private Set<Order> orders = new LinkedHashSet<>();
 
   @Transient

@@ -3,7 +3,6 @@ package lu.forex.system.controllers;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,8 +39,7 @@ public class SymbolController implements SymbolOperation {
   @Override
   public Collection<TradeDto> addSymbol(final NewSymbolDto newSymbolDto) {
     final SymbolDto symbolDto = this.getSymbolService().addSymbol(newSymbolDto);
-    final Set<ScopeDto> scopeDtos = Arrays.stream(TimeFrame.values()).map(timeFrame -> this.getScopeService().addScope(symbolDto, timeFrame))
-        .collect(Collectors.toSet());
+    final Set<ScopeDto> scopeDtos = this.getScopeService().addScope(symbolDto, Arrays.stream(TimeFrame.values()).toList());
     return this.getTradeService().generateTrades(scopeDtos);
   }
 }

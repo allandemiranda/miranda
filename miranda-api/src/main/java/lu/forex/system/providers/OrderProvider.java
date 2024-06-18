@@ -31,7 +31,8 @@ public class OrderProvider implements OrderService {
   @Override
   public @NotNull Collection<@NotNull OrderDto> updateOrders(@NotNull TickDto tickDto) {
     final Tick currentTick = this.getTickMapper().toEntity(tickDto);
-    return this.getOrderRepository().findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).stream()
+    final Collection<Order> collection = this.getOrderRepository()
+        .findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).parallelStream()
         .map(order -> {
           order.setCloseTick(currentTick);
           final double profit = OrderUtils.getProfit(order);
@@ -47,8 +48,9 @@ public class OrderProvider implements OrderService {
             order.setOrderStatus(OrderStatus.TAKE_PROFIT);
           }
 
-          return this.getOrderRepository().save(order);
-        }).map(order -> this.getOrderMapper().toDto(order)).toList();
+          return order;
+        }).toList();
+    return this.getOrderRepository().saveAll(collection).parallelStream().map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 
   @Override

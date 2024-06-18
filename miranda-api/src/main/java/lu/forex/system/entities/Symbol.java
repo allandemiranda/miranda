@@ -4,7 +4,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,7 +21,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.ToString.Exclude;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -45,9 +43,8 @@ public class Symbol implements Serializable {
   private UUID id;
 
   @NotNull
-  @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = false, orphanRemoval = true, targetEntity = CurrencyPair.class)
+  @OneToOne(cascade = CascadeType.PERSIST, optional = false, orphanRemoval = true, targetEntity = CurrencyPair.class)
   @JoinColumn(name = "currency_pair_id", nullable = false, unique = true, updatable = false)
-  @Exclude
   private CurrencyPair currencyPair;
 
   @Positive

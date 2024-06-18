@@ -1,15 +1,14 @@
 package lu.forex.system.mappers;
 
+import jakarta.validation.constraints.NotNull;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.entities.TechnicalIndicator;
-import org.mapstruct.Mapper;
-import org.mapstruct.MappingConstants.ComponentModel;
-import org.mapstruct.ReportingPolicy;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = ComponentModel.SPRING)
 public interface TechnicalIndicatorMapper {
 
-  TechnicalIndicator toEntity(TechnicalIndicatorDto technicalIndicatorDto);
+  @NotNull
+  TechnicalIndicator toEntity(final @NotNull TechnicalIndicatorDto technicalIndicatorDto);
 
-  TechnicalIndicatorDto toDto(TechnicalIndicator technicalIndicator);
+  @NotNull
+  TechnicalIndicatorDto toDto(final @NotNull TechnicalIndicator technicalIndicator);
 }

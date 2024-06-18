@@ -50,15 +50,13 @@ public class Order implements Serializable {
   private UUID id;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Tick.class)
+  @ManyToOne(optional = false, targetEntity = Tick.class)
   @JoinColumn(name = "open_tick_id", nullable = false, updatable = false)
-  @Exclude
   private Tick openTick;
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Tick.class)
+  @ManyToOne(optional = false, targetEntity = Tick.class)
   @JoinColumn(name = "close_tick_id", nullable = false)
-  @Exclude
   private Tick closeTick;
 
   @NotNull
@@ -73,22 +71,18 @@ public class Order implements Serializable {
   @JdbcTypeCode(SqlTypes.VARCHAR)
   private OrderStatus orderStatus;
 
-  @Column(name = "is_simulator", nullable = false)
-  @JdbcTypeCode(SqlTypes.BOOLEAN)
-  private boolean isSimulator;
-
   @Column(name = "profit", nullable = false)
   @JdbcTypeCode(SqlTypes.DOUBLE)
   private double profit;
 
-  @Exclude
   @NotNull
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @JoinColumn(name = "order_id", nullable = false)
+  @Exclude
   private Set<OrderProfit> historicProfit = new LinkedHashSet<>();
 
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(optional = false)
   @JoinColumn(name = "trade_id", nullable = false)
   @Exclude
   private Trade trade;

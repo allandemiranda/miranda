@@ -5,6 +5,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -50,7 +51,7 @@ public class TechnicalIndicator implements Serializable {
   private Indicator indicator;
 
   @NotNull
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @Column(name = "data_ti", nullable = false)
   private Map<String, Double> data = new HashMap<>();
 

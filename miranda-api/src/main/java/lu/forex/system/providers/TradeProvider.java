@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -65,7 +66,7 @@ public class TradeProvider implements TradeService {
     final Collection<DayOfWeek> validWeeks = Arrays.stream(DayOfWeek.values())
         .filter(dayOfWeek -> !DayOfWeek.SATURDAY.equals(dayOfWeek) && !DayOfWeek.SUNDAY.equals(dayOfWeek)).toList();
 
-    final Collection<Trade> collection = this.getTradeConfig().entrySet().stream().flatMap(timeFrameInput -> {
+    final Collection<Trade> collection = this.getTradeConfig().entrySet().parallelStream().flatMap(timeFrameInput -> {
       final TimeFrame timeFrame = TimeFrame.valueOf(timeFrameInput.getKey());
 
       final Collection<Integer> spreads = timeFrameInput.getValue().get("spread");
@@ -90,41 +91,45 @@ public class TradeProvider implements TradeService {
 
     }).toList();
 
-    return this.getTradeRepository().saveAll(collection).stream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+    return this.getTradeRepository().saveAll(collection).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
   @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     return this.getTradeRepository()
-        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime()).stream()
+        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime()).parallelStream()
         .map(this.getTradeMapper()::toDto).toList();
   }
 
   @Override
-  public @NotNull TradeDto addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final boolean isSimulator,
-      final @NotNull TradeDto tradeDto) {
+  public void addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds) {
     final Tick tick = this.getTickMapper().toEntity(openTick);
+    final Collection<Trade> trades = tradeIds.stream().map(uuid -> this.getTradeRepository().getReferenceById(uuid)).toList();
+    final Collection<Order> orders = trades.parallelStream().map(trade -> {
+      final Order order = new Order();
+      order.setOpenTick(tick);
+      order.setCloseTick(tick);
+      order.setOrderType(orderType);
+      order.setOrderStatus(OrderStatus.OPEN);
+      final double profit = OrderUtils.getProfit(order);
+      order.setProfit(profit);
 
-    final Order order = new Order();
-    order.setOpenTick(tick);
-    order.setCloseTick(tick);
-    order.setOrderType(orderType);
-    order.setOrderStatus(OrderStatus.OPEN);
-    order.setSimulator(isSimulator);
-    final double profit = OrderUtils.getProfit(order);
-    order.setProfit(profit);
+      final OrderProfit orderProfit = new OrderProfit();
+      orderProfit.setTimestamp(tick.getTimestamp());
+      orderProfit.setProfit(order.getProfit());
+      order.getHistoricProfit().add(orderProfit);
 
-    final OrderProfit orderProfit = new OrderProfit();
-    orderProfit.setTimestamp(tick.getTimestamp());
-    orderProfit.setProfit(order.getProfit());
-    order.getHistoricProfit().add(orderProfit);
+      order.setTrade(trade);
 
-    final Trade trade = this.getTradeRepository().getReferenceById(tradeDto.id());
-    order.setTrade(trade);
-    trade.getOrders().add(order);
-    final Trade saved = this.getTradeRepository().save(trade);
-    return this.getTradeMapper().toDto(saved);
+      return order;
+    }).toList();
+    final Collection<Trade> finalTrades = orders.stream().map(order -> {
+      final Trade trade = order.getTrade();
+      trade.getOrders().add(order);
+      return trade;
+    }).toList();
+    this.getTradeRepository().saveAll(finalTrades);
   }
 
   @Override

@@ -2,6 +2,8 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,24 +29,25 @@ public class ScopeProvider implements ScopeService {
   private final ScopeMapper scopeMapper;
 
   @Override
-  public @NotNull ScopeDto addScope(@NotNull final SymbolDto symbolDto, @NotNull final TimeFrame timeFrame) {
+  public @NotNull Set<ScopeDto> addScope(@NotNull final SymbolDto symbolDto, @NotNull final Collection<TimeFrame> timeFrames) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final Scope scope = new Scope();
-    scope.setSymbol(symbol);
-    scope.setTimeFrame(timeFrame);
-    final Scope savedScope = this.getScopeRepository().save(scope);
-    return this.getScopeMapper().toDto(savedScope);
+    final Collection<Scope> collection = timeFrames.parallelStream().map(timeFrame -> {
+      final Scope scope = new Scope();
+      scope.setSymbol(symbol);
+      scope.setTimeFrame(timeFrame);
+      return scope;
+    }).toList();
+    return this.getScopeRepository().saveAll(collection).parallelStream().map(scope -> this.getScopeMapper().toDto(scope)).collect(Collectors.toSet());
   }
 
   @Override
   public @NotNull Collection<ScopeDto> getScopesBySymbolName(final @NotNull String symbolName) {
-    return this.getScopeRepository().findBySymbolName(symbolName).stream().map(this.getScopeMapper()::toDto).toList();
+    return this.getScopeRepository().findBySymbolName(symbolName).parallelStream().map(this.getScopeMapper()::toDto).toList();
   }
 
   @Override
   public @NotNull ScopeDto getScope(final @NotNull String symbolName, final @NotNull TimeFrame timeFrame) {
-    final Scope scope = this.getScopeRepository().getBySymbolNameAndTimeFrame(symbolName, timeFrame)
-        .orElseThrow(() -> new ScopeNotFoundException(timeFrame, symbolName));
+    final Scope scope = this.getScopeRepository().getBySymbolNameAndTimeFrame(symbolName, timeFrame).orElseThrow(() -> new ScopeNotFoundException(timeFrame, symbolName));
     return this.getScopeMapper().toDto(scope);
   }
 }
