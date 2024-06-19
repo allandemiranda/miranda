@@ -46,7 +46,7 @@ public class Reader {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
           if(percentage != lastPercentage.get()) {
-            log.warn("[{}] {}", LocalDateTime.now(), percentage);
+            log.warn("[{}] {}% read", LocalDateTime.now(), percentage);
             lastPercentage.set(percentage);
           }
           if (tick.getBid() != bidH.get() || tick.getAsk() != askH.get()) {
@@ -89,7 +89,7 @@ public class Reader {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
           if(percentage != lastPercentage.get()) {
-            log.warn("[{}] {}", LocalDateTime.now(), percentage);
+            log.warn("[{}] {}% read", LocalDateTime.now(), percentage);
             lastPercentage.set(percentage);
           }
 
