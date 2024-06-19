@@ -33,8 +33,22 @@ public class Reader {
       final var bidH = new AtomicReference<>(0D);
       final var askH = new AtomicReference<>(0D);
       final var lastUpdate = new AtomicReference<>(LocalDateTime.MIN);
+
+      var numLines = new AtomicLong(0L);
+      try(var lines = Files.lines(inputFile.toPath())) {
+        numLines.set(lines.count() - 1L);
+      }
+      var lineNow = new AtomicLong(1);
+      var lastPercentage = new AtomicLong(-1);
+
+      log.info("[{}] Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
+          final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
+          if(percentage != lastPercentage.get()) {
+            log.warn("[{}] {}", LocalDateTime.now(), percentage);
+            lastPercentage.set(percentage);
+          }
           if (tick.getBid() != bidH.get() || tick.getAsk() != askH.get()) {
             if (tick.getBid() > 0d) {
               bidH.set(tick.getBid());
@@ -70,6 +84,7 @@ public class Reader {
       var lineNow = new AtomicLong(1);
       var lastPercentage = new AtomicLong(-1);
 
+      log.info("[{}] Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
