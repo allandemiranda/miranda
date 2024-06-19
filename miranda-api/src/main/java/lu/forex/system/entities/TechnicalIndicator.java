@@ -1,11 +1,10 @@
 package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,6 +20,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lu.forex.system.converters.DataTechnicalIndicatorConverter;
 import lu.forex.system.enums.Indicator;
 import lu.forex.system.enums.SignalIndicator;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -51,8 +51,8 @@ public class TechnicalIndicator implements Serializable {
   private Indicator indicator;
 
   @NotNull
-  @ElementCollection(fetch = FetchType.EAGER)
   @Column(name = "data_ti", nullable = false)
+  @Convert(converter = DataTechnicalIndicatorConverter.class)
   private Map<String, Double> data = new HashMap<>();
 
   @NotNull

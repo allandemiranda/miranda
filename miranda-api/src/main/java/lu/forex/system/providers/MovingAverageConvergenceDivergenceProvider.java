@@ -77,27 +77,28 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
   }
 
   @Override
-  public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
+  public void calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
     final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream()
-        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).parallel().map(
+        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).map(
             c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
                 .orElseThrow(() -> new TechnicalIndicatorNotFoundException(candlestickDtos.getFirst().scope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
     final Set<MovingAverageDto> currentMovingAverageDtos = candlestickDtos.getFirst().movingAverages();
 
     final MovingAverageDto emaFast = currentMovingAverageDtos.stream()
-        .filter(ema -> ema.period() == this.getFastPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value()))
-        .findFirst().orElse(null);
+        .filter(ema -> ema.period() == this.getFastPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value())).findFirst()
+        .orElse(null);
 
     final MovingAverageDto emaSlow = currentMovingAverageDtos.stream()
-        .filter(ema -> ema.period() == this.getSlowPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value()))
-        .findFirst().orElse(null);
+        .filter(ema -> ema.period() == this.getSlowPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value())).findFirst()
+        .orElse(null);
 
     if (Objects.nonNull(emaFast) && Objects.nonNull(emaSlow)) {
       final double macd = MathUtils.getSubtract(emaFast.value(), emaSlow.value());
       currentTechnicalIndicatorDto.data().put(KEY_MACD, macd);
 
-      final Collection<Double> collectionMacd = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel()
+      final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();
+      final Collection<Double> collectionMacd = technicalIndicatorLimitPeriod.parallelStream()
           .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD))).map(tiDto -> tiDto.data().get(KEY_MACD)).toList();
       if (collectionMacd.size() == this.getPeriod()) {
         final double signal = MathUtils.getMed(collectionMacd);
@@ -106,15 +107,14 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
     }
 
     final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(currentTechnicalIndicatorDto);
-    technicalIndicator.setSignal(this.processingSignal(technicalIndicatorDtos));
-    final TechnicalIndicator saved = this.getTechnicalIndicatorRepository().save(technicalIndicator);
-    return this.getTechnicalIndicatorMapper().toDto(saved);
+    technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto));
+    this.getTechnicalIndicatorRepository().save(technicalIndicator);
   }
 
-  private SignalIndicator processingSignal(final @NotNull List<TechnicalIndicatorDto> technicalIndicatorDtos) {
-    if (technicalIndicatorDtos.size() > 1) {
-      final Double signal = technicalIndicatorDtos.getFirst().data().get(KEY_SIGNAL);
-      final Double macd = technicalIndicatorDtos.getFirst().data().get(KEY_MACD);
+  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto) {
+    if (currentTechnicalIndicatorDto.data().containsKey(KEY_SIGNAL) && currentTechnicalIndicatorDto.data().containsKey(KEY_MACD)) {
+      final Double signal = currentTechnicalIndicatorDto.data().get(KEY_SIGNAL);
+      final Double macd = currentTechnicalIndicatorDto.data().get(KEY_MACD);
       if (Objects.nonNull(signal) && Objects.nonNull(macd)) {
         final BigDecimal signalBigDecimal = BigDecimal.valueOf(signal);
         final BigDecimal macdBigDecimal = BigDecimal.valueOf(macd);

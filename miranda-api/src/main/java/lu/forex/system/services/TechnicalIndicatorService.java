@@ -18,7 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 public interface TechnicalIndicatorService {
 
   TechnicalIndicatorRepository getTechnicalIndicatorRepository();
+
   TechnicalIndicatorMapper getTechnicalIndicatorMapper();
+
   Indicator getIndicator();
 
   @Transactional(readOnly = true)
@@ -40,7 +42,6 @@ public interface TechnicalIndicatorService {
   }
 
   @Transactional
-  @NotNull
-  TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<@NotNull CandlestickDto> candlestickDtos);
+  void calculateTechnicalIndicator(final @NotNull List<@NotNull CandlestickDto> candlestickDtos);
 
 }

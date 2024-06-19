@@ -20,7 +20,7 @@ public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>,
   Optional<Candlestick> getFirstByScope_IdAndTimestamp(@NonNull UUID scopeId, @NonNull LocalDateTime timestamp);
 
   @Transactional(readOnly = true)
-  @Query("select c from Candlestick c where c.scope.id = ?1 order by c.timestamp DESC LIMIT ?2")
+  @Query("select c from Candlestick c where c.scope.id = ?1 order by c.timestamp desc limit ?2")
   List<Candlestick> findByScope_IdOrderByTimestampDescWithLimit(@NonNull UUID scopeId, @Positive int limit);
 
 }

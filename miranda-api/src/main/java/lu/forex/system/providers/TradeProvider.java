@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
@@ -25,6 +27,7 @@ import lu.forex.system.entities.Trade;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.TimeFrame;
+import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TickMapper;
@@ -45,6 +48,7 @@ public class TradeProvider implements TradeService {
   private final ScopeMapper scopeMapper;
   private final SymbolMapper symbolMapper;
   private final TickMapper tickMapper;
+  private final OrderMapper orderMapper;
   @Value("${trade.slot.minutes:15}")
   private int slotMinutes;
   @Value("#{${trade.slot.config}}")
@@ -103,9 +107,10 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
-  public void addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds) {
+  @NotNull
+  public Collection<OrderDto> addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds) {
     final Tick tick = this.getTickMapper().toEntity(openTick);
-    final Collection<Trade> trades = tradeIds.stream().map(uuid -> this.getTradeRepository().getReferenceById(uuid)).toList();
+    final Collection<Trade> trades = tradeIds.stream().map(uuid -> this.getTradeRepository().getReferenceById(uuid)).collect(Collectors.toSet());
     final Collection<Order> orders = trades.parallelStream().map(trade -> {
       final Order order = new Order();
       order.setOpenTick(tick);
@@ -124,12 +129,13 @@ public class TradeProvider implements TradeService {
 
       return order;
     }).toList();
-    final Collection<Trade> finalTrades = orders.stream().map(order -> {
+    final Collection<Trade> finalTrades = orders.parallelStream().map(order -> {
       final Trade trade = order.getTrade();
       trade.getOrders().add(order);
       return trade;
     }).toList();
     this.getTradeRepository().saveAll(finalTrades);
+    return orders.parallelStream().map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 
   @Override

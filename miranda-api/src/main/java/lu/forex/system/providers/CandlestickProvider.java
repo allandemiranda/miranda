@@ -1,7 +1,9 @@
 package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -25,6 +27,7 @@ import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.TechnicalIndicatorMapper;
 import lu.forex.system.repositories.CandlestickRepository;
 import lu.forex.system.services.CandlestickService;
+import lu.forex.system.utils.OrderUtils;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.stereotype.Service;
 
@@ -52,16 +55,19 @@ public class CandlestickProvider implements CandlestickService {
     final double price = tickDto.bid();
     final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     final LocalDateTime candlestickTimestamp = TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scope.getTimeFrame());
-    final Candlestick candlestick = this.getCandlestickRepository().getFirstByScope_IdAndTimestamp(scope.getId(), candlestickTimestamp).orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
+    final Candlestick candlestick = this.getCandlestickRepository().getFirstByScope_IdAndTimestamp(scope.getId(), candlestickTimestamp)
+        .orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
     candlestick.getBody().setClose(price);
     final Candlestick savedCandlestick = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(savedCandlestick);
   }
 
   @Override
-  public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators, final @NotNull UUID candlestickId) {
+  public @NotNull CandlestickDto addingTechnicalIndicators(final @NotNull Collection<TechnicalIndicatorDto> technicalIndicators,
+      final @NotNull UUID candlestickId) {
     final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
-    final Collection<TechnicalIndicator> collection = technicalIndicators.parallelStream().map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).toList();
+    final Collection<TechnicalIndicator> collection = technicalIndicators.parallelStream()
+        .map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).toList();
     candlestick.getTechnicalIndicators().addAll(collection);
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(saved);
@@ -72,6 +78,14 @@ public class CandlestickProvider implements CandlestickService {
     final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
     final Collection<MovingAverage> collection = movingAverages.parallelStream().map(maDto -> this.getMovingAverageMapper().toEntity(maDto)).toList();
     candlestick.getMovingAverages().addAll(collection);
+    final Candlestick saved = this.getCandlestickRepository().save(candlestick);
+    return this.getCandlestickMapper().toDto(saved);
+  }
+
+  @Override
+  public @NotNull CandlestickDto getCandlestickById(final @NotNull UUID candlestickId) {
+    final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
+    candlestick.setSignalIndicator(OrderUtils.getSignalIndicator(candlestick.getTechnicalIndicators()));
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
     return this.getCandlestickMapper().toDto(saved);
   }

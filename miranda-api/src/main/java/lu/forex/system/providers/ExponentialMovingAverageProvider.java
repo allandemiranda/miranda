@@ -2,6 +2,7 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,9 +40,18 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
 
   @Override
   public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
-    final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    currentCandlestick.getMovingAverages().stream().filter(movingAverage -> this.getMovingAverageType().equals(movingAverage.getType()))
-        .forEach(ma -> this.getMovingAverageRepository().save(this.getMovingAverageConsumer(ma, candlestickDtos, currentCandlestick)));
+    final CandlestickDto candlestickDtosFirst = candlestickDtos.getFirst();
+    final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtosFirst);
+    final Collection<MovingAverage> collection = currentCandlestick.getMovingAverages().parallelStream()
+        .filter(movingAverage -> this.getMovingAverageType().equals(movingAverage.getType()))
+        .map(ma -> this.getMovingAverageConsumer(ma, candlestickDtos, currentCandlestick)).toList();
+    if (!collection.isEmpty()) {
+      this.getMovingAverageRepository().saveAll(collection);
+      collection.forEach(movingAverage -> candlestickDtosFirst.movingAverages().removeIf(ma -> ma.id().equals(movingAverage.getId())));
+      final Collection<MovingAverageDto> updateDto = collection.parallelStream()
+          .map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
+      candlestickDtosFirst.movingAverages().addAll(updateDto);
+    }
   }
 
   @NotNull

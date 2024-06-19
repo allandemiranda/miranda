@@ -54,9 +54,9 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   }
 
   @Override
-  public @NotNull TechnicalIndicatorDto calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
+  public void calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
     final CandlestickDto currentCandlestick = candlestickDtos.getFirst();
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).parallel().map(
+    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream().limit(this.getPeriod()).map(
         c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
             .orElseThrow(() -> new TechnicalIndicatorNotFoundException(currentCandlestick.scope().toString()))).toList();
     final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
@@ -88,7 +88,8 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
           lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0d) : 0d;
       currentTechnicalIndicatorDto.data().put(KEY_N_DM_1, nDmOne);
 
-      final Collection<double[]> collectionOne = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel().filter(
+      final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();
+      final Collection<double[]> collectionOne = technicalIndicatorLimitPeriod.parallelStream().filter(
               tiDto -> Objects.nonNull(tiDto.data().get(KEY_TR_1)) && Objects.nonNull(tiDto.data().get(KEY_P_DM_1)) && Objects.nonNull(
                   tiDto.data().get(KEY_N_DM_1)))
           .map(tiDto -> new double[]{tiDto.data().get(KEY_TR_1), tiDto.data().get(KEY_P_DM_1), tiDto.data().get(KEY_N_DM_1)}).toList();
@@ -120,7 +121,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
         final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         currentTechnicalIndicatorDto.data().put(KEY_DX, dx);
 
-        final Collection<Double> collectionDx = technicalIndicatorDtos.stream().limit(this.getPeriod()).parallel()
+        final Collection<Double> collectionDx = technicalIndicatorLimitPeriod.parallelStream()
             .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_DX))).map(tiDto -> tiDto.data().get(KEY_DX)).toList();
         if (collectionDx.size() == this.getPeriod()) {
           // get ADX
@@ -131,14 +132,13 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
     }
 
     final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(currentTechnicalIndicatorDto);
-    technicalIndicator.setSignal(this.processingSignal(technicalIndicatorDtos));
-    final TechnicalIndicator saved = this.getTechnicalIndicatorRepository().save(technicalIndicator);
-    return this.getTechnicalIndicatorMapper().toDto(saved);
+    technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto));
+    this.getTechnicalIndicatorRepository().save(technicalIndicator);
   }
 
-  private SignalIndicator processingSignal(final @NotNull List<TechnicalIndicatorDto> technicalIndicatorDtos) {
-    if (technicalIndicatorDtos.size() > 1) {
-      final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
+  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto) {
+    if (currentTechnicalIndicatorDto.data().containsKey(KEY_ADX) && currentTechnicalIndicatorDto.data().containsKey(KEY_P_DI_P)
+        && currentTechnicalIndicatorDto.data().containsKey(KEY_N_DI_P)) {
       final Double adx = currentTechnicalIndicatorDto.data().get(KEY_ADX);
       final Double pDiP = currentTechnicalIndicatorDto.data().get(KEY_P_DI_P);
       final Double nDiP = currentTechnicalIndicatorDto.data().get(KEY_N_DI_P);

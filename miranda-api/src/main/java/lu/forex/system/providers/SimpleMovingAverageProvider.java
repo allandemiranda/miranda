@@ -7,7 +7,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lu.forex.system.dtos.CandlestickDto;
-import lu.forex.system.entities.Candlestick;
+import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.entities.MovingAverage;
 import lu.forex.system.enums.MovingAverageType;
 import lu.forex.system.mappers.CandlestickMapper;
@@ -35,12 +35,21 @@ public class SimpleMovingAverageProvider implements MovingAverageService {
 
   @Override
   public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
-    final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtos.getFirst());
-    final Collection<MovingAverage> collection = currentCandlestick.getMovingAverages().parallelStream().filter(ma -> this.getMovingAverageType().equals(ma.getType())).map(movingAverage -> {
-      final Collection<Double> prices = candlestickDtos.stream().limit(movingAverage.getPeriod()).parallel().map(c -> movingAverage.getPriceType().getPrice(c)).toList();
-      movingAverage.setValue(MathUtils.getMed(prices));
-      return movingAverage;
-    }).toList();
-    this.getMovingAverageRepository().saveAll(collection);
+    final CandlestickDto candlestickDtosFirst = candlestickDtos.getFirst();
+    final Collection<MovingAverage> collection = candlestickDtosFirst.movingAverages().parallelStream()
+        .filter(ma -> this.getMovingAverageType().equals(ma.type())).map(movingAverageDto -> {
+          final Collection<CandlestickDto> collectionLimited = candlestickDtos.stream().limit(movingAverageDto.period()).toList();
+          final Collection<Double> prices = collectionLimited.parallelStream().map(c -> movingAverageDto.priceType().getPrice(c)).toList();
+          final MovingAverage movingAverage = this.getMovingAverageMapper().toEntity(movingAverageDto);
+          movingAverage.setValue(MathUtils.getMed(prices));
+          return movingAverage;
+        }).toList();
+    if (!collection.isEmpty()) {
+      this.getMovingAverageRepository().saveAll(collection);
+      collection.forEach(movingAverage -> candlestickDtosFirst.movingAverages().removeIf(ma -> ma.id().equals(movingAverage.getId())));
+      final Collection<MovingAverageDto> updateDto = collection.parallelStream()
+          .map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
+      candlestickDtosFirst.movingAverages().addAll(updateDto);
+    }
   }
 }

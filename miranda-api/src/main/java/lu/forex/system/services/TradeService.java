@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
@@ -25,7 +26,8 @@ public interface TradeService {
   Collection<TradeDto> getTradesForOpenPosition(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
   @Transactional()
-  void addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds);
+  @NotNull
+  Collection<OrderDto> addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds);
 
   @Transactional
   @NotNull

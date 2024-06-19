@@ -31,4 +31,8 @@ public interface CandlestickService {
   @Transactional()
   @NotNull
   CandlestickDto addingMovingAverages(final @NotNull Collection<MovingAverageDto> movingAverages, final @NotNull UUID candlestickId);
+
+  @Transactional
+  @NotNull
+  CandlestickDto getCandlestickById(final @NotNull UUID candlestickId);
 }
