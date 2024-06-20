@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 @Slf4j
 public class Reader {
 
-  private static final String CSV = "_201112190000_202404262358.csv";
+  private static final String CSV = "_202403180000_202406172359.csv";
 
   @SneakyThrows
   public void start(final String symbol) {
@@ -66,6 +66,7 @@ public class Reader {
     }
   }
 
+  // !!! SOMENTE PARA TESTES MAIS RÀPIDOS
   @SneakyThrows
   public void start(final String symbol, final TimeFrame timeFrame) {
     try (final var httpClient = HttpClient.newHttpClient()) {
