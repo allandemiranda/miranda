@@ -9,7 +9,6 @@ import lombok.Getter;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.entities.Order;
-import lu.forex.system.entities.OrderProfit;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.mappers.OrderMapper;
@@ -32,15 +31,10 @@ public class OrderProvider implements OrderService {
   public @NotNull Collection<@NotNull OrderDto> updateOrders(@NotNull TickDto tickDto) {
     final Tick currentTick = this.getTickMapper().toEntity(tickDto);
     final Collection<Order> collection = this.getOrderRepository()
-        .findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).parallelStream()
-        .map(order -> {
+        .findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).parallelStream().map(order -> {
           order.setCloseTick(currentTick);
           final double profit = OrderUtils.getProfit(order);
           order.setProfit(profit);
-          final OrderProfit orderProfit = new OrderProfit();
-          orderProfit.setProfit(profit);
-          orderProfit.setTimestamp(currentTick.getTimestamp());
-          order.getHistoricProfit().add(orderProfit);
 
           if (profit <= 0D && Math.abs(profit) > order.getTrade().getStopLoss()) {
             order.setOrderStatus(OrderStatus.STOP_LOSS);
@@ -51,12 +45,6 @@ public class OrderProvider implements OrderService {
           return order;
         }).toList();
     return this.getOrderRepository().saveAll(collection).parallelStream().map(order -> this.getOrderMapper().toDto(order)).toList();
-  }
-
-  @Override
-  public @NotNull Collection<@NotNull OrderDto> getOrdersByTick(@NotNull final TickDto tickDto) {
-    return this.getOrderRepository().findByOpenTick_Id(tickDto.id()).stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus()))
-        .map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 
   @Override

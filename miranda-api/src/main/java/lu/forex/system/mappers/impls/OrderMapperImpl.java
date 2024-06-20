@@ -1,20 +1,15 @@
 package lu.forex.system.mappers.impls;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.OrderDto;
-import lu.forex.system.dtos.OrderProfitDto;
 import lu.forex.system.entities.Order;
-import lu.forex.system.entities.OrderProfit;
 import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.mappers.OrderMapper;
-import lu.forex.system.mappers.OrderProfitMapper;
 import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.TickMapper;
 import org.springframework.stereotype.Component;
@@ -26,7 +21,6 @@ public class OrderMapperImpl implements OrderMapper {
 
   private final TickMapper tickMapper;
   private final ScopeMapper scopeMapper;
-  private final OrderProfitMapper orderProfitMapper;
 
   @Override
   public @NotNull Order toEntity(final @NotNull OrderDto orderDto) {
@@ -41,8 +35,6 @@ public class OrderMapperImpl implements OrderMapper {
     order.setOrderType(orderDto.orderType());
     order.setOrderStatus(orderDto.orderStatus());
     order.setProfit(orderDto.profit());
-    final var historicProfit = this.orderProfitDtoSetToOrderProfitSet(orderDto.historicProfit());
-    order.setHistoricProfit(historicProfit);
     return order;
   }
 
@@ -60,19 +52,14 @@ public class OrderMapperImpl implements OrderMapper {
     final var orderType = order.getOrderType();
     final var orderStatus = order.getOrderStatus();
     final var profit = order.getProfit();
-    final var historicProfit = this.orderProfitSetToOrderProfitDtoSet(order.getHistoricProfit());
-    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, historicProfit, tradeId, tradeStopLoss, tradeTakeProfit,
-        tradeIsActivate, tradeScope);
+    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, tradeId, tradeStopLoss, tradeTakeProfit, tradeIsActivate,
+        tradeScope);
   }
 
   private @NotNull Trade orderDtoToTrade(final @NotNull OrderDto orderDto) {
     final var trade = new Trade();
     trade.setId(orderDto.tradeId());
     return trade;
-  }
-
-  private @NotNull Set<@NotNull OrderProfit> orderProfitDtoSetToOrderProfitSet(final @NotNull Set<@NotNull OrderProfitDto> set) {
-    return set.parallelStream().map(orderProfitDto -> this.getOrderProfitMapper().toEntity(orderProfitDto)).collect(Collectors.toSet());
   }
 
   private boolean orderTradeActivate(final @NotNull Order order) {
@@ -95,8 +82,5 @@ public class OrderMapperImpl implements OrderMapper {
     return order.getTrade().getScope();
   }
 
-  private @NotNull Set<@NotNull OrderProfitDto> orderProfitSetToOrderProfitDtoSet(final @NotNull Set<@NotNull OrderProfit> set) {
-    return set.parallelStream().map(orderProfit -> this.getOrderProfitMapper().toDto(orderProfit)).collect(Collectors.toSet());
-  }
 }
 

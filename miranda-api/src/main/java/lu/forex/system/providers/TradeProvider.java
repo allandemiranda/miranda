@@ -20,7 +20,6 @@ import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
-import lu.forex.system.entities.OrderProfit;
 import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.entities.Trade;
@@ -108,7 +107,8 @@ public class TradeProvider implements TradeService {
 
   @Override
   @NotNull
-  public Collection<OrderDto> addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds) {
+  public Collection<OrderDto> addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType,
+      final @NotNull Collection<UUID> tradeIds) {
     final Tick tick = this.getTickMapper().toEntity(openTick);
     final Collection<Trade> trades = tradeIds.stream().map(uuid -> this.getTradeRepository().getReferenceById(uuid)).collect(Collectors.toSet());
     final Collection<Order> orders = trades.parallelStream().map(trade -> {
@@ -119,11 +119,6 @@ public class TradeProvider implements TradeService {
       order.setOrderStatus(OrderStatus.OPEN);
       final double profit = OrderUtils.getProfit(order);
       order.setProfit(profit);
-
-      final OrderProfit orderProfit = new OrderProfit();
-      orderProfit.setTimestamp(tick.getTimestamp());
-      orderProfit.setProfit(order.getProfit());
-      order.getHistoricProfit().add(orderProfit);
 
       order.setTrade(trade);
 

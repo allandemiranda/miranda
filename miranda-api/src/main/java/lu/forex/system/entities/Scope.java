@@ -30,8 +30,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "scope", indexes = {@Index(name = "idx_scope_symbol_id_unq", columnList = "symbol_id, time_frame", unique = true),
-    @Index(name = "idx_scope_symbol_id", columnList = "symbol_id")}, uniqueConstraints = {
+@Table(name = "scope", indexes = {@Index(name = "idx_scope_symbol_id", columnList = "symbol_id")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_scope_symbol_id_time_frame", columnNames = {"symbol_id", "time_frame"})})
 public class Scope implements Serializable {
 

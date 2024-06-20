@@ -52,9 +52,8 @@ public class TradeMapperImpl implements TradeMapper {
     final var slotEnd = trade.getSlotEnd();
     final var orders = this.orderSetToOrderDtoSet(trade.getOrders());
     final var balance = trade.getBalance();
-    final var balanceHistoric = trade.getBalanceHistoric();
     final var isActivate = trade.isActivate();
-    return new TradeDto(id, scope, stopLoss, takeProfit, spreadMax, slotWeek, slotStart, slotEnd, isActivate, orders, balance, balanceHistoric);
+    return new TradeDto(id, scope, stopLoss, takeProfit, spreadMax, slotWeek, slotStart, slotEnd, isActivate, orders, balance);
   }
 
   private @NotNull Set<@NotNull Order> orderDtoSetToOrderSet(final @NotNull Set<@NotNull OrderDto> set) {

@@ -7,7 +7,6 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -34,8 +33,7 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @EntityListeners({CurrencyPairListener.class})
-@Table(name = "currency_pair", indexes = {@Index(name = "idx_currencypair_name_unq", columnList = "name", unique = true)}, uniqueConstraints = {
-    @UniqueConstraint(name = "uc_currencypair_base_quote", columnNames = {"base", "quote", "name"})})
+@Table(name = "currency_pair", uniqueConstraints = {@UniqueConstraint(name = "uc_currencypair_base_quote", columnNames = {"base", "quote", "name"})})
 public class CurrencyPair implements Serializable {
 
   @Serial

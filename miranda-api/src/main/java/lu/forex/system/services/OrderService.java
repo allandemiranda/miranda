@@ -15,10 +15,6 @@ public interface OrderService {
   @NotNull
   Collection<@NotNull OrderDto> updateOrders(@NotNull TickDto tickDto);
 
-  @Transactional(readOnly = true)
-  @NotNull
-  Collection<@NotNull OrderDto> getOrdersByTick(@NotNull TickDto tickDto);
-
   @Transactional
   void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final @Positive int days);
 

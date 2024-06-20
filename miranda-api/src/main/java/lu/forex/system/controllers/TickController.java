@@ -13,13 +13,13 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
-import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.SignalIndicator;
+import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.TickOperation;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
@@ -49,8 +49,6 @@ public class TickController implements TickOperation {
   private final TradeService tradeService;
   private final OrderService orderService;
 
-  private boolean flag = true;
-
   public TickController(final TickService tickService, final SymbolService symbolService, final CandlestickService candlestickService,
       final ScopeService scopeService, @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
       @Qualifier("averageDirectionalIndex") final TechnicalIndicatorService averageDirectionalIndexService,
@@ -73,7 +71,6 @@ public class TickController implements TickOperation {
 
   @Override
   public List<TickDto> getTicksBySymbolName(final String symbolName) {
-    flag = true;
     return this.getTickService().getTicksBySymbolName(symbolName);
   }
 
@@ -128,7 +125,17 @@ public class TickController implements TickOperation {
         .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue, (uuids, uuids2) -> Stream.concat(uuids.stream(), uuids2.stream()).collect(Collectors.toSet())))
         .entrySet().parallelStream().flatMap(entry -> this.getTradeService().addOrder(tickDto, entry.getKey(), entry.getValue()).stream())
         //        .filter(OrderDto::tradeIsActivate)
-        .map(orderDto -> String.format("%s %s %s %s %s", orderDto.openTick().timestamp(), orderDto.tradeScope().timeFrame(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeStopLoss())).distinct().reduce("", (a, b) -> {
+        .collect(Collectors.toMap(
+            orderDto -> new Object[]{orderDto.openTick().timestamp(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeStopLoss()},
+            orderDto -> Set.of(orderDto.tradeScope().timeFrame()), (objects, objects2) -> Stream.concat(objects.stream(), objects2.stream()).collect(Collectors.toSet()))
+        ).entrySet().stream()
+        .map(entry -> String.format("%s %s %s %s %s",
+            entry.getKey()[0],
+            entry.getValue().stream().sorted().map(TimeFrame::getName).reduce("", (s, s2) -> s.concat("|").concat(s2)).substring(1),
+            entry.getKey()[1],
+            entry.getKey()[2],
+            entry.getKey()[3]))
+        .reduce("", (a, b) -> {
           if (a.isEmpty()) {
             return b;
           } else if (b.isEmpty()) {

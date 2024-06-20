@@ -22,14 +22,11 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.LinkedHashSet;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -42,7 +39,8 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "trade", indexes = {@Index(name = "idx_trade_scope_id", columnList = "scope_id")}, uniqueConstraints = {
+@Table(name = "trade", indexes = {
+    @Index(name = "idx_trade_scope_id_spread_max", columnList = "scope_id, spread_max, slot_week, slot_start, slot_end")}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_trade_scope_id_stop_loss", columnNames = {"scope_id", "stop_loss", "take_profit", "spread_max", "slot_week",
         "slot_start", "slot_end"})})
 public class Trade implements Serializable {
@@ -104,13 +102,6 @@ public class Trade implements Serializable {
   @Transient
   public double getBalance() {
     return this.getOrders().stream().mapToDouble(Order::getProfit).sum();
-  }
-
-  @Transient
-  @NotNull
-  public Set<Entry<LocalDateTime, Double>> getBalanceHistoric() {
-    return this.getOrders().stream().flatMap(order -> order.getHistoricProfit().stream())
-        .collect(Collectors.toMap(OrderProfit::getTimestamp, OrderProfit::getProfit, Double::sum)).entrySet();
   }
 
   @Override

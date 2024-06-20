@@ -16,8 +16,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
   @Query("select o from Order o where o.openTick.symbol.currencyPair.name = ?1 and o.orderStatus = ?2")
   Collection<Order> findBySymbolNameAndOrderStatus(@NonNull String symbolName, @NonNull OrderStatus orderStatus);
 
-  Collection<Order> findByOpenTick_Id(@NonNull UUID id);
-
   @Query("select o from Order o where o.openTick.symbol.currencyPair.name = ?1")
   Collection<Order> findBySymbolName(@NonNull String symbolName);
 }
