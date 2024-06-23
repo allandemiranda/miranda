@@ -1,5 +1,7 @@
 package lu.forex.system.operations;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lu.forex.system.dtos.TradeDto;
 import org.springframework.http.HttpStatus;
@@ -14,4 +16,8 @@ public interface TradeOperation {
   @GetMapping("/{symbolName}")
   @ResponseStatus(HttpStatus.OK)
   List<TradeDto> managementOfTradeActivation(@PathVariable("symbolName") String symbolName);
+
+  @GetMapping("/init/{symbolName}")
+  @ResponseStatus(HttpStatus.OK)
+  void initOrderByInitCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 }

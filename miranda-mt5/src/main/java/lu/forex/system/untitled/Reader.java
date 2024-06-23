@@ -28,7 +28,7 @@ public class Reader {
   public void start(final String symbol) {
     try (final var httpClient = HttpClient.newHttpClient()) {
       final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + CSV;
-      log.info("[{}] Reading file {}", LocalDateTime.now(), fileName);
+      log.info(" Reading file {}", LocalDateTime.now(), fileName);
       final var inputFile = new File(fileName);
       final var bidH = new AtomicReference<>(0D);
       final var askH = new AtomicReference<>(0D);
@@ -41,7 +41,7 @@ public class Reader {
       var lineNow = new AtomicLong(1);
       var lastPercentage = new AtomicLong(-1);
 
-      log.info("[{}] Starting...", LocalDateTime.now());
+      log.info(" Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
@@ -50,13 +50,13 @@ public class Reader {
             lastPercentage.set(percentage);
           }
           if (tick.getBid() != bidH.get() || tick.getAsk() != askH.get()) {
-            if (tick.getBid() > 0d) {
+            if (tick.getBid() > 0D) {
               bidH.set(tick.getBid());
             }
-            if (tick.getAsk() > 0d) {
+            if (tick.getAsk() > 0D) {
               askH.set(tick.getAsk());
             }
-            if ((bidH.get() > 0d) && (askH.get() > 0d) && tick.getTime().isAfter(lastUpdate.get())) {
+            if ((bidH.get() > 0D) && (askH.get() > 0D) && tick.getTime().isAfter(lastUpdate.get())) {
               sent(httpClient, symbol, tick.getTime(), bidH.get(), askH.get());
               lastUpdate.set(tick.getTime());
             }
@@ -71,7 +71,7 @@ public class Reader {
   public void start(final String symbol, final TimeFrame timeFrame) {
     try (final var httpClient = HttpClient.newHttpClient()) {
       final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + CSV;
-      log.info("[{}] Reading file {}", LocalDateTime.now(), fileName);
+      log.info(" Reading file {}", LocalDateTime.now(), fileName);
       final var inputFile = new File(fileName);
       final var bidH = new AtomicReference<>(0D);
       final var askH = new AtomicReference<>(0D);
@@ -85,7 +85,7 @@ public class Reader {
       var lineNow = new AtomicLong(1);
       var lastPercentage = new AtomicLong(-1);
 
-      log.info("[{}] Starting...", LocalDateTime.now());
+      log.info(" Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
@@ -96,16 +96,16 @@ public class Reader {
 
           final var forNow = TimeFrameUtils.getCandlestickTimestamp(tick.getTime(), timeFrame);
           if(!forNow.equals(timeF.get())) {
-            if ((bidH.get() > 0d) && (askH.get() > 0d)) {
+            if ((bidH.get() > 0D) && (askH.get() > 0D)) {
               sent(httpClient, symbol, lastTime.get(), bidH.get(), askH.get());
             }
             timeF.set(forNow);
           }
           lastTime.set(tick.getTime());
-          if (tick.getBid() > 0d) {
+          if (tick.getBid() > 0D) {
             bidH.set(tick.getBid());
           }
-          if (tick.getAsk() > 0d) {
+          if (tick.getAsk() > 0D) {
             askH.set(tick.getAsk());
           }
         });
@@ -118,8 +118,8 @@ public class Reader {
     final String time = csvRecord.get(1);
     final String dataTime = date.concat("T").concat(time);
     final LocalDateTime localDateTime = LocalDateTime.parse(dataTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-    final double bid = csvRecord.get(2).isEmpty() ? 0d : Double.parseDouble(csvRecord.get(2));
-    final double ask = csvRecord.get(3).isEmpty() ? 0d : Double.parseDouble(csvRecord.get(3));
+    final double bid = csvRecord.get(2).isEmpty() ? 0D : Double.parseDouble(csvRecord.get(2));
+    final double ask = csvRecord.get(3).isEmpty() ? 0D : Double.parseDouble(csvRecord.get(3));
     return new Tick(localDateTime, bid, ask);
   }
 
@@ -140,7 +140,7 @@ public class Reader {
     }
 
     if (!response.body().isEmpty()) {
-      log.info("[{}] {}", LocalDateTime.now(), response.body());
+      log.info(" {}", LocalDateTime.now(), response.body());
     }
   }
 }

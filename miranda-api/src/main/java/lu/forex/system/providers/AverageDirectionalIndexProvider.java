@@ -80,12 +80,12 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
 
       // get +DM1
       final double pDmOne =
-          cHigh.subtract(lastHigh).compareTo(lastLow.subtract(cLow)) > 0 ? MathUtils.getMax(cHigh.subtract(lastHigh).doubleValue(), 0d) : 0d;
+          cHigh.subtract(lastHigh).compareTo(lastLow.subtract(cLow)) > 0 ? MathUtils.getMax(cHigh.subtract(lastHigh).doubleValue(), 0D) : 0D;
       currentTechnicalIndicatorDto.data().put(KEY_P_DM_1, pDmOne);
 
       // get -DM1
       final double nDmOne =
-          lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0d) : 0d;
+          lastLow.subtract(cLow).compareTo(cHigh.subtract(lastHigh)) > 0 ? MathUtils.getMax(lastLow.subtract(cLow).doubleValue(), 0D) : 0D;
       currentTechnicalIndicatorDto.data().put(KEY_N_DM_1, nDmOne);
 
       final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();

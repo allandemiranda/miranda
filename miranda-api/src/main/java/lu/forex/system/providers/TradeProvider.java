@@ -2,6 +2,7 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,16 +16,18 @@ import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
-import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
+import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
@@ -34,12 +37,15 @@ import lu.forex.system.mappers.TradeMapper;
 import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Getter(AccessLevel.PRIVATE)
+@Log4j2
 public class TradeProvider implements TradeService {
 
   private final TradeRepository tradeRepository;
@@ -99,9 +105,8 @@ public class TradeProvider implements TradeService {
 
   @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
-    final Scope scope = this.getScopeMapper().toEntity(scopeDto);
     return this.getTradeRepository()
-        .findTradeToOpenOrder(scope.getId(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime())
+        .findTradeToOpenOrder(scopeDto.id(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime())
         .parallelStream().map(this.getTradeMapper()::toDto).toList();
   }
 
@@ -153,5 +158,49 @@ public class TradeProvider implements TradeService {
     }).toList();
     return this.getTradeRepository().saveAll(collection).stream().sorted(Comparator.comparingDouble(Trade::getBalance))
         .map(trade -> this.getTradeMapper().toDto(trade)).toList();
+  }
+
+  @Async
+  @Override
+  public void initOrders(final @NotNull Map<TickDto, List<CandlestickDto>> tickByCandlesticks) {
+    log.info(" Starting initOrders()");
+    final Map<LocalDateTime, List<Order>> newTrades = tickByCandlesticks.entrySet().parallelStream().flatMap(entry -> {
+      final TickDto openTick = entry.getKey();
+      return entry.getValue().parallelStream().flatMap(candlestickDto -> {
+        final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
+        final Collection<Trade> trades = this.getTradeRepository().findTradeToOpenOrder(candlestickDto.scope().id(), (int) openTick.spread(), openTick.timestamp().getDayOfWeek(), openTick.timestamp().toLocalTime());
+
+        final Tick tick = this.getTickMapper().toEntity(openTick);
+        return trades.parallelStream().map(trade -> {
+          final Order order = new Order();
+          order.setOpenTick(tick);
+          order.setCloseTick(tick);
+          order.setOrderType(orderType);
+          order.setOrderStatus(OrderStatus.OPEN);
+          final double profit = OrderUtils.getProfit(order);
+          order.setProfit(profit);
+
+          order.setTrade(trade);
+
+          return order;
+        });
+      });
+    }).collect(Collectors.groupingBy(order -> order.getOpenTick().getTimestamp()));
+
+    newTrades.forEach((localDateTime, orderList) -> orderList.stream().collect(
+        Collectors.groupingBy(order -> Triple.of(order.getOrderType(), order.getTrade().getTakeProfit(), order.getTrade().getStopLoss()),
+            Collectors.collectingAndThen(Collectors.toList(),
+                list -> list.stream().map(order -> order.getTrade().getScope().getTimeFrame()).toList()))).forEach(
+        (triple, timeFrames) -> log.warn("Order: {} {} {} {} {}", localDateTime, Arrays.toString(timeFrames.toArray()), triple.getLeft(),
+            triple.getMiddle(), triple.getRight())));
+
+    final Collection<Trade> trades = newTrades.values().parallelStream().flatMap(Collection::stream).map(order -> {
+          final Trade trade = order.getTrade();
+          trade.getOrders().add(order);
+          return trade;
+        }).toList();
+
+    this.getTradeRepository().saveAll(trades);
+    log.info(" End initOrders()");
   }
 }

@@ -1,5 +1,6 @@
 package lu.forex.system.repositories;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.UUID;
 import lu.forex.system.entities.Order;
@@ -18,4 +19,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
 
   @Query("select o from Order o where o.openTick.symbol.currencyPair.name = ?1")
   Collection<Order> findBySymbolName(@NonNull String symbolName);
+
+  @Query("select o from Order o where o.openTick.symbol.id = ?1 and o.orderStatus = ?2 and o.closeTick.timestamp > ?3")
+  Collection<Order> findByOpenTick_Symbol_IdAndOrderStatusAndCloseTick_TimestampAfterAllIgnoreCase(@NonNull UUID id, @NonNull OrderStatus orderStatus, @NonNull LocalDateTime timestamp);
+
 }

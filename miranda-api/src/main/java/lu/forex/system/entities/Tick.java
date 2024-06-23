@@ -1,6 +1,5 @@
 package lu.forex.system.entities;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -51,7 +50,7 @@ public class Tick implements Serializable {
   private UUID id;
 
   @NotNull
-  @ManyToOne(cascade = CascadeType.PERSIST, optional = false, targetEntity = Symbol.class)
+  @ManyToOne(optional = false, targetEntity = Symbol.class)
   @JoinColumn(name = "symbol_id", nullable = false, updatable = false)
   private Symbol symbol;
 

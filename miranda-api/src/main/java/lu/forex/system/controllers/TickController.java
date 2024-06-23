@@ -1,5 +1,6 @@
 package lu.forex.system.controllers;
 
+import java.io.File;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
@@ -13,6 +14,7 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
@@ -124,7 +126,7 @@ public class TickController implements TickOperation {
         .filter(Objects::nonNull)
         .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue, (uuids, uuids2) -> Stream.concat(uuids.stream(), uuids2.stream()).collect(Collectors.toSet())))
         .entrySet().parallelStream().flatMap(entry -> this.getTradeService().addOrder(tickDto, entry.getKey(), entry.getValue()).stream())
-        //        .filter(OrderDto::tradeIsActivate)
+        .filter(OrderDto::tradeIsActivate)
         .collect(Collectors.toMap(
             orderDto -> new Object[]{orderDto.openTick().timestamp(), orderDto.orderType(), orderDto.tradeTakeProfit(), orderDto.tradeStopLoss()},
             orderDto -> Set.of(orderDto.tradeScope().timeFrame()), (objects, objects2) -> Stream.concat(objects.stream(), objects2.stream()).collect(Collectors.toSet()))
@@ -149,5 +151,13 @@ public class TickController implements TickOperation {
 
     return response;
 
+  }
+
+  @Override
+  public void initDataBase(final String symbolName, final String dateFileName) {
+    final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
+    final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\".concat(symbolName).concat(dateFileName).concat(".csv");
+    final var inputFile = new File(fileName);
+    this.getTickService().readPreDataBase(symbolDto, inputFile);
   }
 }

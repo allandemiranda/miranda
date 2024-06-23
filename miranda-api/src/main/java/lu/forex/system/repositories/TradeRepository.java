@@ -22,4 +22,6 @@ public interface TradeRepository extends JpaRepository<Trade, UUID>, JpaSpecific
   @NotNull
   @Query("select t from Trade t where t.scope.symbol.currencyPair.name = ?1")
   Collection<Trade> findBySymbolName(@NonNull String symbolName);
+
+  Collection<Trade> findByScope_IdIn(@NonNull Collection<UUID> ids);
 }

@@ -2,6 +2,7 @@ package lu.forex.system.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +24,7 @@ import lombok.ToString;
 import lombok.ToString.Exclude;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
+import lu.forex.system.listeners.OrderListener;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -31,6 +33,7 @@ import org.hibernate.type.SqlTypes;
 @ToString
 @RequiredArgsConstructor
 @Entity
+@EntityListeners({OrderListener.class})
 @Table(name = "order_operation", indexes = {@Index(name = "idx_order_open_tick_id", columnList = "open_tick_id"),
     @Index(name = "idx_order_open_tick_status", columnList = "open_tick_id, order_status")})
 public class Order implements Serializable {

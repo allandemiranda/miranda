@@ -60,7 +60,7 @@ public class Candlestick implements Serializable {
 
   @Exclude
   @NotNull
-  @ManyToOne(fetch = FetchType.LAZY, optional = false, targetEntity = Scope.class)
+  @ManyToOne(fetch = FetchType.EAGER, optional = false, targetEntity = Scope.class)
   @JoinColumn(name = "scope_id", nullable = false, updatable = false)
   private Scope scope;
 
@@ -80,7 +80,7 @@ public class Candlestick implements Serializable {
   private Set<MovingAverage> movingAverages = new LinkedHashSet<>();
 
   @Exclude
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
   @JoinColumn(name = "candlestick_id")
   private Set<TechnicalIndicator> technicalIndicators = new LinkedHashSet<>();
 

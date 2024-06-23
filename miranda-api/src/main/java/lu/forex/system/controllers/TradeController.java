@@ -1,12 +1,21 @@
 package lu.forex.system.controllers;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lu.forex.system.dtos.CandlestickDto;
+import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.TradeOperation;
+import lu.forex.system.services.CandlestickService;
+import lu.forex.system.services.ScopeService;
 import lu.forex.system.services.SymbolService;
+import lu.forex.system.services.TickService;
 import lu.forex.system.services.TradeService;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,10 +26,24 @@ public class TradeController implements TradeOperation {
 
   private final TradeService tradeService;
   private final SymbolService symbolService;
+  private final ScopeService scopeService;
+  private final CandlestickService candlestickService;
+  private final TickService tickService;
 
   @Override
   public List<TradeDto> managementOfTradeActivation(final String symbolName) {
     return this.getTradeService().managementEfficientTradesScenariosToBeActivated(symbolName);
+  }
+
+  @Override
+  public void initOrderByInitCandlesticks(final String symbolName) {
+    final Map<TickDto, List<CandlestickDto>> tickByCandlesticks =
+        Arrays.stream(TimeFrame.values()).parallel()
+        .map(timeFrame -> this.getScopeService().getScope(symbolName, timeFrame).id())
+        .flatMap(uuid -> this.getCandlestickService().getAllCandlestickNotNeutralByScopeIdAsync(uuid).stream())
+        .collect(Collectors.groupingBy(candlestickDto -> this.getTickService().getFirstAndNextTick(candlestickDto.scope().symbol().id(), candlestickDto.timestamp())));
+
+    this.getTradeService().initOrders(tickByCandlesticks);
   }
 
 }
