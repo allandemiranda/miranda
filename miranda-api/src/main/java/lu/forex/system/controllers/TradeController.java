@@ -1,9 +1,11 @@
 package lu.forex.system.controllers;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
@@ -45,11 +47,16 @@ public class TradeController implements TradeOperation {
 
   @Override
   public void initOrderByInitCandlesticks(final String symbolName) {
-    final Map<TickDto, List<CandlestickDto>> tickByCandlesticks =
-        Arrays.stream(TimeFrame.values()).parallel()
+    final var entryCollection = Arrays.stream(TimeFrame.values()).parallel()
         .map(timeFrame -> this.getScopeService().getScope(symbolName, timeFrame).id())
-        .flatMap(uuid -> this.getCandlestickService().getAllCandlestickNotNeutralByScopeIdAsync(uuid).stream())
-        .collect(Collectors.groupingBy(candlestickDto -> this.getTickService().getFirstAndNextTick(candlestickDto.scope().symbol().id(), candlestickDto.timestamp())));
+        .flatMap(uuid -> this.getCandlestickService().getAllCandlestickNotNeutralByScopeIdAsync(uuid).stream()).map(candlestickDto -> {
+          final TickDto tickDto = this.getTickService().getFirstAndNextTick(candlestickDto.scope().symbol().id(), candlestickDto.timestamp());
+          return new SimpleEntry<TickDto, CandlestickDto>(tickDto, candlestickDto);
+        }).collect(Collectors.toSet());
+
+    final Map<TickDto, Set<CandlestickDto>> tickByCandlesticks = entryCollection.stream().collect(Collectors.groupingBy(SimpleEntry::getKey,
+        Collectors.collectingAndThen(Collectors.toSet(),
+            simpleEntries -> simpleEntries.stream().map(SimpleEntry::getValue).collect(Collectors.toSet()))));
 
     this.getTradeService().initOrders(tickByCandlesticks);
   }

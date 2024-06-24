@@ -167,7 +167,7 @@ public class TradeProvider implements TradeService {
 
   @Async
   @Override
-  public void initOrders(final @NotNull Map<TickDto, List<CandlestickDto>> tickByCandlesticks) {
+  public void initOrders(final @NotNull Map<TickDto, Set<CandlestickDto>> tickByCandlesticks) {
     log.info(" Starting initOrders()");
     final Map<LocalDateTime, List<Order>> newTrades = tickByCandlesticks.entrySet().parallelStream().flatMap(entry -> {
       final TickDto openTick = entry.getKey();

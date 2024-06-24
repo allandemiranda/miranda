@@ -2,12 +2,14 @@ package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
+import lu.forex.system.dtos.NewMovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
@@ -36,7 +38,7 @@ public interface CandlestickService {
 
   @Transactional
   @NotNull
-  CandlestickDto getCandlestickById(final @NotNull UUID candlestickId);
+  CandlestickDto processSignalIndicatorByCandlestickById(final @NotNull UUID candlestickId);
 
   @Transactional(readOnly = true)
   Collection<CandlestickDto> getAllCandlestickByScopeIdAsync(final @NotNull UUID scopeId);
@@ -54,8 +56,8 @@ public interface CandlestickService {
   void initIndicatorsOnCandlesticks(final @NotNull Collection<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices);
 
   @Async
-  void initAveragesOnCandlesticks(final @NotNull Collection<CandlestickDto> candlesticksDto, final @NotNull Collection<MovingAverageDto> newMovingAverages);
+  void initAveragesToCandlesticks(final @NotNull Collection<SimpleEntry<Collection<MovingAverageDto>, UUID>> candlesticksToSave);
 
   @Async
-  void computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> scopeIdByProcessingOrderId);
+  void computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> scopeIdByCandlestickDtosId);
 }

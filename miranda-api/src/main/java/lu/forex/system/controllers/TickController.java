@@ -115,7 +115,7 @@ public class TickController implements TickOperation {
           final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize + 1).stream().skip(1).toList();
           movingAverageServices.forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks));
           indicatorServices.parallelStream().forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks));
-          return this.getCandlestickService().getCandlestickById(lastCandlesticks.getFirst().id());
+          return this.getCandlestickService().processSignalIndicatorByCandlestickById(lastCandlesticks.getFirst().id());
         })
         .filter(lastCandlestick -> !SignalIndicator.NEUTRAL.equals(lastCandlestick.signalIndicator()))
         .map(candlestickDto -> {

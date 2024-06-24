@@ -1,5 +1,7 @@
 package lu.forex.system.controllers;
 
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -8,9 +10,12 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
+import lu.forex.system.dtos.MovingAverageDto;
+import lu.forex.system.dtos.NewMovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.CandlestickOperation;
@@ -78,18 +83,21 @@ public class CandlestickController implements CandlestickOperation {
   @Override
   public void initAveragesOnCandlesticks(final String symbolName) {
     final var indicatorServices = List.of(this.getAcceleratorOscillatorService(), this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService());
-    final var newMovingAverages = indicatorServices.stream()
-        .flatMap(indicatorService -> indicatorService.generateMAs().stream()).distinct()
-        .map(newMovingAverageDto -> switch (newMovingAverageDto.type()) {
-          case EMA -> this.getExponentialMovingAverageService().createMovingAverage(newMovingAverageDto);
-          case SMA -> this.getSimpleMovingAverageService().createMovingAverage(newMovingAverageDto);
-          default -> throw new IllegalStateException("Unexpected value: " + newMovingAverageDto.type());
-        }).toList();
-    final var candlesticksDto = Arrays.stream(TimeFrame.values()).parallel()
+    final var newMovingAverages = indicatorServices.stream().flatMap(indicatorService -> indicatorService.generateMAs().stream()).collect(Collectors.toSet());
+    final Collection<SimpleEntry<Collection<MovingAverageDto>, UUID>> candlesticksToSave = Arrays.stream(TimeFrame.values()).parallel()
         .map(timeFrame -> this.getScopeService().getScope(symbolName, timeFrame).id())
         .flatMap(uuid -> this.getCandlestickService().getAllCandlestickByScopeIdAsync(uuid).stream())
-        .toList();
-    this.getCandlestickService().initAveragesOnCandlesticks(candlesticksDto, newMovingAverages);
+        .map(candlestickDto -> {
+          final Collection<MovingAverageDto> theMovingAverages = newMovingAverages.stream()
+              .map(newMovingAverageDto -> switch (newMovingAverageDto.type()) {
+                case EMA -> this.getExponentialMovingAverageService().createMovingAverage(newMovingAverageDto);
+                case SMA -> this.getSimpleMovingAverageService().createMovingAverage(newMovingAverageDto);
+                default -> throw new IllegalStateException("Unexpected value: " + newMovingAverageDto.type());
+              }).toList();
+          return new SimpleEntry<>(theMovingAverages, candlestickDto.id());
+        }).toList();
+
+    this.getCandlestickService().initAveragesToCandlesticks(candlesticksToSave);
   }
 
   @Override
@@ -98,7 +106,7 @@ public class CandlestickController implements CandlestickOperation {
     final var movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
     final var technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max() .orElse(0);
 
-    final Map<UUID, List<List<UUID>>> scopeIdByProcessingOrderId = Arrays.stream(TimeFrame.values()).parallel()
+    final Map<UUID, List<List<UUID>>> scopeIdByCandlestickDtos = Arrays.stream(TimeFrame.values()).parallel()
         .map(timeFrame -> this.getScopeService().getScope(symbolName, timeFrame).id())
         .collect(Collectors.toMap(scopeId -> scopeId, scopeId -> {
           final List<CandlestickDto> candlestickDtos = this.getCandlestickService().getAllCandlestickByScopeIdDesc(scopeId);
@@ -108,7 +116,7 @@ public class CandlestickController implements CandlestickOperation {
           }).toList();
         }));
 
-    this.getCandlestickService().computingIndicatorsByInit(indicatorServices, movingAverageServices, scopeIdByProcessingOrderId);
+    this.getCandlestickService().computingIndicatorsByInit(indicatorServices, movingAverageServices, scopeIdByCandlestickDtos);
   }
 
 }

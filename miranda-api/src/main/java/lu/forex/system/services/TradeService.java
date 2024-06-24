@@ -41,6 +41,6 @@ public interface TradeService {
   List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName);
 
   @Async
-  void initOrders(final Map<TickDto, List<CandlestickDto>> tickByCandlesticks);
+  void initOrders(final Map<TickDto, Set<CandlestickDto>> tickByCandlesticks);
 
 }
