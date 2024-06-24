@@ -1,8 +1,10 @@
 package lu.forex.system.controllers;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -33,6 +35,12 @@ public class TradeController implements TradeOperation {
   @Override
   public List<TradeDto> managementOfTradeActivation(final String symbolName) {
     return this.getTradeService().managementEfficientTradesScenariosToBeActivated(symbolName);
+  }
+
+  @Override
+  public Collection<TradeDto> getTrades(final String symbolName) {
+    final UUID symbolId = this.getSymbolService().getSymbol(symbolName).id();
+    return this.getTradeService().getTrades(symbolId);
   }
 
   @Override

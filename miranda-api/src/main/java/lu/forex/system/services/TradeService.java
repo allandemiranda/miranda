@@ -26,6 +26,10 @@ public interface TradeService {
 
   @Transactional(readOnly = true)
   @NotNull
+  Collection<TradeDto> getTrades(final @NotNull UUID symbolId);
+
+  @Transactional(readOnly = true)
+  @NotNull
   Collection<TradeDto> getTradesForOpenPosition(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
   @Transactional()

@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.entities.Order;
 import lu.forex.system.entities.Tick;
@@ -34,7 +35,12 @@ public class OrderProvider implements OrderService {
   private final TickMapper tickMapper;
 
   @Override
-  public void updateOrders(@NotNull TickDto tickDto) {
+  public @NotNull List<OrderDto> getOrders(final @NotNull UUID symbolId, final @NotNull OrderStatus orderStatus) {
+    return this.getOrderRepository().findByOpenTick_Symbol_IdAndOrderStatusOrderByOpenTick_TimestampAsc(symbolId, orderStatus).stream().map(this.getOrderMapper()::toDto).collect(Collectors.toList());
+  }
+
+  @Override
+  public void updateOrders(final @NotNull TickDto tickDto) {
     final Tick currentTick = this.getTickMapper().toEntity(tickDto);
     final Collection<Order> collection = this.getOrderRepository()
         .findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).parallelStream()
@@ -57,18 +63,6 @@ public class OrderProvider implements OrderService {
   @Override
   public void processingInitOrders(final @NotNull List<TickDto> tickDtoList) {
     log.info(" Starting processingInitOrders()");
-//    final UUID symbolId = tickDtoList.getFirst().symbol().id();
-//    for (final TickDto tickDto : tickDtoList) {
-//      final Tick currentTick = this.getTickMapper().toEntity(tickDto);
-//      final var updateOrders = this.getOrderRepository().findByOpenTick_Symbol_IdAndOrderStatusAndCloseTick_TimestampAfterAllIgnoreCase(symbolId, OrderStatus.OPEN, currentTick.getTimestamp())
-//          .parallelStream().map(order -> {
-//            order.setCloseTick(currentTick);
-//            return order;
-//          }).toList();
-//      if(!updateOrders.isEmpty()) {
-//        this.getOrderRepository().saveAll(updateOrders);
-//      }
-//    }
     final UUID symbolId = tickDtoList.getFirst().symbol().id();
     final var orders = this.getOrderRepository().findAll().parallelStream().filter(order -> symbolId.equals(order.getOpenTick().getId())).collect(Collectors.toCollection(HashSet::new));
     for (final TickDto tickDto : tickDtoList) {

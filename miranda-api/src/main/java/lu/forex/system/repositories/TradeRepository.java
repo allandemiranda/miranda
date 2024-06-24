@@ -24,4 +24,6 @@ public interface TradeRepository extends JpaRepository<Trade, UUID>, JpaSpecific
   Collection<Trade> findBySymbolName(@NonNull String symbolName);
 
   Collection<Trade> findByScope_IdIn(@NonNull Collection<UUID> ids);
+
+  Collection<Trade> findByScope_Symbol_Id(@NonNull UUID id);
 }

@@ -104,6 +104,11 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
+  public @NotNull Collection<TradeDto> getTrades(final @NotNull UUID symbolId) {
+    return this.getTradeRepository().findByScope_Symbol_Id(symbolId).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+  }
+
+  @Override
   public @NotNull Collection<TradeDto> getTradesForOpenPosition(final @NotNull ScopeDto scopeDto, final @NotNull TickDto tickDto) {
     return this.getTradeRepository()
         .findTradeToOpenOrder(scopeDto.id(), (int) tickDto.spread(), tickDto.timestamp().getDayOfWeek(), tickDto.timestamp().toLocalTime())
