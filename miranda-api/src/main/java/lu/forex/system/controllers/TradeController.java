@@ -1,8 +1,10 @@
 package lu.forex.system.controllers;
 
+import java.time.LocalDateTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,6 +16,7 @@ import lombok.Getter;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.enums.TimeFrame;
 import lu.forex.system.operations.TradeOperation;
 import lu.forex.system.services.CandlestickService;
@@ -47,18 +50,14 @@ public class TradeController implements TradeOperation {
 
   @Override
   public void initOrderByInitCandlesticks(final String symbolName) {
-    final var entryCollection = Arrays.stream(TimeFrame.values()).parallel()
+    final List<TickDto> ticks = this.getTickService().getTicksBySymbolName(symbolName);
+    final Map<LocalDateTime, Set<CandlestickDto>> entryCollection = Arrays.stream(TimeFrame.values()).parallel()
         .map(timeFrame -> this.getScopeService().getScope(symbolName, timeFrame).id())
-        .flatMap(uuid -> this.getCandlestickService().getAllCandlestickNotNeutralByScopeIdAsync(uuid).stream()).map(candlestickDto -> {
-          final TickDto tickDto = this.getTickService().getFirstAndNextTick(candlestickDto.scope().symbol().id(), candlestickDto.timestamp());
-          return new SimpleEntry<TickDto, CandlestickDto>(tickDto, candlestickDto);
-        }).collect(Collectors.toSet());
+        .flatMap(uuid -> this.getCandlestickService().getAllCandlestickNotNeutralByScopeIdAsync(uuid).stream())
+        .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
+        .collect(Collectors.groupingBy(CandlestickDto::timestamp, Collectors.toSet()));
 
-    final Map<TickDto, Set<CandlestickDto>> tickByCandlesticks = entryCollection.stream().collect(Collectors.groupingBy(SimpleEntry::getKey,
-        Collectors.collectingAndThen(Collectors.toSet(),
-            simpleEntries -> simpleEntries.stream().map(SimpleEntry::getValue).collect(Collectors.toSet()))));
-
-    this.getTradeService().initOrders(tickByCandlesticks);
+    this.getTradeService().initOrders(entryCollection, ticks);
   }
 
 }

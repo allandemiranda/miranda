@@ -4,9 +4,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -167,37 +169,46 @@ public class TradeProvider implements TradeService {
 
   @Async
   @Override
-  public void initOrders(final @NotNull Map<TickDto, Set<CandlestickDto>> tickByCandlesticks) {
+  public void initOrders(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks) {
     log.info(" Starting initOrders()");
-    final Map<LocalDateTime, List<Order>> newTrades = tickByCandlesticks.entrySet().parallelStream().flatMap(entry -> {
-      final TickDto openTick = entry.getKey();
+
+    final Map<LocalDateTime, List<Order>> newTrades = tickByCandlesticks.entrySet().parallelStream()
+      .map(entry -> {
+        final var timestamp = entry.getKey();
+        final var tickDto = ticks.stream().filter(tick -> !tick.timestamp().isBefore(timestamp)).findFirst().orElse(null);
+        return new SimpleEntry<TickDto, Set<CandlestickDto>>(tickDto, entry.getValue());
+      }).flatMap(entry -> {
+      final Tick tick = this.getTickMapper().toEntity(entry.getKey());
       return entry.getValue().parallelStream().flatMap(candlestickDto -> {
         final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
-        final Collection<Trade> trades = this.getTradeRepository().findTradeToOpenOrder(candlestickDto.scope().id(), (int) openTick.spread(), openTick.timestamp().getDayOfWeek(), openTick.timestamp().toLocalTime());
+        return this.getTradeRepository().findTradeToOpenOrder(candlestickDto.scope().id(), (int) tick.getSpread(), tick.getTimestamp().getDayOfWeek(), tick.getTimestamp().toLocalTime()).parallelStream()
+            .map(trade -> {
+              final Order order = new Order();
+              order.setOpenTick(tick);
+              order.setCloseTick(tick);
+              order.setOrderType(orderType);
+              order.setOrderStatus(OrderStatus.OPEN);
+              final double profit = OrderUtils.getProfit(order);
+              order.setProfit(profit);
 
-        final Tick tick = this.getTickMapper().toEntity(openTick);
-        return trades.parallelStream().map(trade -> {
-          final Order order = new Order();
-          order.setOpenTick(tick);
-          order.setCloseTick(tick);
-          order.setOrderType(orderType);
-          order.setOrderStatus(OrderStatus.OPEN);
-          final double profit = OrderUtils.getProfit(order);
-          order.setProfit(profit);
+              order.setTrade(trade);
 
-          order.setTrade(trade);
-
-          return order;
-        });
+              return order;
+            });
       });
     }).collect(Collectors.groupingBy(order -> order.getOpenTick().getTimestamp()));
 
-    newTrades.forEach((localDateTime, orderList) -> orderList.stream().collect(
-        Collectors.groupingBy(order -> Triple.of(order.getOrderType(), order.getTrade().getTakeProfit(), order.getTrade().getStopLoss()),
-            Collectors.collectingAndThen(Collectors.toList(),
-                list -> list.stream().map(order -> order.getTrade().getScope().getTimeFrame()).toList()))).forEach(
-        (triple, timeFrames) -> log.warn("Order: {} {} {} {} {}", localDateTime, Arrays.toString(timeFrames.toArray()), triple.getLeft(),
-            triple.getMiddle(), triple.getRight())));
+    newTrades.forEach(
+        (localDateTime, orderList) -> orderList.stream().collect(
+            Collectors.groupingBy(
+                order -> Triple.of(order.getOrderType(), order.getTrade().getTakeProfit(), order.getTrade().getStopLoss()),
+                Collectors.collectingAndThen(
+                    Collectors.toSet(),
+                    list -> list.stream().map(order -> order.getTrade().getScope().getTimeFrame()).collect(Collectors.toSet())))
+            ).forEach(
+                (triple, timeFrames) -> log.warn("Order: {} {} {} {} {}", localDateTime, Arrays.toString(timeFrames.toArray()), triple.getLeft(), triple.getMiddle(), triple.getRight())
+        )
+    );
 
     final Collection<Trade> trades = newTrades.values().parallelStream().flatMap(Collection::stream).map(order -> {
           final Trade trade = order.getTrade();

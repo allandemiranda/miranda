@@ -1,6 +1,7 @@
 package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,6 @@ public interface TradeService {
   List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName);
 
   @Async
-  void initOrders(final Map<TickDto, Set<CandlestickDto>> tickByCandlesticks);
+  void initOrders(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks);
 
 }

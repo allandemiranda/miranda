@@ -13,8 +13,8 @@ public class OrderUtils {
 
   public static double getProfit(@NotNull Order order) {
     return switch (order.getOrderType()) {
-      case BUY -> BigDecimal.valueOf(order.getCloseTick().getBid()).subtract(BigDecimal.valueOf(order.getOpenTick().getAsk())).doubleValue();
-      case SELL -> BigDecimal.valueOf(order.getOpenTick().getBid()).subtract(BigDecimal.valueOf(order.getCloseTick().getAsk())).doubleValue();
+      case BUY -> BigDecimal.valueOf(order.getCloseTick().getBid()).subtract(BigDecimal.valueOf(order.getOpenTick().getAsk())).multiply(BigDecimal.valueOf(Math.pow(10, order.getOpenTick().getSymbol().getDigits()))).doubleValue();
+      case SELL -> BigDecimal.valueOf(order.getOpenTick().getBid()).subtract(BigDecimal.valueOf(order.getCloseTick().getAsk())).multiply(BigDecimal.valueOf(Math.pow(10, order.getOpenTick().getSymbol().getDigits()))).doubleValue();
     };
   }
 

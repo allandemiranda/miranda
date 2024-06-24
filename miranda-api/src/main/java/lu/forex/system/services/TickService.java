@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public interface TickService {
 
   @Transactional(readOnly = true)
   @NotNull
-  List<@NotNull TickDto> getTicksBySymbolNameNotOrdered(final @NotNull @NotBlank String symbolName);
+  Collection<@NotNull TickDto> getTicksBySymbolNameNotOrdered(final @NotNull @NotBlank String symbolName);
 
   @Transactional(readOnly = true)
   @NotNull
@@ -39,5 +40,5 @@ public interface TickService {
 
   @Transactional(readOnly = true)
   @NotNull
-  TickDto getFirstAndNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp);
+  TickDto getFirstOrNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp);
 }

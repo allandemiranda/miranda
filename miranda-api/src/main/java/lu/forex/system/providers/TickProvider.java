@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class TickProvider implements TickService {
   }
 
   @Override
-  public @NotNull List<@NotNull TickDto> getTicksBySymbolNameNotOrdered(final @NotNull String symbolName) {
+  public @NotNull Collection<@NotNull TickDto> getTicksBySymbolNameNotOrdered(final @NotNull String symbolName) {
     return  this.getTickRepository().findBySymbol_CurrencyPair_Name(symbolName).parallelStream().map(this.getTickMapper()::toDto).toList();
   }
 
@@ -127,8 +128,8 @@ public class TickProvider implements TickService {
   }
 
   @Override
-  public @NotNull TickDto getFirstAndNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp) {
-    final Tick firstAndNextTick = this.getTickRepository().findFirstAndNextTick(symbolId, timestamp).orElseThrow();
+  public @NotNull TickDto getFirstOrNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp) {
+    final Tick firstAndNextTick = this.getTickRepository().findFirstBySymbol_IdAndTimestampGreaterThanEqualOrderByTimestampAsc(symbolId, timestamp).orElseThrow();
     return this.getTickMapper().toDto(firstAndNextTick);
   }
 
