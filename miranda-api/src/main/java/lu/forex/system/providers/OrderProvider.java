@@ -64,21 +64,25 @@ public class OrderProvider implements OrderService {
   public void processingInitOrders(final @NotNull List<TickDto> tickDtoList) {
     log.info(" Starting processingInitOrders()");
     final UUID symbolId = tickDtoList.getFirst().symbol().id();
-    final var orders = this.getOrderRepository().findAll().parallelStream().filter(order -> symbolId.equals(order.getOpenTick().getSymbol().getId())).collect(Collectors.toCollection(HashSet::new));
-    for (final TickDto tickDto : tickDtoList) {
-      final Tick currentTick = this.getTickMapper().toEntity(tickDto);
-      orders.parallelStream()
-          .filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus()) && order.getCloseTick().getTimestamp().isAfter(currentTick.getTimestamp()))
-          .forEach(order -> {
-            order.setCloseTick(currentTick);
-            order.setProfit(OrderUtils.getProfit(order));
-            if (order.getProfit() <= 0D && Math.abs(order.getProfit()) > order.getTrade().getStopLoss()) {
-              order.setOrderStatus(OrderStatus.STOP_LOSS);
-            } else if (order.getProfit() >= order.getTrade().getTakeProfit()) {
-              order.setOrderStatus(OrderStatus.TAKE_PROFIT);
-            }
-          });
-    }
+    final var orders = this.getOrderRepository().findByOpenTick_Symbol_Id(symbolId);
+
+    final List<Tick> ticks = tickDtoList.stream().map(tickDto -> this.getTickMapper().toEntity(tickDto)).toList();
+    orders.parallelStream().forEach(order -> {
+      for (final Tick tick : ticks) {
+        if(order.getCloseTick().getTimestamp().isAfter(tick.getTimestamp())) {
+          order.setCloseTick(tick);
+          order.setProfit(OrderUtils.getProfit(order));
+          if (order.getProfit() <= 0D && Math.abs(order.getProfit()) > order.getTrade().getStopLoss()) {
+            order.setOrderStatus(OrderStatus.STOP_LOSS);
+            break;
+          } else if (order.getProfit() >= order.getTrade().getTakeProfit()) {
+            order.setOrderStatus(OrderStatus.TAKE_PROFIT);
+            break;
+          }
+        }
+      }
+    });
+
     this.getOrderRepository().saveAll(orders);
     log.info(" End processingInitOrders()");
   }

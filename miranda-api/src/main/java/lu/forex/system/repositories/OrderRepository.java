@@ -25,4 +25,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
   Collection<Order> findByOpenTick_Symbol_IdAndOrderStatusAndCloseTick_TimestampAfterAllIgnoreCase(@NonNull UUID id, @NonNull OrderStatus orderStatus, @NonNull LocalDateTime timestamp);
 
   List<Order> findByOpenTick_Symbol_IdAndOrderStatusOrderByOpenTick_TimestampAsc(@NonNull UUID id, @NonNull OrderStatus orderStatus);
+
+  Collection<Order> findByOpenTick_Symbol_Id(@NonNull UUID id);
 }

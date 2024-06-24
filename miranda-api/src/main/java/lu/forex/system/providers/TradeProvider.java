@@ -205,7 +205,7 @@ public class TradeProvider implements TradeService {
                     Collectors.toSet(),
                     list -> list.stream().map(order -> order.getTrade().getScope().getTimeFrame()).collect(Collectors.toSet())))
             ).forEach(
-                (triple, timeFrames) -> log.warn("Order: {} {} {} {} {}", localDateTime, Arrays.toString(timeFrames.toArray()), triple.getLeft(), triple.getMiddle(), triple.getRight())
+                (triple, timeFrames) -> System.out.printf("Order: %s %s %s %s %s%n", localDateTime, Arrays.toString(timeFrames.toArray()), triple.getLeft(), triple.getMiddle(), triple.getRight())
         )
     );
 
