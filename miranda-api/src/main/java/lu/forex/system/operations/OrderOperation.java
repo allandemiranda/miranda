@@ -20,19 +20,19 @@ public interface OrderOperation {
   void cleanOperationUntilLastDays(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName, @PathVariable("days") @Positive int days);
 
   @GetMapping("/{symbolName}/open")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   Collection<OrderDto> getOrdersOpen(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
   @GetMapping("/{symbolName}/close")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   Collection<OrderDto> getOrdersClose(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
   @GetMapping("/{symbolName}/takeProfit")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseStatus(HttpStatus.OK)
   Collection<OrderDto> getOrdersTakeProfit(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
   @GetMapping("/init/{symbolName}")
-  @ResponseStatus(HttpStatus.OK)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   void initOrderByInitCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
 }

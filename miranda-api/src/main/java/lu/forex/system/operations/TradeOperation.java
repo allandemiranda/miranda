@@ -23,6 +23,6 @@ public interface TradeOperation {
   Collection<TradeDto> getTrades(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
   @GetMapping("/init/{symbolName}")
-  @ResponseStatus(HttpStatus.OK)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   void initOrderByInitCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 }
