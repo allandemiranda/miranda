@@ -64,7 +64,7 @@ public class OrderProvider implements OrderService {
   public void processingInitOrders(final @NotNull List<TickDto> tickDtoList) {
     log.info(" Starting processingInitOrders()");
     final UUID symbolId = tickDtoList.getFirst().symbol().id();
-    final var orders = this.getOrderRepository().findAll().parallelStream().filter(order -> symbolId.equals(order.getOpenTick().getId())).collect(Collectors.toCollection(HashSet::new));
+    final var orders = this.getOrderRepository().findAll().parallelStream().filter(order -> symbolId.equals(order.getOpenTick().getSymbol().getId())).collect(Collectors.toCollection(HashSet::new));
     for (final TickDto tickDto : tickDtoList) {
       final Tick currentTick = this.getTickMapper().toEntity(tickDto);
       orders.parallelStream()
