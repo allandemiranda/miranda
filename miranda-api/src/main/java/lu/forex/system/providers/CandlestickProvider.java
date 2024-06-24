@@ -183,7 +183,7 @@ public class CandlestickProvider implements CandlestickService {
         return lastCandlesticks.getFirst();
       })
     ).collect(Collectors.toSet()).stream().map(candlestickDto -> {
-      final var candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
+      final var candlestick = this.getCandlestickRepository().findById(candlestickDto.id()).orElseThrow();
       final SignalIndicator signalIndicator = OrderUtils.getSignalIndicator(candlestick.getTechnicalIndicators());
       candlestick.setSignalIndicator(signalIndicator);
       return candlestick;
