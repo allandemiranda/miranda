@@ -10,7 +10,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import lombok.AccessLevel;
@@ -125,12 +124,6 @@ public class TickProvider implements TickService {
     }
 
     log.info(" End readPreDataBase()");
-  }
-
-  @Override
-  public @NotNull TickDto getFirstOrNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp) {
-    final Tick firstAndNextTick = this.getTickRepository().findFirstBySymbol_IdAndTimestampGreaterThanEqualOrderByTimestampAsc(symbolId, timestamp).orElseThrow();
-    return this.getTickMapper().toDto(firstAndNextTick);
   }
 
   private @NotNull Tick getDataTick(final @NotNull CSVRecord csvRecord, final @NotNull Symbol symbol) {

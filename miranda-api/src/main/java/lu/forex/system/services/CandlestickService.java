@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.UUID;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
-import lu.forex.system.dtos.NewMovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
@@ -38,7 +37,7 @@ public interface CandlestickService {
 
   @Transactional
   @NotNull
-  CandlestickDto processSignalIndicatorByCandlestickById(final @NotNull UUID candlestickId);
+  CandlestickDto processSignalIndicatorByCandlestickId(final @NotNull UUID candlestickId);
 
   @Transactional(readOnly = true)
   Collection<CandlestickDto> getAllCandlestickByScopeIdAsync(final @NotNull UUID scopeId);

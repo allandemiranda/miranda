@@ -4,11 +4,9 @@ import jakarta.annotation.Nonnull;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import lu.forex.system.dtos.NewTickDto;
 import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
@@ -37,8 +35,4 @@ public interface TickService {
 
   @Async
   void readPreDataBase(final @NotNull SymbolDto symbolDto, final @NotNull File inputFile);
-
-  @Transactional(readOnly = true)
-  @NotNull
-  TickDto getFirstOrNextTick(final @NotNull UUID symbolId, final @NotNull LocalDateTime timestamp);
 }

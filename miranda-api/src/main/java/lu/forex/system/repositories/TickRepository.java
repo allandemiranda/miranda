@@ -26,6 +26,4 @@ public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificat
   List<Tick> findBySymbolNameOrderByTimestampDescLimitTwo(@NonNull String symbolName);
 
   Collection<Tick> findBySymbol_CurrencyPair_Name(@NonNull String name);
-
-  Optional<Tick> findFirstBySymbol_IdAndTimestampGreaterThanEqualOrderByTimestampAsc(@NonNull UUID id, @NonNull LocalDateTime timestamp);
 }

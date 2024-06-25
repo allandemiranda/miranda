@@ -8,11 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lu.forex.system.dtos.CandlestickDto;
-import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
-import lu.forex.system.enums.OrderType;
 import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -31,11 +29,7 @@ public interface TradeService {
 
   @Transactional(readOnly = true)
   @NotNull
-  Collection<TradeDto> getTradesForOpenPosition(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
-
-  @Transactional()
-  @NotNull
-  Collection<OrderDto> addOrder(final @NotNull TickDto openTick, final @NotNull OrderType orderType, final @NotNull Collection<UUID> tradeIds);
+  Collection<TradeDto> getTradesForOpenPositionActivated(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
   @Transactional
   @NotNull

@@ -92,7 +92,7 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   @Override
-  public @NotNull CandlestickDto processSignalIndicatorByCandlestickById(final @NotNull UUID candlestickId) {
+  public @NotNull CandlestickDto processSignalIndicatorByCandlestickId(final @NotNull UUID candlestickId) {
     final Candlestick candlestick = this.getCandlestickRepository().findById(candlestickId).orElseThrow(CandlestickNotFoundException::new);
     candlestick.setSignalIndicator(OrderUtils.getSignalIndicator(candlestick.getTechnicalIndicators()));
     final Candlestick saved = this.getCandlestickRepository().save(candlestick);
