@@ -1,6 +1,5 @@
 package lu.forex.system.repositories;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +21,4 @@ public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecific
   Collection<Order> findBySymbolName(@NonNull String symbolName);
 
   List<Order> findByOpenTick_Symbol_IdAndOrderStatusOrderByOpenTick_TimestampAsc(@NonNull UUID id, @NonNull OrderStatus orderStatus);
-
-  Collection<Order> findByOpenTick_Symbol_Id(@NonNull UUID id);
 }

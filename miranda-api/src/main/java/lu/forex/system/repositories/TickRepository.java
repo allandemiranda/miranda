@@ -1,8 +1,6 @@
 package lu.forex.system.repositories;
 
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +22,4 @@ public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificat
 
   @Query("select t from Tick t where t.symbol.currencyPair.name = ?1 order by t.timestamp DESC LIMIT 2")
   List<Tick> findBySymbolNameOrderByTimestampDescLimitTwo(@NonNull String symbolName);
-
-  Collection<Tick> findBySymbol_CurrencyPair_Name(@NonNull String name);
 }

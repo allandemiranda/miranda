@@ -12,7 +12,6 @@ import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import org.springframework.lang.NonNull;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +34,8 @@ public interface TradeService {
   @NotNull
   List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName);
 
-  @Async
-  void initOrders(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks);
+  @Transactional
+  @NotNull
+  Collection<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks);
 
 }

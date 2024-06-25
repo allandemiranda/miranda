@@ -18,20 +18,4 @@ public interface CandlestickOperation {
   @ResponseStatus(HttpStatus.OK)
   Collection<CandlestickDto> getCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName,
       final @PathVariable TimeFrame timeFrame);
-
-  @GetMapping("/init/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initCandlestickFromTicks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
-  @GetMapping("/init/indicators/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initIndicatorsOnCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
-  @GetMapping("/init/averages/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initAveragesOnCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
-  @GetMapping("/init/computing/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initComputingIndicatorsOnCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 }

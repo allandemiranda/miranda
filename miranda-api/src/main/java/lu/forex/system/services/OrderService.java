@@ -2,12 +2,13 @@ package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
+import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.enums.OrderStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,7 @@ public interface OrderService {
   @Transactional
   void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final @Positive int days);
 
-  @Async
-  void processingInitOrders(final @NotNull List<TickDto> tickDtoList);
-
+  @Transactional
+  @NotNull
+  Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Collection<TradeDto> tradeDtos);
 }

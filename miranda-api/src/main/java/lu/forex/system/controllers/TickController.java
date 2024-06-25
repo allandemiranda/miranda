@@ -1,6 +1,5 @@
 package lu.forex.system.controllers;
 
-import java.io.File;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,15 +28,11 @@ import lu.forex.system.services.TickService;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.TimeFrameUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Getter(AccessLevel.PRIVATE)
 public class TickController implements TickOperation {
-
-  @Value("${init.filePath}")
-  private String filePathInit;
 
   private final TickService tickService;
   private final SymbolService symbolService;
@@ -152,13 +147,5 @@ public class TickController implements TickOperation {
 
     return response;
 
-  }
-
-  @Override
-  public void initDataBase(final String symbolName, final String dateFileName) {
-    final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
-    final var fileName = this.getFilePathInit().concat(symbolName).concat(dateFileName).concat(".csv");
-    final var inputFile = new File(fileName);
-    this.getTickService().readPreDataBase(symbolDto, inputFile);
   }
 }

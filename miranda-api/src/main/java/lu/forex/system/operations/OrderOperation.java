@@ -30,9 +30,4 @@ public interface OrderOperation {
   @GetMapping("/{symbolName}/takeProfit")
   @ResponseStatus(HttpStatus.OK)
   Collection<OrderDto> getOrdersTakeProfit(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
-  @GetMapping("/init/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initOrderByInitCandlesticks(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
 }

@@ -28,10 +28,7 @@ public interface TickOperation {
   @ResponseStatus(HttpStatus.CREATED)
   @Lock(LockModeType.NONE)
   @Transactional
-  String addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto, final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
-
-  @GetMapping("/init/{symbolName}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void initDataBase(final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName, final @RequestBody @NotBlank String dateFileName);
+  String addTickBySymbolName(final @RequestBody @Valid NewTickDto newTickDto,
+      final @PathVariable @NotBlank @Size(max = 6, min = 6) String symbolName);
 
 }

@@ -46,14 +46,15 @@ public class OrderMapperImpl implements OrderMapper {
     final var tradeId = this.orderTradeId(order);
     final var scope = this.orderTradeScope(order);
     final var tradeScope = this.getScopeMapper().toDto(scope);
+    final var tradeSpreadMax = this.orderTradeSpreadMax(order);
     final var id = order.getId();
     final var openTick = this.getTickMapper().toDto(order.getOpenTick());
     final var closeTick = this.getTickMapper().toDto(order.getCloseTick());
     final var orderType = order.getOrderType();
     final var orderStatus = order.getOrderStatus();
     final var profit = order.getProfit();
-    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, tradeId, tradeStopLoss, tradeTakeProfit, tradeIsActivate,
-        tradeScope);
+    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, tradeId, tradeStopLoss, tradeTakeProfit, tradeSpreadMax,
+        tradeIsActivate, tradeScope);
   }
 
   private @NotNull Trade orderDtoToTrade(final @NotNull OrderDto orderDto) {
@@ -80,6 +81,10 @@ public class OrderMapperImpl implements OrderMapper {
 
   private @NotNull Scope orderTradeScope(final @NotNull Order order) {
     return order.getTrade().getScope();
+  }
+
+  private int orderTradeSpreadMax(final @NotNull Order order) {
+    return order.getTrade().getSpreadMax();
   }
 
 }

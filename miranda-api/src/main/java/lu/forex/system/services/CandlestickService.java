@@ -7,12 +7,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,24 +39,19 @@ public interface CandlestickService {
   @NotNull
   CandlestickDto processSignalIndicatorByCandlestickId(final @NotNull UUID candlestickId);
 
-  @Transactional(readOnly = true)
-  Collection<CandlestickDto> getAllCandlestickByScopeIdAsync(final @NotNull UUID scopeId);
+  @Transactional()
+  @NotNull
+  Collection<CandlestickDto> readTicksToGenerateCandlesticks(final @NotNull ScopeDto scopeDto, final @NotNull Collection<TickDto> tickDtoList);
 
-  @Transactional(readOnly = true)
-  List<CandlestickDto> getAllCandlestickByScopeIdDesc(final @NotNull UUID scopeId);
+  @Transactional
+  @NotNull
+  Collection<CandlestickDto> initIndicatorsOnCandlesticks(final @NotNull Collection<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices);
 
-  @Transactional(readOnly = true)
-  Collection<CandlestickDto> getAllCandlestickNotNeutralByScopeIdAsync(final @NotNull UUID scopeId);
+  @Transactional
+  @NotNull
+  Collection<CandlestickDto> initAveragesToCandlesticks(final @NotNull Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> candlesticksToSave);
 
-  @Async
-  void readTicksToGenerateCandlesticks(final @NotNull ScopeDto scopeDto, final @NotNull Collection<TickDto> tickDtoList);
-
-  @Async
-  void initIndicatorsOnCandlesticks(final @NotNull Collection<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices);
-
-  @Async
-  void initAveragesToCandlesticks(final @NotNull Collection<SimpleEntry<Collection<MovingAverageDto>, UUID>> candlesticksToSave);
-
-  @Async
-  void computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> scopeIdByCandlestickDtosId);
+  @Transactional
+  @NotNull
+  Collection<CandlestickDto> computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> groupLastCandlesticksDto);
 }

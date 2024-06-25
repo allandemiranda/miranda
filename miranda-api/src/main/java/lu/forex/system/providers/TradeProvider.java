@@ -38,7 +38,6 @@ import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -135,10 +134,13 @@ public class TradeProvider implements TradeService {
     return this.getTradeRepository().saveAll(collection).stream().sorted(Comparator.comparingDouble(Trade::getBalance)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
-  @Async
   @Override
-  public void initOrders(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks) {
-    log.info(" Starting initOrders()");
+  public @NotNull Collection<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks, final @NotNull List<TickDto> ticks) {
+    final String symbolName = ticks.getFirst().symbol().currencyPair().name();
+    log.info("Starting initOrders({})", symbolName);
+
+    final Map<UUID, Map<DayOfWeek, List<Trade>>> tradesMap = this.getTradeRepository().findBySymbolName(symbolName).stream()
+        .collect(Collectors.groupingBy(trade -> trade.getScope().getId(), Collectors.groupingBy(Trade::getSlotWeek)));
 
     final var trades = tickByCandlesticks.entrySet().parallelStream()
       .map(entry -> {
@@ -149,7 +151,9 @@ public class TradeProvider implements TradeService {
       final Tick tick = this.getTickMapper().toEntity(entry.getKey());
       return entry.getValue().parallelStream().flatMap(candlestickDto -> {
         final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
-        return this.getTradeRepository().findTradeToOpenOrder(candlestickDto.scope().id(), (int) tick.getSpread(), tick.getTimestamp().getDayOfWeek(), tick.getTimestamp().toLocalTime(), false).parallelStream()
+
+        return tradesMap.get(candlestickDto.scope().id()).get(tick.getTimestamp().getDayOfWeek()).parallelStream()
+            .filter(trade -> !tick.getTimestamp().toLocalTime().isBefore(trade.getSlotStart()) && !tick.getTimestamp().toLocalTime().isAfter(trade.getSlotEnd()) && trade.getSpreadMax() >= tick.getSpread())
             .map(trade -> {
               final Order order = new Order();
               order.setOpenTick(tick);
@@ -169,7 +173,8 @@ public class TradeProvider implements TradeService {
       return trade;
     }).toList();
 
-    this.getTradeRepository().saveAll(trades);
-    log.info(" End initOrders()");
+    log.info("Ending initOrders({})", symbolName);
+    return this.getTradeRepository().saveAll(trades).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+
   }
 }

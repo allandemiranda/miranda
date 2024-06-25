@@ -3,7 +3,7 @@ package lu.forex.system.providers;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
+import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.enums.OrderStatus;
@@ -21,7 +22,6 @@ import lu.forex.system.mappers.TickMapper;
 import lu.forex.system.repositories.OrderRepository;
 import lu.forex.system.services.OrderService;
 import lu.forex.system.utils.OrderUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -59,17 +59,14 @@ public class OrderProvider implements OrderService {
     this.getOrderRepository().findAll().removeAll(collection);
   }
 
-  @Async
   @Override
-  public void processingInitOrders(final @NotNull List<TickDto> tickDtoList) {
-    log.info(" Starting processingInitOrders()");
-    final UUID symbolId = tickDtoList.getFirst().symbol().id();
-    final var orders = this.getOrderRepository().findByOpenTick_Symbol_Id(symbolId);
-
-    final List<Tick> ticks = tickDtoList.stream().map(tickDto -> this.getTickMapper().toEntity(tickDto)).toList();
-    orders.parallelStream().forEach(order -> {
-      for (final Tick tick : ticks) {
-        if(order.getCloseTick().getTimestamp().isAfter(tick.getTimestamp())) {
+  public @NotNull Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Collection<TradeDto> tradeDtos) {
+    log.info("Starting processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
+    final var orders = tradeDtos.parallelStream().flatMap(tradeDto -> tradeDto.orders().stream())
+        .map(orderDto -> this.getOrderRepository().findById(orderDto.id()).orElseThrow()).map(order -> {
+      for (final TickDto tickDto : tickDtoList) {
+        if(order.getCloseTick().getTimestamp().isAfter(tickDto.timestamp())) {
+          final var tick = this.getTickMapper().toEntity(tickDto);
           order.setCloseTick(tick);
           order.setProfit(OrderUtils.getProfit(order));
           if (order.getProfit() <= 0D && Math.abs(order.getProfit()) > order.getTrade().getStopLoss()) {
@@ -81,9 +78,10 @@ public class OrderProvider implements OrderService {
           }
         }
       }
-    });
+      return order;
+    }).toList();
 
-    this.getOrderRepository().saveAll(orders);
-    log.info(" End processingInitOrders()");
+    log.info("Ending processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
+    return this.getOrderRepository().saveAll(orders).stream().sorted(Comparator.comparing(order -> order.getOpenTick().getTimestamp())).map(this.getOrderMapper()::toDto).toList();
   }
 }

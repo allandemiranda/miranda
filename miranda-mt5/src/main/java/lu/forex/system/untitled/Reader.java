@@ -28,7 +28,7 @@ public class Reader {
   public void start(final String symbol) {
     try (final var httpClient = HttpClient.newHttpClient()) {
       final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + CSV;
-      log.info(" Reading file {}", LocalDateTime.now(), fileName);
+      log.info("Reading file {}", LocalDateTime.now(), fileName);
       final var inputFile = new File(fileName);
       final var bidH = new AtomicReference<>(0D);
       final var askH = new AtomicReference<>(0D);
@@ -41,7 +41,7 @@ public class Reader {
       var lineNow = new AtomicLong(1);
       var lastPercentage = new AtomicLong(-1);
 
-      log.info(" Starting...", LocalDateTime.now());
+      log.info("Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
@@ -71,7 +71,7 @@ public class Reader {
   public void start(final String symbol, final TimeFrame timeFrame) {
     try (final var httpClient = HttpClient.newHttpClient()) {
       final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + CSV;
-      log.info(" Reading file {}", LocalDateTime.now(), fileName);
+      log.info("Reading file {}", LocalDateTime.now(), fileName);
       final var inputFile = new File(fileName);
       final var bidH = new AtomicReference<>(0D);
       final var askH = new AtomicReference<>(0D);
@@ -85,7 +85,7 @@ public class Reader {
       var lineNow = new AtomicLong(1);
       var lastPercentage = new AtomicLong(-1);
 
-      log.info(" Starting...", LocalDateTime.now());
+      log.info("Starting...", LocalDateTime.now());
       try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
         StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
           final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
@@ -140,7 +140,7 @@ public class Reader {
     }
 
     if (!response.body().isEmpty()) {
-      log.info(" {}", LocalDateTime.now(), response.body());
+      log.info("{}", LocalDateTime.now(), response.body());
     }
   }
 }
