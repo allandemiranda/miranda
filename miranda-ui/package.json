@@ -1,8 +1,5 @@
 {
-  "name": "starwarsportal",
-  "author": "Allan de Miranda Silva",
-  "email": "contact@devias.io",
-  "licence": "Apache2.0",
+  "name": "material-ui",
   "version": "1.0.0",
   "private": true,
   "scripts": {
