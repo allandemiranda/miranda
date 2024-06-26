@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -114,17 +115,16 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
-  public @NotNull List<TradeDto> managementEfficientTradesScenariosToBeActivated(final @NotNull String symbolName) {
-    final Collection<Trade> collection = this.getTradeRepository().findBySymbolName(symbolName).parallelStream().filter(trade -> {
-      if (trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).count() > 2) {
-        if (trade.getBalance() > 0 && trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
-          return true;
-        } else if (trade.getBalance() > 0) {
-          final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
-          final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
-          final long percentage = (totalOrdersTP * 100L) / totalOrdersClose;
-          return 66L > percentage;
+  public @NotNull List<TradeDto> managementEfficientTradesScenarioToBeActivated(final @NotNull Stream<UUID> tradeIdStream) {
+    final Collection<Trade> collection = tradeIdStream.parallel().map(uuid -> this.getTradeRepository().findById(uuid).orElseThrow()).filter(trade -> {
+      if (trade.getOrders().size() > 4 && trade.getBalance() > 0 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
+        if (trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
+           return true;
         }
+        final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
+        final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
+        final long percentage = (totalOrdersTP * 100L) / totalOrdersClose;
+        return percentage >= 66L;
       }
       return false;
     }).map(trade -> {
@@ -135,7 +135,7 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
-  public @NotNull Collection<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks, final @NotNull List<TickDto> ticks) {
+  public @NotNull Stream<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks, final @NotNull List<TickDto> ticks) {
     final String symbolName = ticks.getFirst().symbol().currencyPair().name();
     log.info("Starting initOrders({})", symbolName);
 
@@ -146,7 +146,7 @@ public class TradeProvider implements TradeService {
       .map(entry -> {
         final var timestamp = entry.getKey();
         final var tickDto = ticks.stream().filter(tick -> !tick.timestamp().isBefore(timestamp)).findFirst().orElse(null);
-        return new SimpleEntry<TickDto, Set<CandlestickDto>>(tickDto, entry.getValue());
+        return new SimpleEntry<>(tickDto, entry.getValue());
       }).flatMap(entry -> {
       final Tick tick = this.getTickMapper().toEntity(entry.getKey());
       return entry.getValue().parallelStream().flatMap(candlestickDto -> {
@@ -174,7 +174,7 @@ public class TradeProvider implements TradeService {
     }).toList();
 
     log.info("Ending initOrders({})", symbolName);
-    return this.getTradeRepository().saveAll(trades).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+    return this.getTradeRepository().saveAll(trades).parallelStream().map(trade -> this.getTradeMapper().toDto(trade));
 
   }
 }

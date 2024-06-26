@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -60,26 +61,28 @@ public class OrderProvider implements OrderService {
   }
 
   @Override
-  public @NotNull Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Collection<TradeDto> tradeDtos) {
+  public @NotNull Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos) {
     log.info("Starting processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
-    final var orders = tradeDtos.parallelStream().flatMap(tradeDto -> tradeDto.orders().stream())
-        .map(orderDto -> this.getOrderRepository().findById(orderDto.id()).orElseThrow()).map(order -> {
-      for (final TickDto tickDto : tickDtoList) {
-        if(order.getCloseTick().getTimestamp().isAfter(tickDto.timestamp())) {
-          final var tick = this.getTickMapper().toEntity(tickDto);
-          order.setCloseTick(tick);
-          order.setProfit(OrderUtils.getProfit(order));
-          if (order.getProfit() <= 0D && Math.abs(order.getProfit()) > order.getTrade().getStopLoss()) {
-            order.setOrderStatus(OrderStatus.STOP_LOSS);
-            break;
-          } else if (order.getProfit() >= order.getTrade().getTakeProfit()) {
-            order.setOrderStatus(OrderStatus.TAKE_PROFIT);
-            break;
+    final var orders = tradeDtos.parallel().flatMap(tradeDto -> tradeDto.orders().stream())
+        .map(orderDto -> this.getOrderRepository().findById(orderDto.id()).orElseThrow())
+        .map(order -> {
+          final List<TickDto> ticksFit = tickDtoList.stream().filter(tickDto -> tickDto.timestamp().isAfter(order.getCloseTick().getTimestamp())).toList();
+          for (final TickDto tickDto : ticksFit) {
+            final var tick = this.getTickMapper().toEntity(tickDto);
+            order.setCloseTick(tick);
+            order.setProfit(OrderUtils.getProfit(order));
+            if (order.getProfit() < 0D) {
+              if(Math.abs(order.getProfit()) > (double) order.getTrade().getStopLoss()) {
+                order.setOrderStatus(OrderStatus.STOP_LOSS);
+                break;
+              }
+            } else if (order.getProfit() >= (double) order.getTrade().getTakeProfit()) {
+              order.setOrderStatus(OrderStatus.TAKE_PROFIT);
+              break;
+            }
           }
-        }
-      }
-      return order;
-    }).toList();
+          return order;
+        }).toList();
 
     log.info("Ending processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
     return this.getOrderRepository().saveAll(orders).stream().sorted(Comparator.comparing(order -> order.getOpenTick().getTimestamp())).map(this.getOrderMapper()::toDto).toList();

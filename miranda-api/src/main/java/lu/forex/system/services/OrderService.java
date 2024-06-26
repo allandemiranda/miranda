@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
@@ -27,5 +28,5 @@ public interface OrderService {
 
   @Transactional
   @NotNull
-  Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Collection<TradeDto> tradeDtos);
+  Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos);
 }

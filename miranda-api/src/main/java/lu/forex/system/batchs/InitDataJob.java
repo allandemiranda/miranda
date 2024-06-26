@@ -84,6 +84,7 @@ public class InitDataJob {
     final var root = new File(this.getFilePathInit());
     if (root.exists() && root.isDirectory()) {
       this.stackProcess(root);
+      log.warn("Stack process complete!");
     } else {
       log.error("Folder {} not exists", root.getAbsolutePath());
     }
@@ -104,16 +105,16 @@ public class InitDataJob {
       final var inputFile = entry.getValue();
       final var ticksDtoSorted = this.getTickService().readPreDataBase(symbolDto, inputFile);
       if(!ticksDtoSorted.isEmpty()) {
-        Collection<CandlestickDto> candlesticksDto = this.getScopeService().getScopesBySymbolName(symbolDto.currencyPair().name()).parallelStream()
-            .flatMap(scopeDto -> this.getCandlestickService().readTicksToGenerateCandlesticks(scopeDto, ticksDtoSorted).stream()).toList();
+        Stream<CandlestickDto> candlesticksDto = this.getScopeService().getScopesBySymbolName(symbolDto.currencyPair().name()).parallelStream()
+            .flatMap(scopeDto -> this.getCandlestickService().readTicksToGenerateCandlesticks(scopeDto, ticksDtoSorted).stream());
 
         final var indicatorServices = List.of(this.getAcceleratorOscillatorService(), this.getAverageDirectionalIndexService(),
             this.getMovingAverageConvergenceDivergenceService());
-        candlesticksDto = this.getCandlestickService().initIndicatorsOnCandlesticks(candlesticksDto, indicatorServices);
 
         final var newMovingAverageServices = indicatorServices.stream().flatMap(indicatorService -> indicatorService.generateMAs().stream())
             .collect(Collectors.toSet());
-        final Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> modelWithMovingAverages = candlesticksDto.parallelStream()
+        final Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> modelWithMovingAverages =
+            this.getCandlestickService().initIndicatorsOnCandlesticks(candlesticksDto, indicatorServices).parallel()
             .map(candlestickDto -> {
               final Collection<MovingAverageDto> theMovingAverages = newMovingAverageServices.stream()
                   .map(newMovingAverageDto -> switch (newMovingAverageDto.type()) {
@@ -123,12 +124,11 @@ public class InitDataJob {
                   }).toList();
               return new SimpleEntry<>(theMovingAverages, candlestickDto);
             });
-        candlesticksDto = this.getCandlestickService().initAveragesToCandlesticks(modelWithMovingAverages);
 
         final var technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max()
             .orElse(0);
         final var movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
-        final Map<UUID, List<List<UUID>>> groupLastCandlesticksDto = candlesticksDto.stream()
+        final Map<UUID, List<List<UUID>>> groupLastCandlesticksDto = this.getCandlestickService().initAveragesToCandlesticks(modelWithMovingAverages)
             .collect(Collectors.groupingBy(CandlestickDto::scope, Collectors.collectingAndThen(Collectors.toList(),
                 candlestickDtos -> candlestickDtos.stream().sorted(Comparator.comparing(CandlestickDto::timestamp).reversed()).toList())))
             .entrySet().stream()
@@ -138,16 +138,18 @@ public class InitDataJob {
                   return IntStream.range(i, lastIndexFix).mapToObj(j -> m.getValue().get(j).id()).toList();
                 }).toList()
             ));
-        candlesticksDto = this.getCandlestickService().computingIndicatorsByInit(indicatorServices, movingAverageServices, groupLastCandlesticksDto);
 
-        final Map<LocalDateTime, Set<CandlestickDto>> entryCollection = candlesticksDto.parallelStream()
+        final Map<LocalDateTime, Set<CandlestickDto>> entryCollection =
+            this.getCandlestickService().computingIndicatorsByInit(indicatorServices, movingAverageServices, groupLastCandlesticksDto).parallel()
             .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
             .collect(Collectors.groupingBy(CandlestickDto::timestamp, Collectors.toSet()));
-        final Collection<TradeDto> orderDtos = this.getTradeService().initOrdersByTrade(entryCollection, ticksDtoSorted);
 
-        final Collection<OrderDto> finalOrders = this.getOrderService().processingInitOrders(ticksDtoSorted, orderDtos);
+        final Collection<OrderDto> finalOrders = this.getOrderService().processingInitOrders(ticksDtoSorted, this.getTradeService().initOrdersByTrade(entryCollection, ticksDtoSorted));
 
         finalOrders.forEach(orderDto -> log.info("Processing order: {}", orderDto));
+
+        final List<TradeDto> tradesActivated = this.getTradeService().managementEfficientTradesScenarioToBeActivated(finalOrders.stream().map(OrderDto::tradeId).distinct());
+        tradesActivated.forEach(tradeDto -> log.info("Trades: {}", tradeDto));
       }
     });
   }

@@ -128,9 +128,9 @@ public class CandlestickProvider implements CandlestickService {
   }
 
   @Override
-  public @NotNull Collection<CandlestickDto> initIndicatorsOnCandlesticks(final @NotNull Collection<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices) {
+  public @NotNull Stream<CandlestickDto> initIndicatorsOnCandlesticks(final @NotNull Stream<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices) {
     log.info("Starting initIndicatorsOnCandlesticks()");
-    final Collection<Candlestick> candlesticksToSave = candlesticksDto.parallelStream()
+    final Collection<Candlestick> candlesticksToSave = candlesticksDto.parallel()
     .map(candlestickDto -> {
       final Candlestick candlestick = this.getCandlestickMapper().toEntity(candlestickDto);
       final List<TechnicalIndicator> indicators = indicatorServices.stream().map(TechnicalIndicatorService::initTechnicalIndicator).map(tiDto -> this.getTechnicalIndicatorMapper().toEntity(tiDto)).toList();
@@ -138,12 +138,11 @@ public class CandlestickProvider implements CandlestickService {
       return candlestick;
     }).toList();
     log.info("Ending initIndicatorsOnCandlesticks()");
-    return this.getCandlestickRepository().saveAll(candlesticksToSave).parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
+    return this.getCandlestickRepository().saveAll(candlesticksToSave).parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick));
   }
 
   @Override
-  @NotNull
-  public Collection<CandlestickDto> initAveragesToCandlesticks(final @NotNull Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> candlesticksToSave) {
+  public @NotNull Stream<CandlestickDto> initAveragesToCandlesticks(final @NotNull Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> candlesticksToSave) {
     log.info("Starting initAveragesOnCandlesticks()");
     final Collection<Candlestick> toSave = candlesticksToSave.parallel().map(entry -> {
       final var candlestick = this.getCandlestickMapper().toEntity(entry.getValue());
@@ -152,11 +151,11 @@ public class CandlestickProvider implements CandlestickService {
       return candlestick;
     }).toList();
     log.info("Ending initAveragesOnCandlesticks()");
-    return this.getCandlestickRepository().saveAll(toSave).parallelStream().map(entry -> this.getCandlestickMapper().toDto(entry)).toList();
+    return this.getCandlestickRepository().saveAll(toSave).parallelStream().map(entry -> this.getCandlestickMapper().toDto(entry));
   }
 
   @Override
-  public @NotNull Collection<CandlestickDto> computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices,
+  public @NotNull Stream<CandlestickDto> computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices,
       final @NotNull Map<UUID, List<List<UUID>>> groupLastCandlesticksDto) {
     log.info("Starting computingIndicatorsByInit()");
     final Collection<Candlestick> collection = groupLastCandlesticksDto.entrySet().parallelStream().flatMap(entry -> entry.getValue().stream().map(candlestickIds -> {
@@ -171,7 +170,7 @@ public class CandlestickProvider implements CandlestickService {
       return candlestick;
     }).toList();
     log.info("Ending computingIndicatorsByInit()");
-    return this.getCandlestickRepository().saveAll(collection).parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
+    return this.getCandlestickRepository().saveAll(collection).parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick));
   }
 
   private @NotNull Candlestick createCandlestick(final double price, final @NotNull Scope scope, final @NotNull LocalDateTime timestamp) {
