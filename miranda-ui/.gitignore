@@ -36,3 +36,7 @@ package-lock.json
 
 ### VS Code ###
 .vscode/
+
+# SSL Key
+cert.pem
+key.pem
