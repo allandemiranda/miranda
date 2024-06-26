@@ -2,7 +2,6 @@ package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -28,5 +27,5 @@ public interface OrderService {
 
   @Transactional
   @NotNull
-  Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos);
+  Stream<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos);
 }

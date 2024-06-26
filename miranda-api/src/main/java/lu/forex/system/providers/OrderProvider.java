@@ -61,7 +61,7 @@ public class OrderProvider implements OrderService {
   }
 
   @Override
-  public @NotNull Collection<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos) {
+  public @NotNull Stream<OrderDto> processingInitOrders(final @NotNull List<TickDto> tickDtoList, final @NotNull Stream<TradeDto> tradeDtos) {
     log.info("Starting processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
     final var orders = tradeDtos.parallel().flatMap(tradeDto -> tradeDto.orders().stream())
         .map(orderDto -> this.getOrderRepository().findById(orderDto.id()).orElseThrow())
@@ -85,6 +85,6 @@ public class OrderProvider implements OrderService {
         }).toList();
 
     log.info("Ending processingInitOrders({})", tickDtoList.getFirst().symbol().currencyPair().name());
-    return this.getOrderRepository().saveAll(orders).stream().sorted(Comparator.comparing(order -> order.getOpenTick().getTimestamp())).map(this.getOrderMapper()::toDto).toList();
+    return this.getOrderRepository().saveAll(orders).stream().map(this.getOrderMapper()::toDto);
   }
 }

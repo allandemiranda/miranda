@@ -25,6 +25,7 @@ public class TradeController implements TradeOperation {
   public Collection<TradeDto> getTrades(final String symbolName) {
     final UUID symbolId = this.getSymbolService().getSymbol(symbolName).id();
     final Collection<TradeDto> trades = this.getTradeService().getTrades(symbolId);
+    System.out.println("timeFrame\tstopLoss\ttakeProfit\tspreadMax\tslotWeek\tslotStart\tslotEnd\tisActivate\tbalance\tordersCloseSize\tordersSize");
     trades.forEach(t -> System.out.println(String.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", t.scope().timeFrame(), t.stopLoss(), t.takeProfit(), t.spreadMax(), t.slotWeek(), t.slotStart(), t.slotEnd(), t.isActivate(), t.balance(),
         t.orders().stream().filter(orderDto -> !orderDto.orderStatus().equals(OrderStatus.OPEN)).count(), t.orders().size())));
     return List.of();

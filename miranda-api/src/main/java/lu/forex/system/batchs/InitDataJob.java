@@ -22,6 +22,7 @@ import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
@@ -144,12 +145,13 @@ public class InitDataJob {
             .filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
             .collect(Collectors.groupingBy(CandlestickDto::timestamp, Collectors.toSet()));
 
-        final Collection<OrderDto> finalOrders = this.getOrderService().processingInitOrders(ticksDtoSorted, this.getTradeService().initOrdersByTrade(entryCollection, ticksDtoSorted));
-
-        finalOrders.forEach(orderDto -> log.info("Processing order: {}", orderDto));
-
-        final List<TradeDto> tradesActivated = this.getTradeService().managementEfficientTradesScenarioToBeActivated(finalOrders.stream().map(OrderDto::tradeId).distinct());
-        tradesActivated.forEach(tradeDto -> log.info("Trades: {}", tradeDto));
+        final List<TradeDto> tradesActivated = this.getTradeService().managementEfficientTradesScenarioToBeActivated(
+            this.getOrderService().processingInitOrders(
+                ticksDtoSorted,
+                this.getTradeService().initOrdersByTrade(entryCollection, ticksDtoSorted)
+            ).map(OrderDto::tradeId).distinct()
+        );
+        log.info("Activated trades: {}", tradesActivated.size());
       }
     });
   }

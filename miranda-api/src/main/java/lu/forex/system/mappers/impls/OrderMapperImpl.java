@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.entities.Order;
-import lu.forex.system.entities.Scope;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
@@ -40,21 +39,14 @@ public class OrderMapperImpl implements OrderMapper {
 
   @Override
   public @NotNull OrderDto toDto(final @NotNull Order order) {
-    final var tradeIsActivate = this.orderTradeActivate(order);
-    final var tradeTakeProfit = this.orderTradeTakeProfit(order);
-    final var tradeStopLoss = this.orderTradeStopLoss(order);
     final var tradeId = this.orderTradeId(order);
-    final var scope = this.orderTradeScope(order);
-    final var tradeScope = this.getScopeMapper().toDto(scope);
-    final var tradeSpreadMax = this.orderTradeSpreadMax(order);
     final var id = order.getId();
     final var openTick = this.getTickMapper().toDto(order.getOpenTick());
     final var closeTick = this.getTickMapper().toDto(order.getCloseTick());
     final var orderType = order.getOrderType();
     final var orderStatus = order.getOrderStatus();
     final var profit = order.getProfit();
-    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, tradeId, tradeStopLoss, tradeTakeProfit, tradeSpreadMax,
-        tradeIsActivate, tradeScope);
+    return new OrderDto(id, openTick, closeTick, orderType, orderStatus, profit, tradeId);
   }
 
   private @NotNull Trade orderDtoToTrade(final @NotNull OrderDto orderDto) {
@@ -63,29 +55,8 @@ public class OrderMapperImpl implements OrderMapper {
     return trade;
   }
 
-  private boolean orderTradeActivate(final @NotNull Order order) {
-    return order.getTrade().isActivate();
-  }
-
-  private int orderTradeTakeProfit(final @NotNull Order order) {
-    return order.getTrade().getTakeProfit();
-  }
-
-  private int orderTradeStopLoss(final @NotNull Order order) {
-    return order.getTrade().getStopLoss();
-  }
-
   private @NotNull UUID orderTradeId(final @NotNull Order order) {
     return order.getTrade().getId();
   }
-
-  private @NotNull Scope orderTradeScope(final @NotNull Order order) {
-    return order.getTrade().getScope();
-  }
-
-  private int orderTradeSpreadMax(final @NotNull Order order) {
-    return order.getTrade().getSpreadMax();
-  }
-
 }
 
