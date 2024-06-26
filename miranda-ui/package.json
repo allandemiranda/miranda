@@ -1,43 +1,18 @@
 {
-  "name": "miranda-ui",
+  "name": "starwarsportal",
+  "author": "Allan de Miranda Silva",
+  "email": "contact@devias.io",
+  "licence": "Apache2.0",
   "version": "1.0.0",
   "private": true,
-  "license": "See license in https://www.creative-tim.com/license",
-  "dependencies": {
-    "@emotion/cache": "11.10.8",
-    "@emotion/react": "11.10.8",
-    "@emotion/styled": "11.10.8",
-    "@mui/icons-material": "5.11.16",
-    "@mui/material": "5.12.3",
-    "chart.js": "4.3.0",
-    "chroma-js": "2.4.2",
-    "npm-check-updates": "^16.14.20",
-    "prop-types": "15.8.1",
-    "react": "18.2.0",
-    "react-chartjs-2": "5.2.0",
-    "react-dom": "18.2.0",
-    "react-github-btn": "1.4.0",
-    "react-router-dom": "6.11.0",
-    "react-scripts": "5.0.1",
-    "react-table": "7.8.0",
-    "stylis": "4.1.4",
-    "stylis-plugin-rtl": "2.1.1",
-    "yup": "1.1.1",
-    "ajv": "^8.16.0",
-    "ajv-keywords": "^5.1.0"
-  },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts --openssl-legacy-provider start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "extends": "react-app"
   },
   "browserslist": {
     "production": [
@@ -51,17 +26,39 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "eslint": "8.39.0",
-    "eslint-config-prettier": "8.8.0",
-    "eslint-plugin-import": "2.27.5",
-    "eslint-plugin-jsx-a11y": "6.7.1",
-    "eslint-plugin-prettier": "4.2.1",
-    "eslint-plugin-react": "7.32.2",
-    "eslint-plugin-react-hooks": "4.6.0",
-    "prettier": "2.8.8"
+  "dependencies": {
+    "@date-io/core": "^2.10.6",
+    "@date-io/moment": "^2.10.6",
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/pickers": "^3.2.10",
+    "@material-ui/styles": "^4.11.3",
+    "axios": "^0.21.1",
+    "clsx": "^1.1.1",
+    "dotenv": "^16.4.5",
+    "history": "^4.7.2",
+    "moment": "^2.29.1",
+    "prop-types": "^15.7.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-helmet": "^6.1.0",
+    "react-perfect-scrollbar": "^1.5.8",
+    "react-router": "^5.2.0",
+    "react-router-config": "^5.1.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1",
+    "run-script": "^0.1.1",
+    "sass": "^1.77.6",
+    "validate.js": "^0.13.1"
   },
-  "overrides": {
-    "svgo": "3.0.2"
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.18.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.2.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0"
   }
 }

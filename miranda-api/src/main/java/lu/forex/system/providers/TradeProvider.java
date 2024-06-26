@@ -117,7 +117,7 @@ public class TradeProvider implements TradeService {
   @Override
   public @NotNull List<TradeDto> managementEfficientTradesScenarioToBeActivated(final @NotNull Stream<UUID> tradeIdStream) {
     final Collection<Trade> collection = tradeIdStream.parallel().map(uuid -> this.getTradeRepository().findById(uuid).orElseThrow()).filter(trade -> {
-      if (trade.getOrders().size() > 4 && trade.getBalance() > 0 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
+      if (trade.getBalance() > 0 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
         if (trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
            return true;
         }
