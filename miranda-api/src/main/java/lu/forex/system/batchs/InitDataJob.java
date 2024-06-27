@@ -22,7 +22,6 @@ import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TradeDto;
-import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
