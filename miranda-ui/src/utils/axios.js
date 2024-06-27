@@ -1,17 +1,9 @@
 import axios from 'axios';
 
-// eslint-disable-next-line no-undef
-const https = require('https');
-
-const agent = new https.Agent({
-  rejectUnauthorized: false,
-});
-
 const instance = axios.create({
-  baseURL: 'https://swapi.dev/api/',
+  baseURL: 'http://localhost:8080/api/v1/',
   responseType: 'json',
-  httpsAgent: agent,
-  crossDomain: true
+  withCredentials: false
 });
 
 export default instance;
