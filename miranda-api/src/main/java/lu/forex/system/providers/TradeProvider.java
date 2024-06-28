@@ -83,7 +83,7 @@ public class TradeProvider implements TradeService {
 
       return scopeDtos.parallelStream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame))
           .map(scopeDto -> this.getScopeMapper().toEntity(scopeDto)).flatMap(scope -> spreads.parallelStream().flatMap(spread -> tps.parallelStream()
-              .flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp && sl > spread)
+              .flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp)
                   .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> localTimes.parallelStream().map(time -> {
                     final Trade trade = new Trade();
                     trade.setScope(scope);
