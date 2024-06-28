@@ -107,20 +107,32 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
     }
 
     final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(currentTechnicalIndicatorDto);
-    technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto));
+    if(technicalIndicatorDtos.size() >= 2) {
+      technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto, technicalIndicatorDtos.get(1)));
+    } else {
+      technicalIndicator.setSignal(SignalIndicator.NEUTRAL);
+    }
     this.getTechnicalIndicatorRepository().save(technicalIndicator);
   }
 
-  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto) {
-    if (currentTechnicalIndicatorDto.data().containsKey(KEY_SIGNAL) && currentTechnicalIndicatorDto.data().containsKey(KEY_MACD)) {
-      final Double signal = currentTechnicalIndicatorDto.data().get(KEY_SIGNAL);
-      final Double macd = currentTechnicalIndicatorDto.data().get(KEY_MACD);
-      if (Objects.nonNull(signal) && Objects.nonNull(macd)) {
-        final BigDecimal signalBigDecimal = BigDecimal.valueOf(signal);
-        final BigDecimal macdBigDecimal = BigDecimal.valueOf(macd);
-        if (signalBigDecimal.compareTo(macdBigDecimal) > 0) {
+  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto, final @NotNull TechnicalIndicatorDto lastTechnicalIndicatorDto) {
+    final Double signalCurrent = currentTechnicalIndicatorDto.data().get(KEY_SIGNAL);
+    final Double macdCurrent = currentTechnicalIndicatorDto.data().get(KEY_MACD);
+    final Double signalLast = lastTechnicalIndicatorDto.data().get(KEY_SIGNAL);
+    final Double macdLast = lastTechnicalIndicatorDto.data().get(KEY_MACD);
+    if (Objects.nonNull(signalCurrent) && Objects.nonNull(macdCurrent) && Objects.nonNull(signalLast) && Objects.nonNull(macdLast)) {
+      final BigDecimal signalCurrentBigDecimal = BigDecimal.valueOf(signalCurrent);
+      final BigDecimal macdCurrentBigDecimal = BigDecimal.valueOf(macdCurrent);
+      if (signalCurrentBigDecimal.compareTo(macdCurrentBigDecimal) > 0) {
+        final BigDecimal signalLastBigDecimal = BigDecimal.valueOf(signalLast);
+        final BigDecimal macdLastBigDecimal = BigDecimal.valueOf(macdLast);
+        if(signalLastBigDecimal.compareTo(macdLastBigDecimal) < 0) {
           return SignalIndicator.BEARISH;
-        } else if (signalBigDecimal.compareTo(macdBigDecimal) < 0) {
+        }
+      } else if (signalCurrentBigDecimal.compareTo(macdCurrentBigDecimal) < 0) {
+        final BigDecimal signalLastBigDecimal = BigDecimal.valueOf(signalLast);
+        final BigDecimal macdLastBigDecimal = BigDecimal.valueOf(macdLast);
+        if(signalLastBigDecimal.compareTo(macdLastBigDecimal) > 0) {
           return SignalIndicator.BULLISH;
         }
       }

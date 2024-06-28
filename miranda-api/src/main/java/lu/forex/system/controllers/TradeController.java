@@ -137,7 +137,7 @@ public class TradeController implements TradeOperation {
       });
 
       final var root = new File(this.getFilePathInit());
-      final var fileXlsx = new File(root, "temp.xlsx");
+      final var fileXlsx = new File(root, symbolName.concat("_data.xlsx"));
       workbook.write(new FileOutputStream(fileXlsx));
     } catch (IOException e) {
       throw new RuntimeException(e);

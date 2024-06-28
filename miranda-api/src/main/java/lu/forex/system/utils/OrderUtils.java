@@ -19,18 +19,14 @@ public class OrderUtils {
   }
 
   public static SignalIndicator getSignalIndicator(final @NotNull Collection<TechnicalIndicator> technicalIndicators) {
-    final int power = technicalIndicators.stream().mapToInt(ti -> switch (ti.getSignal()) {
-      case NEUTRAL -> 0;
-      case BULLISH -> 1;
-      case BEARISH -> -1;
-    }).sum();
-    if (Math.abs(power) >= (technicalIndicators.size() / 2)) {
-      if (power < 0) {
-        return SignalIndicator.BEARISH;
-      } else if (power > 0) {
-        return SignalIndicator.BULLISH;
-      }
+    final long powerBull = technicalIndicators.stream().filter(technicalIndicator -> SignalIndicator.BULLISH.equals(technicalIndicator.getSignal())).count();
+    final long powerBear = technicalIndicators.stream().filter(technicalIndicator -> SignalIndicator.BEARISH.equals(technicalIndicator.getSignal())).count();
+    if(powerBull == 2){
+      return SignalIndicator.BULLISH;
+    } else if (powerBear == 2) {
+      return SignalIndicator.BEARISH;
+    } else {
+      return SignalIndicator.NEUTRAL;
     }
-    return SignalIndicator.NEUTRAL;
   }
 }

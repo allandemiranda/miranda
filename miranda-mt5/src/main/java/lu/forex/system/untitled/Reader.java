@@ -66,53 +66,6 @@ public class Reader {
     }
   }
 
-  // !!! SOMENTE PARA TESTES MAIS RÀPIDOS
-  @SneakyThrows
-  public void start(final String symbol, final TimeFrame timeFrame) {
-    try (final var httpClient = HttpClient.newHttpClient()) {
-      final var fileName = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\" + symbol + CSV;
-      log.info("Reading file {}", LocalDateTime.now(), fileName);
-      final var inputFile = new File(fileName);
-      final var bidH = new AtomicReference<>(0D);
-      final var askH = new AtomicReference<>(0D);
-      var lastTime = new AtomicReference<LocalDateTime>(LocalDateTime.MIN);
-      var timeF = new AtomicReference<LocalDateTime>(LocalDateTime.MIN);
-
-      var numLines = new AtomicLong(0L);
-      try(var lines = Files.lines(inputFile.toPath())) {
-        numLines.set(lines.count() - 1L);
-      }
-      var lineNow = new AtomicLong(1);
-      var lastPercentage = new AtomicLong(-1);
-
-      log.info("Starting...", LocalDateTime.now());
-      try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
-        StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
-          final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
-          if(percentage != lastPercentage.get()) {
-            log.warn("[{}] {}% read", LocalDateTime.now(), percentage);
-            lastPercentage.set(percentage);
-          }
-
-          final var forNow = TimeFrameUtils.getCandlestickTimestamp(tick.getTime(), timeFrame);
-          if(!forNow.equals(timeF.get())) {
-            if ((bidH.get() > 0D) && (askH.get() > 0D)) {
-              sent(httpClient, symbol, lastTime.get(), bidH.get(), askH.get());
-            }
-            timeF.set(forNow);
-          }
-          lastTime.set(tick.getTime());
-          if (tick.getBid() > 0D) {
-            bidH.set(tick.getBid());
-          }
-          if (tick.getAsk() > 0D) {
-            askH.set(tick.getAsk());
-          }
-        });
-      }
-    }
-  }
-
   private @NotNull Tick getDataTick(final @NotNull CSVRecord csvRecord) {
     final String date = csvRecord.get(0).replace(".", "-");
     final String time = csvRecord.get(1);

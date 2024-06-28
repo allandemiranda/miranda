@@ -137,22 +137,19 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
   }
 
   private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto) {
-    if (currentTechnicalIndicatorDto.data().containsKey(KEY_ADX) && currentTechnicalIndicatorDto.data().containsKey(KEY_P_DI_P)
-        && currentTechnicalIndicatorDto.data().containsKey(KEY_N_DI_P)) {
-      final Double adx = currentTechnicalIndicatorDto.data().get(KEY_ADX);
-      final Double pDiP = currentTechnicalIndicatorDto.data().get(KEY_P_DI_P);
-      final Double nDiP = currentTechnicalIndicatorDto.data().get(KEY_N_DI_P);
-      if (Objects.nonNull(adx) && Objects.nonNull(pDiP) && Objects.nonNull(nDiP)) {
-        final BigDecimal adxBigDecimal = BigDecimal.valueOf(adx);
-        if (adxBigDecimal.compareTo(BigDecimal.valueOf(this.getTendencyLine())) >= 0) {
-          final BigDecimal pDiBigDecimal = BigDecimal.valueOf(pDiP);
-          final BigDecimal nDiBigDecimal = BigDecimal.valueOf(nDiP);
-          if (pDiBigDecimal.compareTo(nDiBigDecimal) > 0) {
-            return SignalIndicator.BULLISH;
-          }
-          if (pDiBigDecimal.compareTo(nDiBigDecimal) < 0) {
-            return SignalIndicator.BEARISH;
-          }
+    final Double adx = currentTechnicalIndicatorDto.data().get(KEY_ADX);
+    final Double pDiP = currentTechnicalIndicatorDto.data().get(KEY_P_DI_P);
+    final Double nDiP = currentTechnicalIndicatorDto.data().get(KEY_N_DI_P);
+    if (Objects.nonNull(adx) && Objects.nonNull(pDiP) && Objects.nonNull(nDiP)) {
+      final BigDecimal adxBigDecimal = BigDecimal.valueOf(adx);
+      if (adxBigDecimal.compareTo(BigDecimal.valueOf(this.getTendencyLine())) > 0) {
+        final BigDecimal pDiBigDecimal = BigDecimal.valueOf(pDiP);
+        final BigDecimal nDiBigDecimal = BigDecimal.valueOf(nDiP);
+        if (pDiBigDecimal.compareTo(nDiBigDecimal) > 0) {
+          return SignalIndicator.BULLISH;
+        }
+        if (pDiBigDecimal.compareTo(nDiBigDecimal) < 0) {
+          return SignalIndicator.BEARISH;
         }
       }
     }

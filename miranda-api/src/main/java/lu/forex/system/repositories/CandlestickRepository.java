@@ -23,4 +23,5 @@ public interface CandlestickRepository extends JpaRepository<Candlestick, UUID>,
   @Query("select c from Candlestick c where c.scope.id = ?1 order by c.timestamp desc limit ?2")
   List<Candlestick> findByScope_IdOrderByTimestampDescWithLimit(@NonNull UUID scopeId, @Positive int limit);
 
+  List<Candlestick> findByScope_IdOrderByTimestampAsc(@NonNull UUID id);
 }

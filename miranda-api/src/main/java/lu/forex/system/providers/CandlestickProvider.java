@@ -57,6 +57,11 @@ public class CandlestickProvider implements CandlestickService {
         .map(this.getCandlestickMapper()::toDto).toList();
   }
 
+  @Override
+  public @NotNull List<@NotNull CandlestickDto> findCandlesticksAsc(final @NotNull UUID scopeId) {
+    return candlestickRepository.findByScope_IdOrderByTimestampAsc(scopeId).stream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
+  }
+
   @NotNull
   @Override
   public CandlestickDto processingCandlestick(final @NotNull TickDto tickDto, final @NotNull ScopeDto scopeDto) {

@@ -23,6 +23,10 @@ public interface CandlestickService {
   @NotNull
   List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull UUID scopeId, final @Positive int limit);
 
+  @Transactional(readOnly = true)
+  @NotNull
+  List<@NotNull CandlestickDto> findCandlesticksAsc(final @NotNull UUID scopeId);
+
   @Transactional()
   @NotNull
   CandlestickDto processingCandlestick(final @NotNull TickDto tickDto, final @NotNull ScopeDto scopeDto);

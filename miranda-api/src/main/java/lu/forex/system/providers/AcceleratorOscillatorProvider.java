@@ -72,9 +72,8 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
       currentTechnicalIndicatorDto.data().put(KEY_AO, ao);
 
       // get SMA(ao,5)
-      final Collection<Double> collectionSmaAo5 = technicalIndicatorLimit5.parallelStream().filter(ti -> Objects.nonNull(ti.data().get(KEY_AO)))
-          .map(ti -> ti.data().get(KEY_AO)).toList();
-      if (collectionSmaAo5.size() == 4) {
+      final Collection<Double> collectionSmaAo5 = technicalIndicatorLimit5.parallelStream().filter(ti -> Objects.nonNull(ti.data().get(KEY_AO))).map(ti -> ti.data().get(KEY_AO)).toList();
+      if (collectionSmaAo5.size() == 5) {
         final double smaAo5 = MathUtils.getMed(collectionSmaAo5);
 
         // get ao - SMA(ao,5)
@@ -84,27 +83,25 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
     }
 
     final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(currentTechnicalIndicatorDto);
-    technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto,
-        technicalIndicatorDtos.size() > 1 ? technicalIndicatorDtos.get(1) : currentTechnicalIndicatorDto));
+    if(technicalIndicatorDtos.size() >= 3) {
+      technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto, technicalIndicatorDtos.get(1), technicalIndicatorDtos.get(2)));
+    } else {
+      technicalIndicator.setSignal(SignalIndicator.NEUTRAL);
+    }
     this.getTechnicalIndicatorRepository().save(technicalIndicator);
   }
 
-  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto,
-      final @NotNull TechnicalIndicatorDto lastTechnicalIndicatorDto) {
-    if (!currentTechnicalIndicatorDto.equals(lastTechnicalIndicatorDto) && lastTechnicalIndicatorDto.data().containsKey(KEY_AC)
-        && currentTechnicalIndicatorDto.data().containsKey(KEY_AC)) {
-      final Double currentAc = currentTechnicalIndicatorDto.data().get(KEY_AC);
-      final Double lestAc = lastTechnicalIndicatorDto.data().get(KEY_AC);
-      if (Objects.nonNull(currentAc) && Objects.nonNull(lestAc)) {
-        final BigDecimal acBigDecimal = BigDecimal.valueOf(currentAc);
-        final int compared = BigDecimal.valueOf(currentAc).compareTo(BigDecimal.valueOf(lestAc));
-        if (acBigDecimal.compareTo(BigDecimal.ZERO) > 0 && compared > 0) {
-          return SignalIndicator.BULLISH;
-        } else if (acBigDecimal.compareTo(BigDecimal.ZERO) < 0 && compared < 0) {
-          return SignalIndicator.BEARISH;
-        } else {
-          return SignalIndicator.NEUTRAL;
-        }
+  private SignalIndicator processingSignal(final @NotNull TechnicalIndicatorDto currentTechnicalIndicatorDto, final @NotNull TechnicalIndicatorDto lastTechnicalIndicatorDto, final @NotNull TechnicalIndicatorDto beforeLastTechnicalIndicatorDto) {
+    final Double currentAc = currentTechnicalIndicatorDto.data().get(KEY_AC);
+    final Double lestAc = lastTechnicalIndicatorDto.data().get(KEY_AC);
+    final Double beforeLastAc = beforeLastTechnicalIndicatorDto.data().get(KEY_AC);
+    if (Objects.nonNull(currentAc) && Objects.nonNull(lestAc) && Objects.nonNull(beforeLastAc)) {
+      final BigDecimal currentAcBigDecimal = BigDecimal.valueOf(currentAc);
+      final BigDecimal lestAcBigDecimal = BigDecimal.valueOf(lestAc);
+      if (currentAcBigDecimal.compareTo(BigDecimal.ZERO) > 0 && BigDecimal.valueOf(beforeLastAc).compareTo(lestAcBigDecimal) > 0 && lestAcBigDecimal.compareTo(currentAcBigDecimal) > 0) {
+        return SignalIndicator.BULLISH;
+      } else if (currentAcBigDecimal.compareTo(BigDecimal.ZERO) < 0 && BigDecimal.valueOf(beforeLastAc).compareTo(lestAcBigDecimal) < 0 && lestAcBigDecimal.compareTo(currentAcBigDecimal) < 0) {
+        return SignalIndicator.BEARISH;
       }
     }
     return SignalIndicator.NEUTRAL;
