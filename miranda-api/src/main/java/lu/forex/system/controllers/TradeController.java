@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -44,12 +46,39 @@ public class TradeController implements TradeOperation {
   @Override
   public Collection<TradeDto> getTrades(final String symbolName) {
     final UUID symbolId = this.getSymbolService().getSymbol(symbolName).id();
-    final Collection<TradeDto> trades = this.getTradeService().getTrades(symbolId);
+    final List<TradeDto> trades = new ArrayList<>(this.getTradeService().getTrades(symbolId));
 
     final Map<TimeFrame, Map<Triple<Integer, Integer, Integer>, Map<DayOfWeek, Map<Pair<LocalTime, LocalTime>, TradeDto>>>> mappingTrades = trades.stream()
         .collect(Collectors.groupingBy(t -> t.scope().timeFrame(), Collectors.groupingBy(t -> Triple.of(t.stopLoss(), t.takeProfit(), t.spreadMax()),
             Collectors.groupingBy(TradeDto::slotWeek, Collectors.toMap(t -> Pair.of(t.slotStart(), t.slotEnd()), t -> t)))));
     try (final Workbook workbook = new XSSFWorkbook()) {
+      final Sheet sheet = workbook.createSheet("trades_ALL");
+      final Row header = sheet.createRow(0);
+      final String[] headerNames = new String[]{"ID", "TimeFrame", "Stop Loss", "Take Profit", "Spread Max", "Slot Week", "Slot Time Start",
+          "Slot Time End", "Balance", "Number of Stop Loss", "Number of Take Profit", "Number of Close Orders", "Number of Orders", "Is Activate"};
+      IntStream.range(0, headerNames.length).forEach(i -> header.createCell(i).setCellValue(headerNames[i]));
+      IntStream.range(1, trades.size()+1).forEach(i -> {
+        final var tradeDto = trades.get(i-1);
+        final Object[] data = new Object[]{tradeDto.id().toString(),tradeDto.scope().timeFrame().name(), tradeDto.stopLoss(), tradeDto.takeProfit(), tradeDto.spreadMax(),
+            tradeDto.slotWeek().toString(), tradeDto.slotStart().toString(), tradeDto.slotEnd().toString(), tradeDto.balance(),
+            tradeDto.orders().stream().filter(orderDto -> OrderStatus.STOP_LOSS.equals(orderDto.orderStatus())).count(),
+            tradeDto.orders().stream().filter(orderDto -> OrderStatus.TAKE_PROFIT.equals(orderDto.orderStatus())).count(),
+            tradeDto.orders().stream().filter(orderDto -> !OrderStatus.OPEN.equals(orderDto.orderStatus())).count(), tradeDto.orders().size(),
+            String.valueOf(tradeDto.isActivate())};
+        final Row row = sheet.createRow(i);
+        IntStream.range(0, data.length).forEach(j -> {
+          final var cell = row.createCell(j);
+          switch (data[j]) {
+            case String text -> cell.setCellValue(text);
+            case Integer integer -> cell.setCellValue(integer);
+            case Double doubles -> cell.setCellValue(doubles);
+            case Long longs -> cell.setCellValue(longs);
+            default -> throw new IllegalStateException("Unexpected value: " + data[j] + " on " + Arrays.toString(data));
+          }
+        });
+      });
+
+
       mappingTrades.forEach((timeFrame, entryValue) -> {
 
         final Sheet sheetTrades = workbook.createSheet("trades_".concat(timeFrame.name()));
