@@ -36,10 +36,10 @@ public class SimpleMovingAverageProvider implements MovingAverageService {
   @Override
   public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
     final CandlestickDto candlestickDtosFirst = candlestickDtos.getFirst();
-    final Collection<MovingAverage> collection = candlestickDtosFirst.movingAverages().parallelStream()
+    final Collection<MovingAverage> collection = candlestickDtosFirst.movingAverages().stream()
         .filter(ma -> this.getMovingAverageType().equals(ma.type())).map(movingAverageDto -> {
           final Collection<CandlestickDto> collectionLimited = candlestickDtos.stream().limit(movingAverageDto.period()).toList();
-          final Collection<Double> prices = collectionLimited.parallelStream().map(c -> movingAverageDto.priceType().getPrice(c)).toList();
+          final Collection<Double> prices = collectionLimited.stream().map(c -> movingAverageDto.priceType().getPrice(c)).toList();
           final MovingAverage movingAverage = this.getMovingAverageMapper().toEntity(movingAverageDto);
           movingAverage.setValue(MathUtils.getMed(prices));
           return movingAverage;
@@ -47,7 +47,7 @@ public class SimpleMovingAverageProvider implements MovingAverageService {
     if (!collection.isEmpty()) {
       this.getMovingAverageRepository().saveAll(collection);
       collection.forEach(movingAverage -> candlestickDtosFirst.movingAverages().removeIf(ma -> ma.id().equals(movingAverage.getId())));
-      final Collection<MovingAverageDto> updateDto = collection.parallelStream()
+      final Collection<MovingAverageDto> updateDto = collection.stream()
           .map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
       candlestickDtosFirst.movingAverages().addAll(updateDto);
     }

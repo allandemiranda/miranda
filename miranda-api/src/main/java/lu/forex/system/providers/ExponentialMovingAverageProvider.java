@@ -42,13 +42,13 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
   public void calculateMovingAverage(final @NotNull List<@NotNull CandlestickDto> candlestickDtos) {
     final CandlestickDto candlestickDtosFirst = candlestickDtos.getFirst();
     final Candlestick currentCandlestick = this.getCandlestickMapper().toEntity(candlestickDtosFirst);
-    final Collection<MovingAverage> collection = currentCandlestick.getMovingAverages().parallelStream()
+    final Collection<MovingAverage> collection = currentCandlestick.getMovingAverages().stream()
         .filter(movingAverage -> this.getMovingAverageType().equals(movingAverage.getType()))
         .map(ma -> this.getMovingAverageConsumer(ma, candlestickDtos, currentCandlestick)).toList();
     if (!collection.isEmpty()) {
       this.getMovingAverageRepository().saveAll(collection);
       collection.forEach(movingAverage -> candlestickDtosFirst.movingAverages().removeIf(ma -> ma.id().equals(movingAverage.getId())));
-      final Collection<MovingAverageDto> updateDto = collection.parallelStream()
+      final Collection<MovingAverageDto> updateDto = collection.stream()
           .map(movingAverage -> this.getMovingAverageMapper().toDto(movingAverage)).toList();
       candlestickDtosFirst.movingAverages().addAll(updateDto);
     }
@@ -76,7 +76,7 @@ public class ExponentialMovingAverageProvider implements MovingAverageService {
         }
       }
     } else if (candlesticksDesc.size() == period) {
-      final List<Double> collection = candlesticksDesc.parallelStream().map(candlestickApply::getPrice).toList();
+      final List<Double> collection = candlesticksDesc.stream().map(candlestickApply::getPrice).toList();
       final double ema = MathUtils.getMed(collection);
       movingAverage.setValue(ema);
     }

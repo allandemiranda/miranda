@@ -13,7 +13,7 @@ public class DataTechnicalIndicatorConverter implements AttributeConverter<Map<S
 
   @Override
   public String convertToDatabaseColumn(final @NotNull Map<String, Double> attribute) {
-    return attribute.keySet().parallelStream().map(key -> key + "=" + attribute.get(key)).collect(Collectors.joining(", ", "{", "}"));
+    return attribute.keySet().stream().map(key -> key + "=" + attribute.get(key)).collect(Collectors.joining(", ", "{", "}"));
   }
 
   @Override
@@ -21,7 +21,7 @@ public class DataTechnicalIndicatorConverter implements AttributeConverter<Map<S
     if ("{}".equals(dbData)) {
       return new HashMap<String, Double>();
     } else {
-      return Arrays.stream(dbData.substring(1, dbData.length() - 1).split(", ")).parallel().map(entry -> entry.split("="))
+      return Arrays.stream(dbData.substring(1, dbData.length() - 1).split(", ")).map(entry -> entry.split("="))
           .collect(Collectors.toMap(entry -> entry[0].replaceAll("\\s+", ""), entry -> Double.valueOf(entry[1])));
     }
   }

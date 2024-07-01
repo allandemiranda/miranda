@@ -98,7 +98,7 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
       currentTechnicalIndicatorDto.data().put(KEY_MACD, macd);
 
       final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();
-      final Collection<Double> collectionMacd = technicalIndicatorLimitPeriod.parallelStream()
+      final Collection<Double> collectionMacd = technicalIndicatorLimitPeriod.stream()
           .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD))).map(tiDto -> tiDto.data().get(KEY_MACD)).toList();
       if (collectionMacd.size() == this.getPeriod()) {
         final double signal = MathUtils.getMed(collectionMacd);

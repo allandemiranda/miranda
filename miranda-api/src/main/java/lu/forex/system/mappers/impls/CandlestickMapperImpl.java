@@ -74,7 +74,7 @@ public class CandlestickMapperImpl implements CandlestickMapper {
   }
 
   private @NotNull Set<@NotNull MovingAverage> movingAverageDtoSetToMovingAverageSet(final @NotNull Set<@NotNull MovingAverageDto> set) {
-    return set.parallelStream().map(this::movingAverageDtoToMovingAverage).collect(Collectors.toSet());
+    return set.stream().map(this::movingAverageDtoToMovingAverage).collect(Collectors.toSet());
   }
 
   private @NotNull TechnicalIndicator technicalIndicatorDtoToTechnicalIndicator(final @NotNull TechnicalIndicatorDto technicalIndicatorDto) {
@@ -88,7 +88,7 @@ public class CandlestickMapperImpl implements CandlestickMapper {
 
   private @NotNull Set<@NotNull TechnicalIndicator> technicalIndicatorDtoSetToTechnicalIndicatorSet(
       final @NotNull Set<@NotNull TechnicalIndicatorDto> set) {
-    return set.parallelStream().map(this::technicalIndicatorDtoToTechnicalIndicator).collect(Collectors.toSet());
+    return set.stream().map(this::technicalIndicatorDtoToTechnicalIndicator).collect(Collectors.toSet());
   }
 
   private @NotNull CandlestickBodyDto candlestickBodyToCandlestickBodyDto(final @NotNull CandlestickBody candlestickBody) {
@@ -109,7 +109,7 @@ public class CandlestickMapperImpl implements CandlestickMapper {
   }
 
   private @NotNull Set<@NotNull MovingAverageDto> movingAverageSetToMovingAverageDtoSet(final @NotNull Set<@NotNull MovingAverage> set) {
-    return set.parallelStream().map(this::movingAverageToMovingAverageDto).collect(Collectors.toSet());
+    return set.stream().map(this::movingAverageToMovingAverageDto).collect(Collectors.toSet());
   }
 
   private @NotNull TechnicalIndicatorDto technicalIndicatorToTechnicalIndicatorDto(final @NotNull TechnicalIndicator technicalIndicator) {
@@ -122,6 +122,6 @@ public class CandlestickMapperImpl implements CandlestickMapper {
 
   private @NotNull Set<@NotNull TechnicalIndicatorDto> technicalIndicatorSetToTechnicalIndicatorDtoSet(
       final @NotNull Set<@NotNull TechnicalIndicator> set) {
-    return set.parallelStream().map(this::technicalIndicatorToTechnicalIndicatorDto).collect(Collectors.toSet());
+    return set.stream().map(this::technicalIndicatorToTechnicalIndicatorDto).collect(Collectors.toSet());
   }
 }

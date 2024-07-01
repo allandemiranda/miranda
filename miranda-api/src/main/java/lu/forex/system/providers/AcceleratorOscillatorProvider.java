@@ -59,12 +59,12 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
 
     if (technicalIndicatorDtos.size() == 34) {
       // get SMA(MP,34)
-      final Collection<Double> collectionSmaMp34 = technicalIndicatorDtos.parallelStream().map(ti -> ti.data().get(KEY_MP)).toList();
+      final Collection<Double> collectionSmaMp34 = technicalIndicatorDtos.stream().map(ti -> ti.data().get(KEY_MP)).toList();
       final double smaMp34 = MathUtils.getMed(collectionSmaMp34);
 
       // get SMA(MP,5)
       final Collection<TechnicalIndicatorDto> technicalIndicatorLimit5 = technicalIndicatorDtos.stream().limit(5).toList();
-      final Collection<Double> collectionMp5 = technicalIndicatorLimit5.parallelStream().map(ti -> ti.data().get(KEY_MP)).toList();
+      final Collection<Double> collectionMp5 = technicalIndicatorLimit5.stream().map(ti -> ti.data().get(KEY_MP)).toList();
       final double smaMp5 = MathUtils.getMed(collectionMp5);
 
       // get SMA(MP,5) - SMA(MP,34)
@@ -72,7 +72,7 @@ public class AcceleratorOscillatorProvider implements TechnicalIndicatorService 
       currentTechnicalIndicatorDto.data().put(KEY_AO, ao);
 
       // get SMA(ao,5)
-      final Collection<Double> collectionSmaAo5 = technicalIndicatorLimit5.parallelStream().filter(ti -> Objects.nonNull(ti.data().get(KEY_AO))).map(ti -> ti.data().get(KEY_AO)).toList();
+      final Collection<Double> collectionSmaAo5 = technicalIndicatorLimit5.stream().filter(ti -> Objects.nonNull(ti.data().get(KEY_AO))).map(ti -> ti.data().get(KEY_AO)).toList();
       if (collectionSmaAo5.size() == 5) {
         final double smaAo5 = MathUtils.getMed(collectionSmaAo5);
 

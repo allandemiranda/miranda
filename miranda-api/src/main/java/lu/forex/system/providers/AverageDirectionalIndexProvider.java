@@ -89,7 +89,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
       currentTechnicalIndicatorDto.data().put(KEY_N_DM_1, nDmOne);
 
       final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();
-      final Collection<double[]> collectionOne = technicalIndicatorLimitPeriod.parallelStream().filter(
+      final Collection<double[]> collectionOne = technicalIndicatorLimitPeriod.stream().filter(
               tiDto -> Objects.nonNull(tiDto.data().get(KEY_TR_1)) && Objects.nonNull(tiDto.data().get(KEY_P_DM_1)) && Objects.nonNull(
                   tiDto.data().get(KEY_N_DM_1)))
           .map(tiDto -> new double[]{tiDto.data().get(KEY_TR_1), tiDto.data().get(KEY_P_DM_1), tiDto.data().get(KEY_N_DM_1)}).toList();
@@ -121,7 +121,7 @@ public class AverageDirectionalIndexProvider implements TechnicalIndicatorServic
         final double dx = MathUtils.getMultiplication(100, MathUtils.getDivision(diDiff, diSum));
         currentTechnicalIndicatorDto.data().put(KEY_DX, dx);
 
-        final Collection<Double> collectionDx = technicalIndicatorLimitPeriod.parallelStream()
+        final Collection<Double> collectionDx = technicalIndicatorLimitPeriod.stream()
             .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_DX))).map(tiDto -> tiDto.data().get(KEY_DX)).toList();
         if (collectionDx.size() == this.getPeriod()) {
           // get ADX

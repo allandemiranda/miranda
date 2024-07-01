@@ -56,10 +56,10 @@ public class TradeMapperImpl implements TradeMapper {
   }
 
   private @NotNull List<@NotNull Order> orderDtoSetToOrderList(final @NotNull List<@NotNull OrderDto> set) {
-    return set.parallelStream().map(orderDto -> this.getOrderMapper().toEntity(orderDto)).toList();
+    return set.stream().map(orderDto -> this.getOrderMapper().toEntity(orderDto)).toList();
   }
 
   private @NotNull List<@NotNull OrderDto> orderSetToOrderDtoList(final @NotNull List<@NotNull Order> set) {
-    return set.parallelStream().map(order -> this.getOrderMapper().toDto(order)).toList();
+    return set.stream().map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 }
