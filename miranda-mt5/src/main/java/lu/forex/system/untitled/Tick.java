@@ -4,12 +4,12 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
-@AllArgsConstructor
-@Getter
+@Data
+@Builder
 public class Tick implements Serializable, Comparable<Tick> {
 
   @Serial
