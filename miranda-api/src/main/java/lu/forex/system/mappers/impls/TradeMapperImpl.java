@@ -1,8 +1,7 @@
 package lu.forex.system.mappers.impls;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,7 +34,7 @@ public class TradeMapperImpl implements TradeMapper {
     trade.setSlotWeek(tradeDto.slotWeek());
     trade.setSlotStart(tradeDto.slotStart());
     trade.setSlotEnd(tradeDto.slotEnd());
-    final var orders = this.orderDtoSetToOrderSet(tradeDto.orders());
+    final var orders = this.orderDtoSetToOrderList(tradeDto.orders());
     trade.setOrders(orders);
     return trade;
   }
@@ -50,17 +49,17 @@ public class TradeMapperImpl implements TradeMapper {
     final var slotWeek = trade.getSlotWeek();
     final var slotStart = trade.getSlotStart();
     final var slotEnd = trade.getSlotEnd();
-    final var orders = this.orderSetToOrderDtoSet(trade.getOrders());
+    final var orders = this.orderSetToOrderDtoList(trade.getOrders());
     final var balance = trade.getBalance();
     final var isActivate = trade.isActivate();
     return new TradeDto(id, scope, stopLoss, takeProfit, spreadMax, slotWeek, slotStart, slotEnd, isActivate, orders, balance);
   }
 
-  private @NotNull Set<@NotNull Order> orderDtoSetToOrderSet(final @NotNull Set<@NotNull OrderDto> set) {
-    return set.parallelStream().map(orderDto -> this.getOrderMapper().toEntity(orderDto)).collect(Collectors.toSet());
+  private @NotNull List<@NotNull Order> orderDtoSetToOrderList(final @NotNull List<@NotNull OrderDto> set) {
+    return set.parallelStream().map(orderDto -> this.getOrderMapper().toEntity(orderDto)).toList();
   }
 
-  private @NotNull Set<@NotNull OrderDto> orderSetToOrderDtoSet(final @NotNull Set<@NotNull Order> set) {
-    return set.parallelStream().map(order -> this.getOrderMapper().toDto(order)).collect(Collectors.toSet());
+  private @NotNull List<@NotNull OrderDto> orderSetToOrderDtoList(final @NotNull List<@NotNull Order> set) {
+    return set.parallelStream().map(order -> this.getOrderMapper().toDto(order)).toList();
   }
 }

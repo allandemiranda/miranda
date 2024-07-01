@@ -39,6 +39,7 @@ import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.task.TaskExecutionProperties.Simple;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -71,6 +72,19 @@ public class TradeProvider implements TradeService {
       final LocalTime initialFinal = hourFinal == 24 ? LocalTime.of(23, 59, 59) : LocalTime.of(hourFinal, minuteFinal).minusSeconds(1);
       return new LocalTime[]{initialTime, initialFinal};
     }).toList();
+
+    final Map<TimeFrame, Collection<LocalTime[]>> mapTimeFrames = Arrays.stream(TimeFrame.values()).parallel().map(timeFrame -> {
+      final int mintConverted = switch (timeFrame.getFrame()) {
+        case MINUTE -> 1;
+        case HOUR -> 60;
+        case DAY -> 1440;
+      };
+      final LocalTime initialTime = LocalTime.of(0,0,0);
+      final Collection<LocalTime> times = IntStream.range(0, (1440/mintConverted)/timeFrame.getTimeValue()).mapToObj(minute -> initialTime.plusMinutes((long) mintConverted * timeFrame.getTimeValue() * minute)).toList();
+      final Collection<LocalTime[]> toOpenTime = times.stream().flatMap(candlestickTime -> localTimes.stream().filter(timePair -> !timePair[0].isAfter(candlestickTime) && !timePair[1].isBefore(candlestickTime))).distinct().toList();
+      return new SimpleEntry<>(timeFrame, toOpenTime);
+    }).collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+
     final Collection<DayOfWeek> validWeeks = Arrays.stream(DayOfWeek.values())
         .filter(dayOfWeek -> !DayOfWeek.SATURDAY.equals(dayOfWeek) && !DayOfWeek.SUNDAY.equals(dayOfWeek)).toList();
 
@@ -84,7 +98,7 @@ public class TradeProvider implements TradeService {
       return scopeDtos.parallelStream().filter(scopeDto -> scopeDto.timeFrame().equals(timeFrame))
           .map(scopeDto -> this.getScopeMapper().toEntity(scopeDto)).flatMap(scope -> spreads.parallelStream().flatMap(spread -> tps.parallelStream()
               .flatMap(tp -> sls.parallelStream().filter(sl -> sl <= tp)
-                  .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> localTimes.parallelStream().map(time -> {
+                  .flatMap(sl -> validWeeks.parallelStream().flatMap(week -> mapTimeFrames.get(timeFrame).parallelStream().map(time -> {
                     final Trade trade = new Trade();
                     trade.setScope(scope);
                     trade.setStopLoss(sl);
@@ -142,34 +156,34 @@ public class TradeProvider implements TradeService {
     final Map<UUID, Map<DayOfWeek, List<Trade>>> tradesMap = this.getTradeRepository().findBySymbolName(symbolName).stream()
         .collect(Collectors.groupingBy(trade -> trade.getScope().getId(), Collectors.groupingBy(Trade::getSlotWeek)));
 
-    final var trades = tickByCandlesticks.entrySet().parallelStream()
-      .map(entry -> {
-        final var timestamp = entry.getKey();
-        final var tickDto = ticks.stream().filter(tick -> !tick.timestamp().isBefore(timestamp)).findFirst().orElse(null);
-        return new SimpleEntry<>(tickDto, entry.getValue());
-      }).flatMap(entry -> {
-      final Tick tick = this.getTickMapper().toEntity(entry.getKey());
-      return entry.getValue().parallelStream().flatMap(candlestickDto -> {
-        final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
+    final Collection<Trade> trades = tickByCandlesticks.entrySet().parallelStream()
+        .map(entry -> {
+          final var timestamp = entry.getKey();
+          final var tickDto = ticks.stream().filter(tick -> !tick.timestamp().isBefore(timestamp)).findFirst().orElse(null);
+          return new SimpleEntry<>(tickDto, entry.getValue());
+        }).flatMap(entry -> {
+          final Tick tick = this.getTickMapper().toEntity(entry.getKey());
+          return entry.getValue().parallelStream().flatMap(candlestickDto -> {
+            final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
 
-        return tradesMap.get(candlestickDto.scope().id()).get(tick.getTimestamp().getDayOfWeek()).parallelStream()
-            .filter(trade -> !tick.getTimestamp().toLocalTime().isBefore(trade.getSlotStart()) && !tick.getTimestamp().toLocalTime().isAfter(trade.getSlotEnd()) && trade.getSpreadMax() >= tick.getSpread())
-            .map(trade -> {
-              final Order order = new Order();
-              order.setOpenTick(tick);
-              order.setCloseTick(tick);
-              order.setOrderType(orderType);
-              order.setOrderStatus(OrderStatus.OPEN);
-              final double profit = OrderUtils.getProfit(order);
-              order.setProfit(profit);
-              order.setTrade(trade);
-              return order;
-            });
-      });
-    }).collect(Collectors.groupingBy(Order::getTrade)).entrySet().parallelStream().map(entry -> {
-      final Trade trade = entry.getKey();
-      final Collection<Order> orders = entry.getValue();
-      trade.getOrders().addAll(orders);
+            return tradesMap.get(candlestickDto.scope().id()).get(tick.getTimestamp().getDayOfWeek()).parallelStream()
+                .filter(trade -> !tick.getTimestamp().toLocalTime().isBefore(trade.getSlotStart()) && !tick.getTimestamp().toLocalTime().isAfter(trade.getSlotEnd()) && trade.getSpreadMax() >= tick.getSpread())
+                .map(trade -> {
+                  final Order order = new Order();
+                  order.setOpenTick(tick);
+                  order.setCloseTick(tick);
+                  order.setOrderType(orderType);
+                  order.setOrderStatus(OrderStatus.OPEN);
+                  final double profit = OrderUtils.getProfit(order);
+                  order.setProfit(profit);
+                  order.setTrade(trade);
+                  return order;
+                });
+          });
+        }).collect(Collectors.groupingBy(Order::getTrade)).entrySet().parallelStream().map(entry -> {
+      final var trade = entry.getKey();
+      final var orders = entry.getValue();
+      trade.setOrders(orders);
       return trade;
     }).toList();
 

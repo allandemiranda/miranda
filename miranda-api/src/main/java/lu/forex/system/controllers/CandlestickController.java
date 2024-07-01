@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.enums.Indicator;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Getter(AccessLevel.PRIVATE)
+@Log4j2
 public class CandlestickController implements CandlestickOperation {
 
   private final CandlestickService candlestickService;
@@ -96,7 +98,7 @@ public class CandlestickController implements CandlestickOperation {
       });
 
       final var root = new File(this.getFilePathInit());
-      final var fileXlsx = new File(root, symbolName.concat("_candlesticks.xlsx"));
+      final var fileXlsx = new File(root, symbolName.concat("_").concat(timeFrame.name()).concat("_candlesticks.xlsx"));
       workbook.write(new FileOutputStream(fileXlsx));
 
     } catch (IOException e) {

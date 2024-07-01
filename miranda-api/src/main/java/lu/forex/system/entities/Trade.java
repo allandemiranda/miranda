@@ -23,9 +23,9 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.LinkedHashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -96,8 +96,8 @@ public class Trade implements Serializable {
   private boolean isActivate;
 
   @NotNull
-  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-  private Set<Order> orders = new LinkedHashSet<>();
+  @OneToMany(mappedBy = "trade", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  private List<Order> orders = new ArrayList<>();
 
   @Transient
   public double getBalance() {
