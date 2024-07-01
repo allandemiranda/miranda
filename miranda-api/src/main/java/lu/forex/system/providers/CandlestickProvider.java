@@ -175,7 +175,10 @@ public class CandlestickProvider implements CandlestickService {
       return candlestick;
     }).toList();
     log.info("Ending computingIndicatorsByInit()");
-    return this.getCandlestickRepository().saveAll(collection).parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick));
+
+    final List<Candlestick> candlesticks = this.getCandlestickRepository().saveAll(collection);
+    log.warn("nº Candlestick not Neutral: {}", candlesticks.stream().filter(candlestick -> !SignalIndicator.NEUTRAL.equals(candlestick.getSignalIndicator())).count());
+    return candlesticks.parallelStream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick));
   }
 
   private @NotNull Candlestick createCandlestick(final double price, final @NotNull Scope scope, final @NotNull LocalDateTime timestamp) {
