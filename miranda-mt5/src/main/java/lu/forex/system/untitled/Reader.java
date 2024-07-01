@@ -107,13 +107,16 @@ public class Reader {
       log.warn(response.body());
     } else if(response.statusCode() == 201) {
       if (response.body().isEmpty()) {
+        log.info("--> Received order: {}", response.body());
         final Collection<Order> orders = Arrays.stream(response.body().split(","))
             .map(order -> order.split(" "))
             .map(order -> Order.builder().tp(Integer.parseInt(order[3])).sl(Integer.parseInt(order[4])).openTick(tick).closeTick(tick).type(order[2].equals("BUY") ? Type.BUY : Type.SELL).status(Status.OPEN).build())
             .toList();
-        orders.forEach(order -> log.info("Open order: {}", order));
+        log.info("--> Created orders:");
+        orders.forEach(order -> log.info("{}", order));
         this.getOrderRepository().addAll(orders);
         this.getBalanceHistoric().add(new SimpleEntry<>(tick.getTime(), this.calculateBalance(tick)));
+        log.info("--> Tmp balance: {}", this.getBalanceHistoric().getLast().getValue());
       }
     } else {
       log.error("Code: {}", response.statusCode());
