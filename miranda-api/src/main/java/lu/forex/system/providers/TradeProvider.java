@@ -39,7 +39,6 @@ import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.task.TaskExecutionProperties.Simple;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -113,7 +112,9 @@ public class TradeProvider implements TradeService {
 
     }).toList();
 
-    return this.getTradeRepository().saveAll(collection).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+    final List<Trade> trades = this.getTradeRepository().saveAll(collection);
+    log.warn("Nº of trades generated: {}", trades.size());
+    return trades.parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
   @Override
