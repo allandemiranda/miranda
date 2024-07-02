@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
@@ -151,10 +152,10 @@ public class TradeProvider implements TradeService {
 
   @Override
   public @NotNull Stream<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks, final @NotNull List<TickDto> ticks) {
-    final String symbolName = ticks.getFirst().symbol().currencyPair().name();
-    log.info("Starting initOrders({})", symbolName);
+    final SymbolDto symbolDto = ticks.getFirst().symbol();
+    log.info("Starting initOrders({})", symbolDto.currencyPair().name());
 
-    final Map<UUID, Map<DayOfWeek, List<Trade>>> tradesMap = this.getTradeRepository().findBySymbolName(symbolName).stream()
+    final Map<UUID, Map<DayOfWeek, List<Trade>>> tradesMap = this.getTradeRepository().findByScope_Symbol_Id(symbolDto.id()).stream()
         .collect(Collectors.groupingBy(trade -> trade.getScope().getId(), Collectors.groupingBy(Trade::getSlotWeek)));
 
     final Collection<Trade> trades = tickByCandlesticks.entrySet().parallelStream()
@@ -188,7 +189,7 @@ public class TradeProvider implements TradeService {
       return trade;
     }).toList();
 
-    log.info("Ending initOrders({})", symbolName);
+    log.info("Ending initOrders({})", symbolDto.currencyPair().name());
     return this.getTradeRepository().saveAll(trades).parallelStream().map(trade -> this.getTradeMapper().toDto(trade));
 
   }

@@ -40,9 +40,12 @@ import org.hibernate.type.SqlTypes;
 @RequiredArgsConstructor
 @Entity
 @Table(name = "trade", indexes = {
-    @Index(name = "idx_trade_scope_id_spread_max", columnList = "scope_id, spread_max, slot_week, slot_start, slot_end")}, uniqueConstraints = {
+    @Index(name = "idx_trade_scope_id_spread_max", columnList = "scope_id, spread_max, slot_week, slot_start, slot_end"),
+    @Index(name = "idx_trade_scope_id", columnList = "scope_id")
+}, uniqueConstraints = {
     @UniqueConstraint(name = "uc_trade_scope_id_stop_loss", columnNames = {"scope_id", "stop_loss", "take_profit", "spread_max", "slot_week",
-        "slot_start", "slot_end"})})
+        "slot_start", "slot_end"})
+})
 public class Trade implements Serializable {
 
   @Serial

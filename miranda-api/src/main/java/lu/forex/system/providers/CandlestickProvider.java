@@ -31,6 +31,7 @@ import lu.forex.system.mappers.MovingAverageMapper;
 import lu.forex.system.mappers.ScopeMapper;
 import lu.forex.system.mappers.TechnicalIndicatorMapper;
 import lu.forex.system.repositories.CandlestickRepository;
+import lu.forex.system.repositories.LastCandlesticksPerformedRepository;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
 import lu.forex.system.services.TechnicalIndicatorService;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 public class CandlestickProvider implements CandlestickService {
 
   private final CandlestickRepository candlestickRepository;
+  private final LastCandlesticksPerformedRepository lastCandlesticksPerformedRepository;
   private final CandlestickMapper candlestickMapper;
   private final ScopeMapper scopeMapper;
   private final TechnicalIndicatorMapper technicalIndicatorMapper;
@@ -53,13 +55,17 @@ public class CandlestickProvider implements CandlestickService {
   @NotNull
   @Override
   public List<@NotNull CandlestickDto> findCandlesticksDescWithLimit(final @NotNull UUID scopeId, final int limit) {
-    return this.getCandlestickRepository().findByScope_IdOrderByTimestampDescWithLimit(scopeId, limit).stream()
-        .map(this.getCandlestickMapper()::toDto).toList();
+    return this.getCandlestickRepository().findByScope_IdOrderByTimestampDescWithLimit(scopeId, limit).stream().map(this.getCandlestickMapper()::toDto).toList();
+  }
+
+  @Override
+  public @NotNull List<@NotNull CandlestickDto> findCandlesticksDescPerformed(final @NotNull UUID scopeId) {
+    return this.getLastCandlesticksPerformedRepository().getLastCandlesticks(scopeId).stream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
   }
 
   @Override
   public @NotNull List<@NotNull CandlestickDto> findCandlesticksAsc(final @NotNull UUID scopeId) {
-    return candlestickRepository.findByScope_IdOrderByTimestampAsc(scopeId).stream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
+    return this.getCandlestickRepository().findByScope_IdOrderByTimestampAsc(scopeId).stream().map(candlestick -> this.getCandlestickMapper().toDto(candlestick)).toList();
   }
 
   @NotNull
@@ -72,6 +78,11 @@ public class CandlestickProvider implements CandlestickService {
         .orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
     candlestick.getBody().setClose(price);
     final Candlestick savedCandlestick = this.getCandlestickRepository().save(candlestick);
+    this.getLastCandlesticksPerformedRepository().getLastCandlestickId(savedCandlestick.getScope().getId()).ifPresent(lastCandlestickId -> {
+      if(!lastCandlestickId.equals(savedCandlestick.getId())) {
+        this.getLastCandlesticksPerformedRepository().addNextCandlestick(savedCandlestick.getId(), savedCandlestick.getScope().getId());
+      }
+    });
     return this.getCandlestickMapper().toDto(savedCandlestick);
   }
 

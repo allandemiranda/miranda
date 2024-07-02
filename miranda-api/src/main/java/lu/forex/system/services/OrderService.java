@@ -1,7 +1,6 @@
 package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -18,12 +17,6 @@ public interface OrderService {
   @Transactional
   @NotNull
   List<OrderDto> getOrders(final @NotNull UUID symbolId, final @NotNull OrderStatus orderStatus);
-
-  @Transactional
-  void updateOrders(final @NotNull TickDto tickDto);
-
-  @Transactional
-  void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final @Positive int days);
 
   @Transactional
   @NotNull

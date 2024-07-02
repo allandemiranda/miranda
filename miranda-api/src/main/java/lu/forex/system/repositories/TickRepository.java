@@ -7,7 +7,6 @@ import java.util.UUID;
 import lu.forex.system.entities.Tick;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +18,4 @@ public interface TickRepository extends JpaRepository<Tick, UUID>, JpaSpecificat
 
   @NonNull
   List<@NotNull Tick> findBySymbol_CurrencyPair_NameOrderByTimestampAsc(@NonNull String symbolName);
-
-  @Query("select t from Tick t where t.symbol.currencyPair.name = ?1 order by t.timestamp DESC LIMIT 2")
-  List<Tick> findBySymbolNameOrderByTimestampDescLimitTwo(@NonNull String symbolName);
 }

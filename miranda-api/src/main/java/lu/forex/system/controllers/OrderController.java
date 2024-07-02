@@ -12,7 +12,6 @@ import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.operations.OrderOperation;
 import lu.forex.system.services.OrderService;
 import lu.forex.system.services.SymbolService;
-import lu.forex.system.services.TickService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -21,13 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderOperation {
 
   private final OrderService orderService;
-  private final TickService tickService;
   private final SymbolService symbolService;
-
-  @Override
-  public void cleanOperationUntilLastDays(final String symbolName, final int days) {
-    this.getOrderService().cleanOrdersCloseAfterDays(symbolName, days);
-  }
 
   @Override
   public Collection<OrderDto> getOrdersOpen(final String symbolName) {

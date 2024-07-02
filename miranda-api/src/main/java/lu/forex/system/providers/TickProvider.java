@@ -25,6 +25,7 @@ import lu.forex.system.exceptions.TickTimestampOlderException;
 import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TickMapper;
 import lu.forex.system.repositories.TickRepository;
+import lu.forex.system.repositories.LastTickPerformedRepository;
 import lu.forex.system.services.TickService;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -39,12 +40,13 @@ public class TickProvider implements TickService {
   private final TickRepository tickRepository;
   private final TickMapper tickMapper;
   private final SymbolMapper symbolMapper;
+  private final LastTickPerformedRepository lastTickPerformedRepository;
 
   @NotNull
   @Override
   public TickDto addTickBySymbol(@NotNull final NewTickDto newTickDto, final @NotNull SymbolDto symbolDto) {
     final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final boolean valid = this.getTickRepository().getFirstBySymbol_IdOrderByTimestampDesc(symbol.getId())
+    final boolean valid = this.getLastTickPerformedRepository().getLastTick(symbol.getId())
         .map(tick -> tick.getTimestamp().isBefore(newTickDto.timestamp())).orElse(true);
     if (valid) {
       final Tick tick = this.getTickMapper().toEntity(newTickDto, symbol);
@@ -61,15 +63,14 @@ public class TickProvider implements TickService {
   }
 
   @Override
-  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull String symbolName) {
-    final List<Tick> collection = this.getTickRepository().findBySymbolNameOrderByTimestampDescLimitTwo(symbolName);
-    if (collection.size() == 2) {
-      final Tick tick = collection.getLast();
-      final TickDto tickDto = this.getTickMapper().toDto(tick);
-      return Optional.of(tickDto);
-    } else {
-      return Optional.empty();
-    }
+  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull SymbolDto symbolDto) {
+    return this.getLastTickPerformedRepository().getLastTick(symbolDto.id()).map(this.getTickMapper()::toDto);
+  }
+
+  @Override
+  public void addLastTickPerformed(final @NotNull TickDto tickDto) {
+    final var tick = this.getTickMapper().toEntity(tickDto);
+    this.getLastTickPerformedRepository().addLastTick(tick);
   }
 
   @Override

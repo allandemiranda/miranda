@@ -25,7 +25,10 @@ public interface TickService {
 
   @Transactional(readOnly = true)
   @NotNull
-  Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull @NotBlank String symbolName);
+  Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull SymbolDto symbolDto);
+
+  @Transactional()
+  void addLastTickPerformed(final @NotNull TickDto tickDto);
 
   @Transactional()
   @NotNull

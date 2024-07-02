@@ -4,10 +4,10 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
 import lu.forex.system.dtos.NewTickDto;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Getter(AccessLevel.PRIVATE)
+@Log4j2
 public class TickController implements TickOperation {
 
   private final TickService tickService;
@@ -73,13 +74,12 @@ public class TickController implements TickOperation {
 
   @Override
   public String addTickBySymbolName(final NewTickDto newTickDto, final String symbolName) {
+
     final SymbolDto symbolDto = this.getSymbolService().getSymbol(symbolName);
     final TickDto tickDto = this.getTickService().addTickBySymbol(newTickDto, symbolDto);
-
     final Collection<TechnicalIndicatorService> indicatorServices = List.of(this.getAcceleratorOscillatorService(), this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService());
     final Collection<MovingAverageService> movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
-    final int technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max() .orElse(0);
-    final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolName).orElse(tickDto);
+    final TickDto lastTickDto = this.getTickService().getLestTickBySymbolName(symbolDto).orElse(tickDto);
 
     final String response = this.getScopeService().getScopesBySymbolName(symbolName).parallelStream()
         .map(scopeDto -> this.getCandlestickService().processingCandlestick(tickDto, scopeDto))
@@ -107,14 +107,16 @@ public class TickController implements TickOperation {
         })
         .filter(scopeDto -> !TimeFrameUtils.getCandlestickTimestamp(tickDto.timestamp(), scopeDto.timeFrame()).equals(TimeFrameUtils.getCandlestickTimestamp(lastTickDto.timestamp(), scopeDto.timeFrame())))
         .map(scopeDto -> {
-          final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescWithLimit(scopeDto.id(), technicalIndicatorSize + 1).stream().skip(1).toList();
+          final List<CandlestickDto> lastCandlesticks = this.getCandlestickService().findCandlesticksDescPerformed(scopeDto.id()).stream().skip(1).toList();
           movingAverageServices.forEach(movingAverageService -> movingAverageService.calculateMovingAverage(lastCandlesticks));
           indicatorServices.parallelStream().forEach(indicatorService -> indicatorService.calculateTechnicalIndicator(lastCandlesticks));
           return this.getCandlestickService().processSignalIndicatorByCandlestickId(lastCandlesticks.getFirst().id());
         })
         .filter(lastCandlestick -> !SignalIndicator.NEUTRAL.equals(lastCandlestick.signalIndicator()))
         .map(candlestickDto -> {
-          final Set<TradeDto> tradeDtos = this.getTradeService().getTradesForOpenPositionActivated(candlestickDto.scope(), tickDto).parallelStream().collect(Collectors.toSet());
+          final Collection<TradeDto> tradeDtos = this.getTradeService().getTradesForOpenPositionActivated(candlestickDto.scope(), tickDto).stream()
+              .collect(Collectors.toMap(tradeDto -> tradeDto.scope().timeFrame(), o -> o, (o, o2) -> o.takeProfit() >= o2.takeProfit() ? o : o2))
+              .values();
           return new SimpleEntry<>(candlestickDto, tradeDtos);
         })
         .filter(entry -> !entry.getValue().isEmpty())
@@ -143,8 +145,11 @@ public class TickController implements TickOperation {
           }
         });
 
-    this.getOrderService().updateOrders(tickDto);
+    this.getTickService().addLastTickPerformed(tickDto);
 
+    if(!response.isEmpty()){
+      log.info("Response: {}", response);
+    }
     return response;
 
   }

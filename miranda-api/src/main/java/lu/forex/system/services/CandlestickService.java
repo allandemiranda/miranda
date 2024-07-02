@@ -25,6 +25,10 @@ public interface CandlestickService {
 
   @Transactional(readOnly = true)
   @NotNull
+  List<@NotNull CandlestickDto> findCandlesticksDescPerformed(final @NotNull UUID scopeId);
+
+  @Transactional(readOnly = true)
+  @NotNull
   List<@NotNull CandlestickDto> findCandlesticksAsc(final @NotNull UUID scopeId);
 
   @Transactional()
@@ -49,13 +53,16 @@ public interface CandlestickService {
 
   @Transactional
   @NotNull
-  Stream<CandlestickDto> initIndicatorsOnCandlesticks(final @NotNull Stream<CandlestickDto> candlesticksDto, final @NotNull Collection<TechnicalIndicatorService> indicatorServices);
+  Stream<CandlestickDto> initIndicatorsOnCandlesticks(final @NotNull Stream<CandlestickDto> candlesticksDto,
+      final @NotNull Collection<TechnicalIndicatorService> indicatorServices);
 
   @Transactional
   @NotNull
-  Stream<CandlestickDto> initAveragesToCandlesticks(final @NotNull Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> candlesticksToSave);
+  Stream<CandlestickDto> initAveragesToCandlesticks(
+      final @NotNull Stream<SimpleEntry<Collection<MovingAverageDto>, CandlestickDto>> candlesticksToSave);
 
   @Transactional
   @NotNull
-  Stream<CandlestickDto> computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices, final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> groupLastCandlesticksDto);
+  Stream<CandlestickDto> computingIndicatorsByInit(final @NotNull Collection<TechnicalIndicatorService> indicatorServices,
+      final @NotNull Collection<MovingAverageService> movingAverageServices, final @NotNull Map<UUID, List<List<UUID>>> groupLastCandlesticksDto);
 }

@@ -1,9 +1,6 @@
 package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -15,8 +12,6 @@ import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
-import lu.forex.system.entities.Order;
-import lu.forex.system.entities.Tick;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.TickMapper;
@@ -38,26 +33,6 @@ public class OrderProvider implements OrderService {
   @Override
   public @NotNull List<OrderDto> getOrders(final @NotNull UUID symbolId, final @NotNull OrderStatus orderStatus) {
     return this.getOrderRepository().findByOpenTick_Symbol_IdAndOrderStatusOrderByOpenTick_TimestampAsc(symbolId, orderStatus).stream().map(this.getOrderMapper()::toDto).collect(Collectors.toList());
-  }
-
-  @Override
-  public void updateOrders(final @NotNull TickDto tickDto) {
-    final Tick currentTick = this.getTickMapper().toEntity(tickDto);
-    final Collection<Order> collection = this.getOrderRepository()
-        .findBySymbolNameAndOrderStatus(currentTick.getSymbol().getCurrencyPair().getName(), OrderStatus.OPEN).parallelStream()
-        .map(order -> {
-          order.setCloseTick(currentTick);
-          return order;
-        }).toList();
-    this.getOrderRepository().saveAll(collection);
-  }
-
-  @Override
-  public void cleanOrdersCloseAfterDays(final @NotNull String symbolName, final int days) {
-    final LocalDateTime timeAfter = LocalDateTime.now().minusDays(days);
-    final Collection<Order> collection = this.getOrderRepository().findBySymbolName(symbolName).stream()
-        .filter(order -> order.getOpenTick().getTimestamp().isBefore(timeAfter)).toList();
-    this.getOrderRepository().findAll().removeAll(collection);
   }
 
   @Override
