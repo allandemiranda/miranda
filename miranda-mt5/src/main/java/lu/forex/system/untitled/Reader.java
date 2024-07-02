@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
@@ -52,7 +53,7 @@ public class Reader {
     var lastPercentage = new AtomicLong(-1);
 
     log.info("[{}] Starting...", LocalDateTime.now());
-    try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
+    try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader);final var httpClient = HttpClient.newBuilder().build()) {
       StreamSupport.stream(csvParser.spliterator(), false).skip(1).map(this::getDataTick).forEachOrdered(tick -> {
         final long percentage = lineNow.addAndGet(1) * 100L / numLines.get();
         if (percentage != lastPercentage.get()) {
@@ -68,7 +69,7 @@ public class Reader {
         if ((bidH.get() > 0D) && (askH.get() > 0D) && tick.getTime().isAfter(lastUpdate.get())) {
           tick.setBid(bidH.get());
           tick.setAsk(askH.get());
-          this.sent(symbol, tick);
+          this.sent(symbol, tick, httpClient);
           lastUpdate.set(tick.getTime());
         }
       });
@@ -93,46 +94,44 @@ public class Reader {
   }
 
   @SneakyThrows
-  private void sent(final String symbol, @NotNull final Tick tick) {
-    try (final var httpClient = HttpClient.newHttpClient()) {
-      final var body = "{\n  \"timestamp\": \"" + tick.getTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n  \"bid\": " + tick.getBid() + ",\n  \"ask\": " + tick.getAsk() + "\n}";
-      final var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks/" + symbol))
-          .header("Content-Type", "application/json")
-          .header("User-Agent", "insomnia/9.0.0")
-          .method("POST", HttpRequest.BodyPublishers.ofString(body))
-          .build();
-      final var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-      switch (response.statusCode()) {
-        case 200: {
-          log.warn("[{}] Return 200 not expected", LocalDateTime.now());
-          break;
-        }
-        case 201: {
-          if (!response.body().isEmpty()) {
-            log.info("--> Received order: {}", response.body());
-            final Collection<Order> orders = Arrays.stream(response.body().split(","))
-                .map(order -> order.split(" "))
-                .map(order -> Order.builder().tp(Integer.parseInt(order[3])).sl(Integer.parseInt(order[4])).openTick(tick).closeTick(tick)
-                    .type(order[2].equals("BUY") ? Type.BUY : Type.SELL).status(Status.OPEN).build())
-                .toList();
-            log.info("--> Created orders:");
-            orders.forEach(order -> log.info("{}", order));
-            this.getOrderRepository().addAll(orders);
-            this.getBalanceHistoric().add(new SimpleEntry<>(tick.getTime(), this.calculateBalance(tick)));
-            log.info("--> Tmp balance: {}", this.getBalanceHistoric().getLast().getValue());
-          }
-          break;
-        }
-        case 400: {
-          log.warn("[{}] Return 400 not expected: {}", LocalDateTime.now(), response.body());
-          break;
-        }
-        case 500: {
-          log.error("[{}] Return 500 not expected: {}", LocalDateTime.now(), response.body());
-          break;
-        }
-        default: log.error("[{}] Return unknown error code {}: {}", response.statusCode(), LocalDateTime.now(), response.body());
+  private synchronized void sent(final String symbol, @NotNull final Tick tick, final @NotNull HttpClient httpClient) {
+    final var body = "{\n  \"timestamp\": \"" + tick.getTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n  \"bid\": " + tick.getBid() + ",\n  \"ask\": " + tick.getAsk() + "\n}";
+    final var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks/" + symbol))
+        .header("Content-Type", "application/json")
+        .header("User-Agent", "insomnia/9.0.0")
+        .POST(HttpRequest.BodyPublishers.ofString(body))
+        .build();
+    final var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    switch (response.statusCode()) {
+      case 200: {
+        log.warn("[{}] Return 200 not expected", LocalDateTime.now());
+        break;
       }
+      case 201: {
+        if (!response.body().isEmpty()) {
+          log.info("[{}] --> Received order: {}", LocalDateTime.now(), response.body());
+          final Collection<Order> orders = Arrays.stream(response.body().split(","))
+              .map(order -> order.split(" "))
+              .map(order -> Order.builder().tp(Integer.parseInt(order[3])).sl(Integer.parseInt(order[4])).openTick(tick).closeTick(tick)
+                  .type(order[2].equals("BUY") ? Type.BUY : Type.SELL).status(Status.OPEN).build())
+              .toList();
+          log.info("[{}] --> Created orders:", LocalDateTime.now());
+          orders.forEach(order -> log.info("{}", order));
+          this.getOrderRepository().addAll(orders);
+          log.info("[{}] --> Tmp balance: {}", LocalDateTime.now(), this.getBalanceHistoric().getLast().getValue());
+        }
+        this.getBalanceHistoric().add(new SimpleEntry<>(tick.getTime(), this.calculateBalance(tick)));
+        break;
+      }
+      case 400: {
+        log.warn("[{}] Return 400 not expected: {}", LocalDateTime.now(), response.body());
+        break;
+      }
+      case 500: {
+        log.error("[{}] Return 500 not expected: {}", LocalDateTime.now(), response.body());
+        break;
+      }
+      default: log.error("[{}] Return unknown error code {}: {}", response.statusCode(), LocalDateTime.now(), response.body());
     }
   }
 
