@@ -16,6 +16,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,7 +34,7 @@ public class Reader {
 
   private static final String CSV = " - Copia (2e5m).csv";
   private final Collection<Order> orderRepository = new ArrayList<>();
-  private final List<SimpleEntry<LocalDateTime, Double>> balanceHistoric = new ArrayList<>();
+  private final List<Historic> historicRepository = new ArrayList<>();
 
   @SneakyThrows
   public void start(final String symbol) {
@@ -76,10 +77,35 @@ public class Reader {
     }
 
     log.info("[{}] Writing balance...", LocalDateTime.now());
-    try (final FileWriter fileWriter = new FileWriter(new File(new File(root), "balance.csv"));
-        final CSVWriter csvWriter = new CSVWriter(fileWriter)) {
-      this.getBalanceHistoric().stream().map(entry -> new String[]{entry.getKey().toString(), String.valueOf(entry.getValue())})
-          .forEachOrdered(csvWriter::writeNext);
+    try (final FileWriter fileWriter = new FileWriter(new File(new File(root), "balance.csv")); final CSVWriter csvWriter = new CSVWriter(fileWriter)) {
+      csvWriter.writeNext(new String[]{"Timestamp", "Balance", "Open Orders", "TP Orders", "SL Orders", "Close Orders", "Total Orders"});
+      this.getHistoricRepository().forEach(historic -> csvWriter.writeNext(new String[]{
+          historic.getTimestamp().toString().replace("T", " ").split("\\.")[0],
+          String.valueOf(historic.getBalance()),
+          String.valueOf(historic.getOpenOrders()),
+          String.valueOf(historic.getTpOrders()),
+          String.valueOf(historic.getSlOrders()),
+          String.valueOf(historic.getTpOrders() + historic.getSlOrders()),
+          String.valueOf(historic.getTotalOrders())
+      }));
+    }
+    log.info("[{}] Writing orders...", LocalDateTime.now());
+    try (final FileWriter fileWriter = new FileWriter(new File(new File(root), "orders.csv")); final CSVWriter csvWriter = new CSVWriter(fileWriter)) {
+      csvWriter.writeNext(new String[]{"Open Time", "Open Price", "Spread", "TP", "SL", "Type", "Close Time", "Close Price", "Status", "Profit"});
+
+      this.getOrderRepository().stream().sorted(Comparator.comparing(order -> order.getOpenTick().getTime()))
+          .forEachOrdered(order -> csvWriter.writeNext(new String[]{
+              order.getOpenTick().getTime().toString().replace("T", " ").split("\\.")[0],
+              String.valueOf(order.getOpenPrice()),
+              String.valueOf(order.getOpenTick().getSpread()),
+              String.valueOf(order.getTp()),
+              String.valueOf(order.getSl()),
+              order.getType().name(),
+              order.getCloseTick().getTime().toString().replace("T", " ").split("\\.")[0],
+              String.valueOf(order.getClosePrice()),
+              order.getStatus().name(),
+              String.valueOf(order.getBalance())
+          }));
     }
   }
 
@@ -118,9 +144,26 @@ public class Reader {
           log.info("[{}] --> Created orders:", LocalDateTime.now());
           orders.forEach(order -> log.info("{}", order));
           this.getOrderRepository().addAll(orders);
-          log.info("[{}] --> Tmp balance: {}", LocalDateTime.now(), this.getBalanceHistoric().getLast().getValue());
         }
-        this.getBalanceHistoric().add(new SimpleEntry<>(tick.getTime(), this.calculateBalance(tick)));
+        final var balance = this.calculateBalance(tick);
+        final var openOrders = this.getOrderRepository().stream().filter(order -> Status.OPEN.equals(order.getStatus())).count();
+        final var slOrders = this.getOrderRepository().stream().filter(order -> Status.STOP_LOSS.equals(order.getStatus())).count();
+        final var tpOrders = this.getOrderRepository().stream().filter(order -> Status.TAKE_PROFIT.equals(order.getStatus())).count();
+        this.getHistoricRepository().add(
+            Historic.builder()
+                .timestamp(tick.getTime())
+                .balance(balance)
+                .openOrders(openOrders)
+                .slOrders(slOrders)
+                .tpOrders(tpOrders)
+                .build());
+        if(!response.body().isEmpty()){
+          log.info("[{}] --> Tmp balance: {} {}p", LocalDateTime.now(), this.getHistoricRepository().getLast().getTimestamp(), this.getHistoricRepository().getLast().getBalance());
+          log.info("[{}] --> Tmp OPEN: {}", LocalDateTime.now(), openOrders);
+          log.info("[{}] --> Tmp TP: {}", LocalDateTime.now(), tpOrders);
+          log.info("[{}] --> Tmp SL: {}", LocalDateTime.now(), slOrders);
+          log.info("[{}] --> Tmp TOTAL orders: {}", LocalDateTime.now(), this.getOrderRepository().size());
+        }
         break;
       }
       case 400: {

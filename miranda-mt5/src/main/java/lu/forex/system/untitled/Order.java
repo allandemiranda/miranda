@@ -27,6 +27,20 @@ public class Order implements Serializable {
     };
   }
 
+  public double getOpenPrice() {
+    return switch (this.getType()) {
+      case BUY -> this.getOpenTick().getAsk();
+      case SELL -> this.getOpenTick().getBid();
+    };
+  }
+
+  public double getClosePrice() {
+    return switch (this.getType()) {
+      case BUY -> this.getCloseTick().getBid();
+      case SELL -> this.getCloseTick().getAsk();
+    };
+  }
+
   public void setCloseTick(final Tick closeTick){
     this.closeTick = closeTick;
     if(this.getBalance() >= this.getTp()){
