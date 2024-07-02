@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.StreamSupport;
@@ -35,6 +36,7 @@ public class Reader {
   private static final String CSV = " - Copia (2e5m).csv";
   private final Collection<Order> orderRepository = new ArrayList<>();
   private final List<Historic> historicRepository = new ArrayList<>();
+  final AtomicBoolean printMsgPercentage = new AtomicBoolean(false);
 
   @SneakyThrows
   public void start(final String symbol) {
@@ -46,12 +48,12 @@ public class Reader {
     final var askH = new AtomicReference<>(0D);
     final var lastUpdate = new AtomicReference<>(LocalDateTime.MIN);
 
-    var numLines = new AtomicLong(0L);
+    final var numLines = new AtomicLong(0L);
     try (final var lines = Files.lines(inputFile.toPath())) {
       numLines.set(lines.count() - 1L);
     }
-    var lineNow = new AtomicLong(1);
-    var lastPercentage = new AtomicLong(-1);
+    final var lineNow = new AtomicLong(1);
+    final var lastPercentage = new AtomicLong(-1);
 
     log.info("[{}] Starting...", LocalDateTime.now());
     try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader);final var httpClient = HttpClient.newBuilder().build()) {
@@ -60,6 +62,7 @@ public class Reader {
         if (percentage != lastPercentage.get()) {
           log.info("[{}] {}% read", LocalDateTime.now(), percentage);
           lastPercentage.set(percentage);
+          printMsgPercentage.set(true);
         }
         if (tick.getBid() > 0D) {
           bidH.set(tick.getBid());
@@ -157,12 +160,13 @@ public class Reader {
                 .slOrders(slOrders)
                 .tpOrders(tpOrders)
                 .build());
-        if(!response.body().isEmpty()){
+        if(printMsgPercentage.get()){
           log.info("[{}] --> Tmp balance: {} {}p", LocalDateTime.now(), this.getHistoricRepository().getLast().getTimestamp(), this.getHistoricRepository().getLast().getBalance());
           log.info("[{}] --> Tmp OPEN: {}", LocalDateTime.now(), openOrders);
           log.info("[{}] --> Tmp TP: {}", LocalDateTime.now(), tpOrders);
           log.info("[{}] --> Tmp SL: {}", LocalDateTime.now(), slOrders);
           log.info("[{}] --> Tmp TOTAL orders: {}", LocalDateTime.now(), this.getOrderRepository().size());
+          printMsgPercentage.set(false);
         }
         break;
       }
