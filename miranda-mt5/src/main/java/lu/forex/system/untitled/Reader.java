@@ -7,17 +7,14 @@ import java.io.FileWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
 public class Reader {
 
   private static final String CSV = " - Copia (2e5m).csv";
-  private final Collection<Order> orderRepository = new ArrayList<>();
-  private final List<Historic> historicRepository = new ArrayList<>();
+  private final Collection<Order> orderRepository = new LinkedList<>();
+  private final LinkedList<Historic> historicRepository = new LinkedList<>();
   final AtomicBoolean printMsgPercentage = new AtomicBoolean(false);
 
   @SneakyThrows
