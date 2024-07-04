@@ -1,18 +1,16 @@
 package lu.forex.system.batchs;
 
-import com.opencsv.CSVWriter;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.AbstractMap.SimpleEntry;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,20 +21,22 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.MovingAverageDto;
-import lu.forex.system.dtos.OrderDto;
+import lu.forex.system.dtos.ScopeDto;
+import lu.forex.system.dtos.SymbolDto;
+import lu.forex.system.dtos.TechnicalIndicatorDto;
+import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.services.CandlestickService;
 import lu.forex.system.services.MovingAverageService;
 import lu.forex.system.services.OrderService;
-import lu.forex.system.services.ScopeService;
-import lu.forex.system.services.SymbolService;
 import lu.forex.system.services.TechnicalIndicatorService;
 import lu.forex.system.services.TickService;
 import lu.forex.system.services.TradeService;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -45,13 +45,7 @@ import org.springframework.stereotype.Component;
 @Log4j2
 public class InitDataJob {
 
-  private final ProjectInfoProperties projectInfoProperties;
-  @Value("${init.filePath}")
-  private String filePathInit;
-
-  private final SymbolService symbolService;
   private final TickService tickService;
-  private final ScopeService scopeService;
   private final CandlestickService candlestickService;
   private final OrderService orderService;
   private final TradeService tradeService;
@@ -61,16 +55,17 @@ public class InitDataJob {
   private final MovingAverageService simpleMovingAverageService;
   private final MovingAverageService exponentialMovingAverageService;
 
-  public InitDataJob(final SymbolService symbolService, final TickService tickService, final ScopeService scopeService,
-      final CandlestickService candlestickService, final OrderService orderService, final TradeService tradeService, @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
+  @Value("${init.filePath}")
+  private String filePathInit;
+
+  public InitDataJob(final TickService tickService,
+      final CandlestickService candlestickService, final OrderService orderService, final TradeService tradeService,
+      @Qualifier("acceleratorOscillator") final TechnicalIndicatorService acceleratorOscillatorService,
       @Qualifier("averageDirectionalIndex") final TechnicalIndicatorService averageDirectionalIndexService,
       @Qualifier("movingAverageConvergenceDivergence") final TechnicalIndicatorService movingAverageConvergenceDivergenceService,
       @Qualifier("simpleMovingAverage") final MovingAverageService simpleMovingAverageService,
-      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService,
-      final ProjectInfoProperties projectInfoProperties) {
-    this.symbolService = symbolService;
+      @Qualifier("exponentialMovingAverage") final MovingAverageService exponentialMovingAverageService) {
     this.tickService = tickService;
-    this.scopeService = scopeService;
     this.candlestickService = candlestickService;
     this.orderService = orderService;
     this.tradeService = tradeService;
@@ -79,68 +74,107 @@ public class InitDataJob {
     this.movingAverageConvergenceDivergenceService = movingAverageConvergenceDivergenceService;
     this.simpleMovingAverageService = simpleMovingAverageService;
     this.exponentialMovingAverageService = exponentialMovingAverageService;
-    this.projectInfoProperties = projectInfoProperties;
   }
 
   @Async
-  public void start() {
-    final var root = new File(this.getFilePathInit());
+  public void start(final @NotNull SymbolDto symbolDto, final @NotNull Set<ScopeDto> scopesDto, final Collection<TradeDto> tradeDtos) {
+    log.warn("Starting batch job for symbol {}", symbolDto.currencyPair().name());
+    final File root = new File(this.getFilePathInit());
     if (root.exists() && root.isDirectory()) {
-      this.stackProcess(root);
+      final TickDto[] ticksDto = this.readingTicks(root, symbolDto);
+      log.info("Found {} ticks", ticksDto.length);
+      if(ticksDto.length > 0) {
+        final UUID[][] candlesticksCollection = scopesDto.parallelStream().map(scopeDto -> this.getCandlestickService().batchReadTicksToGenerateCandlesticks(scopeDto, ticksDto)).toArray(UUID[][]::new);
+        log.info("Found {} candlesticks", candlesticksCollection.length);
+        final TechnicalIndicatorService[] indicatorServices = new TechnicalIndicatorService[]{this.getAcceleratorOscillatorService(), this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService()};
+        this.initIndicatorsAndMovingAverages(candlesticksCollection, indicatorServices);
+        final int periodMax = Arrays.stream(indicatorServices).mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max().orElse(0);
+        log.info("Processing indicators");
+        final CandlestickDto[] notNeutralCandlesticks = this.processIndicators(candlesticksCollection, periodMax, indicatorServices);
+        log.info("Found {} not neutral candlesticks", notNeutralCandlesticks.length);
+        final UUID[] tradesOperated = this.openOrders(notNeutralCandlesticks, tradeDtos, ticksDto);
+        log.info("Found {} trades operated", tradeDtos.size());
+        this.getOrderService().batchProcessingInitOrders(ticksDto);
+        this.getTradeService().batchInitManagementTrades(tradesOperated);
+        log.info("Trades active: {}", this.getTradeService().getTradesActive().size());
+        log.info("Orders processed: {}", this.getOrderService().getOrders(symbolDto.id()).size());
+      }
       log.warn("Stack process complete!");
     } else {
       log.error("Folder {} not exists", root.getAbsolutePath());
     }
   }
-  private void stackProcess(final @NotNull File folder) {
-    this.getSymbolService().getSymbols().parallelStream().map(symbolDto -> {
-    final var fileName = symbolDto.currencyPair().name().concat(".csv");
-    final var inputFile = new File(folder, fileName);
-    if(inputFile.exists()) {
-      log.info("Added Batch Job: {} -> {}", symbolDto, inputFile.getAbsolutePath());
-      return new SimpleEntry<>(symbolDto, inputFile);
+
+  @NotNull
+  private TickDto @NotNull [] readingTicks(final @NotNull File folder, final @NotNull SymbolDto symbolDto) {
+    final String fileName = symbolDto.currencyPair().name().concat(".csv");
+    final File inputFile = new File(folder, fileName);
+    if (inputFile.exists()) {
+      return this.getTickService().batchReadPreDataBase(symbolDto, inputFile);
     } else {
       log.error("File {} not exists", inputFile.getAbsolutePath());
-      return null;
+      return new TickDto[0];
     }
-    }).filter(Objects::nonNull).forEach(entry -> {
-      final var symbolDto = entry.getKey();
-      final var inputFile = entry.getValue();
-      final var ticksDtoSorted = this.getTickService().readPreDataBase(symbolDto, inputFile);
+  }
 
-      if(!ticksDtoSorted.isEmpty()) {
-        final var indicatorServices = List.of(this.getAcceleratorOscillatorService(), this.getAverageDirectionalIndexService(), this.getMovingAverageConvergenceDivergenceService());
-        final var newMovingAverageServices = indicatorServices.stream().flatMap(indicatorService -> indicatorService.generateMAs().stream()).collect(Collectors.toSet());
+  private void initIndicatorsAndMovingAverages(final @NotNull UUID @NotNull [] @NotNull [] candlesticksIdMatrix, final @NotNull TechnicalIndicatorService[] indicatorServices) {
+    log.info("Initializing indicators and moving average on candlesticks");
+    final Stream<Triple<UUID, Stream<TechnicalIndicatorDto>, Stream<MovingAverageDto>>> candlesticksToProcess = IntStream.range(0, candlesticksIdMatrix.length).parallel().boxed()
+        .flatMap(k ->
+            IntStream.range(0, candlesticksIdMatrix[k].length).parallel().mapToObj(i -> {
+              final Stream<TechnicalIndicatorDto> newTechnicalIndicators = IntStream.range(0, indicatorServices.length).boxed().map(j -> indicatorServices[j].initTechnicalIndicator());
+              final Stream<MovingAverageDto> newMovingAverages = IntStream.range(0, indicatorServices.length).boxed().flatMap(j -> indicatorServices[j].generateMAs().stream()).distinct()
+                  .map(newMovingAverageDto -> switch (newMovingAverageDto.type()) {
+                    case EMA -> this.getExponentialMovingAverageService().createMovingAverage(newMovingAverageDto);
+                    case SMA -> this.getSimpleMovingAverageService().createMovingAverage(newMovingAverageDto);
+                    default -> throw new IllegalStateException("Unexpected value: " + newMovingAverageDto.type());
+                  });
+              return Triple.of(candlesticksIdMatrix[k][i], newTechnicalIndicators, newMovingAverages);
+            }));
+    this.getCandlestickService().batchInitIndicatorsAndAveragesOnCandlesticks(candlesticksToProcess);
+  }
 
-        final var technicalIndicatorSize = indicatorServices.stream().mapToInt(TechnicalIndicatorService::getNumberOfCandlesticksToCalculate).max().orElse(0);
-        final var movingAverageServices = List.of(this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService());
+  private CandlestickDto @NotNull [] processIndicators(final @NotNull UUID @NotNull [] @NotNull [] candlesticksIdMatrix, final int periodMax, final TechnicalIndicatorService[] indicatorServices) {
+    final MovingAverageService[] movingAverageServices = new MovingAverageService[]{this.getSimpleMovingAverageService(), this.getExponentialMovingAverageService()};
+    return IntStream.range(0, candlesticksIdMatrix.length).parallel().boxed().flatMap(l -> {
+      final LinkedList<CandlestickDto> lastCandlesticks = new LinkedList<>();
+      final Collection<CandlestickDto> notNeutralCandlesticks = new LinkedList<>();
+      IntStream.range(0, candlesticksIdMatrix[l].length).forEach(j -> {
+        lastCandlesticks.addFirst(this.getCandlestickService().getCandlestick(candlesticksIdMatrix[l][j]));
+        if(lastCandlesticks.size() > periodMax) {
+          lastCandlesticks.removeLast();
+        }
+        IntStream.range(0, movingAverageServices.length).parallel().forEach(i -> movingAverageServices[i].calculateMovingAverage(lastCandlesticks.toArray(CandlestickDto[]::new)));
+        lastCandlesticks.removeFirst();
+        lastCandlesticks.addFirst(this.getCandlestickService().getCandlestick(candlesticksIdMatrix[l][j]));
+        IntStream.range(0, indicatorServices.length).parallel().forEach(i -> indicatorServices[i].calculateTechnicalIndicator(lastCandlesticks.toArray(CandlestickDto[]::new)));
+        lastCandlesticks.removeFirst();
+        final CandlestickDto candlestickUpdated = this.getCandlestickService().computingSignal(candlesticksIdMatrix[l][j]);
+        lastCandlesticks.addFirst(candlestickUpdated);
+        if(!candlestickUpdated.signalIndicator().equals(SignalIndicator.NEUTRAL)){
+          notNeutralCandlesticks.add(candlestickUpdated);
+        }
+      });
+      return notNeutralCandlesticks.stream();
+    }).toArray(CandlestickDto[]::new);
+  }
 
-        final int tradesActivatedSize = this.getTradeService().managementEfficientTradesScenarioToBeActivated(this.getOrderService()
-            .processingInitOrders(ticksDtoSorted, this.getTradeService().initOrdersByTrade(this.getCandlestickService()
-                .computingIndicatorsByInit(indicatorServices, movingAverageServices, this.getCandlestickService().initAveragesToCandlesticks(
-                        this.getCandlestickService().initIndicatorsOnCandlesticks(
-                            this.getScopeService().getScopesBySymbolName(symbolDto.currencyPair().name()).parallelStream()
-                                .flatMap(scopeDto -> this.getCandlestickService().readTicksToGenerateCandlesticks(scopeDto, ticksDtoSorted).stream()),
-                            indicatorServices).parallel().map(candlestickDto -> {
-                          final Collection<MovingAverageDto> theMovingAverages = newMovingAverageServices.stream()
-                              .map(newMovingAverageDto -> switch (newMovingAverageDto.type()) {
-                                case EMA -> this.getExponentialMovingAverageService().createMovingAverage(newMovingAverageDto);
-                                case SMA -> this.getSimpleMovingAverageService().createMovingAverage(newMovingAverageDto);
-                                default -> throw new IllegalStateException("Unexpected value: " + newMovingAverageDto.type());
-                              }).toList();
-                          return new SimpleEntry<>(theMovingAverages, candlestickDto);
-                        })).collect(Collectors.groupingBy(CandlestickDto::scope, Collectors.collectingAndThen(Collectors.toList(),
-                        candlestickDtos -> candlestickDtos.stream().sorted(Comparator.comparing(CandlestickDto::timestamp).reversed()).toList())))
-                    .entrySet().stream().collect(Collectors.toMap(m -> m.getKey().id(),
-                        m -> IntStream.range(0, m.getValue().size()).boxed().sorted(Collections.reverseOrder()).map(i -> {
-                          final var lastIndexFix = Math.min(i + technicalIndicatorSize, m.getValue().size());
-                          return IntStream.range(i, lastIndexFix).mapToObj(j -> m.getValue().get(j).id()).toList();
-                        }).toList()))).parallel().filter(candlestickDto -> !SignalIndicator.NEUTRAL.equals(candlestickDto.signalIndicator()))
-                .collect(Collectors.groupingBy(CandlestickDto::timestamp, Collectors.toSet())), ticksDtoSorted)).map(OrderDto::tradeId).distinct()).size();
-
-        log.info("Activated trades: {}", tradesActivatedSize);
-        log.info("Nº of orders: {}", this.getTradeService().getTrades(symbolDto.id()).stream().mapToInt(value -> value.orders().size()).sum());
-      }
-    });
+  private UUID[] openOrders(final @NotNull CandlestickDto @NotNull [] notNeutralCandlesticks, final @NotNull Collection<TradeDto> tradesDto, final @NotNull TickDto[] ticksDto){
+    final Map<ScopeDto, Map<DayOfWeek, List<TradeDto>>> bigMapTrade = tradesDto.stream().collect(Collectors.groupingBy(TradeDto::scope, Collectors.groupingBy(TradeDto::slotWeek)));
+    final Map<UUID, Map<TickDto, Set<OrderType>>> ordersMap = IntStream.range(0, notNeutralCandlesticks.length).parallel().boxed().flatMap(k -> {
+      final CandlestickDto candlestickDto = notNeutralCandlesticks[k];
+      final int indexTick = IntStream.range(0, ticksDto.length).filter(i -> !ticksDto[i].timestamp().isBefore(candlestickDto.timestamp())).findFirst().orElseThrow();
+      return bigMapTrade.getOrDefault(candlestickDto.scope(), new HashMap<>()).getOrDefault(ticksDto[indexTick].timestamp().getDayOfWeek(), new ArrayList<>())
+        .parallelStream().filter(tradeDto -> {
+          final LocalTime localTime = ticksDto[indexTick].timestamp().toLocalTime();
+          return !localTime.isBefore(tradeDto.slotStart()) && !localTime.isAfter(tradeDto.slotEnd());
+        })
+        .map(tradeDto -> {
+          final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
+          return Triple.of(tradeDto.id(), ticksDto[indexTick], orderType);
+        });
+    })
+    .collect(Collectors.groupingBy(Triple::getLeft, Collectors.groupingBy(Triple::getMiddle, Collectors.collectingAndThen(Collectors.toSet(), triples -> triples.stream().map(Triple::getRight).collect(Collectors.toSet())))));
+    return this.getTradeService().batchInitOrdersByTrade(ordersMap);
   }
 }

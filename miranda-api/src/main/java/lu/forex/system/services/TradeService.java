@@ -1,17 +1,14 @@
 package lu.forex.system.services;
 
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
-import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.ScopeDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
+import lu.forex.system.enums.OrderType;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +26,16 @@ public interface TradeService {
 
   @Transactional(readOnly = true)
   @NotNull
+  Collection<TradeDto> getTradesActive();
+
+  @Transactional(readOnly = true)
+  @NotNull
   Collection<TradeDto> getTradesForOpenPositionActivated(final @NonNull ScopeDto scopeDto, final @NonNull TickDto tickDto);
 
   @Transactional
-  List<TradeDto> managementEfficientTradesScenarioToBeActivated(final @NotNull Stream<UUID> tradeIdStream);
+  void batchInitManagementTrades(final @NotNull UUID[] tradesIds);
 
   @Transactional
-  @NotNull
-  Stream<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks,final @NotNull List<TickDto> ticks);
+  UUID[] batchInitOrdersByTrade(final @NotNull Map<UUID, Map<TickDto, Set<OrderType>>> ordersMap);
 
 }

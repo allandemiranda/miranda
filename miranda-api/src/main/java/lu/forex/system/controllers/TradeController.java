@@ -136,8 +136,7 @@ public class TradeController implements TradeOperation {
             cell.setCellValue(weeks[i].toString());
           });
 
-          final Pair<LocalTime, LocalTime>[] timesPair = tripleMapEntryValue.get(weeks[0]).keySet().stream().sorted(Entry.comparingByKey())
-              .toArray(Pair[]::new);
+          final Pair<LocalTime, LocalTime>[] timesPair = tripleMapEntryValue.get(weeks[0]).keySet().stream().sorted(Entry.comparingByKey()).toArray(Pair[]::new);
           IntStream.range(1, timesPair.length + 1).forEach(i -> {
             final Row balanceRowData = sheetBalance.createRow(i);
             IntStream.range(0, weeks.length + 1).forEach(j -> {

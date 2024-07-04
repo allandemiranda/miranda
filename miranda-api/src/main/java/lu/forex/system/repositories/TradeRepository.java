@@ -20,4 +20,7 @@ public interface TradeRepository extends JpaRepository<Trade, UUID>, JpaSpecific
   Collection<Trade> findTradeToOpenOrder(@NonNull UUID scopeId, @NonNull int spread, @NonNull DayOfWeek week, @NonNull LocalTime time, boolean isActivate);
 
   Collection<Trade> findByScope_Symbol_Id(@NonNull UUID id);
+
+  @Query("select t from Trade t where t.isActivate = ?1")
+  Collection<Trade> findByIsActivate(@NonNull boolean isActivate);
 }

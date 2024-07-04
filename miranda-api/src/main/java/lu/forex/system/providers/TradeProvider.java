@@ -2,26 +2,22 @@ package lu.forex.system.providers;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lu.forex.system.dtos.CandlestickDto;
 import lu.forex.system.dtos.ScopeDto;
-import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
@@ -29,11 +25,8 @@ import lu.forex.system.entities.Tick;
 import lu.forex.system.entities.Trade;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
-import lu.forex.system.enums.SignalIndicator;
 import lu.forex.system.enums.TimeFrame;
-import lu.forex.system.mappers.OrderMapper;
 import lu.forex.system.mappers.ScopeMapper;
-import lu.forex.system.mappers.SymbolMapper;
 import lu.forex.system.mappers.TickMapper;
 import lu.forex.system.mappers.TradeMapper;
 import lu.forex.system.repositories.TradeRepository;
@@ -51,9 +44,7 @@ public class TradeProvider implements TradeService {
   private final TradeRepository tradeRepository;
   private final TradeMapper tradeMapper;
   private final ScopeMapper scopeMapper;
-  private final SymbolMapper symbolMapper;
   private final TickMapper tickMapper;
-  private final OrderMapper orderMapper;
   @Value("${trade.slot.minutes:15}")
   private int slotMinutes;
   @Value("#{${trade.slot.config}}")
@@ -114,13 +105,17 @@ public class TradeProvider implements TradeService {
     }).toList();
 
     final List<Trade> trades = this.getTradeRepository().saveAll(collection);
-    log.warn("Nº of trades generated: {}", trades.size());
     return trades.parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
   @Override
   public @NotNull Collection<TradeDto> getTrades(final @NotNull UUID symbolId) {
     return this.getTradeRepository().findByScope_Symbol_Id(symbolId).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
+  }
+
+  @Override
+  public @NotNull Collection<TradeDto> getTradesActive() {
+    return this.getTradeRepository().findByIsActivate(true).parallelStream().map(trade -> this.getTradeMapper().toDto(trade)).toList();
   }
 
   @Override
@@ -131,11 +126,13 @@ public class TradeProvider implements TradeService {
   }
 
   @Override
-  public @NotNull List<TradeDto> managementEfficientTradesScenarioToBeActivated(final @NotNull Stream<UUID> tradeIdStream) {
-    final Collection<Trade> collection = tradeIdStream.parallel().map(uuid -> this.getTradeRepository().findById(uuid).orElseThrow()).filter(trade -> {
-      if ((trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
+  public void batchInitManagementTrades(final @NotNull UUID @NotNull [] tradesIds) {
+    log.info("Initializing management trades");
+    IntStream.range(0, tradesIds.length).parallel().filter(indexTrade -> {
+      final Trade trade = this.getTradeRepository().findById(tradesIds[indexTrade]).orElseThrow();
+      if (trade.getOrders().size() > 1 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
         if (trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
-           return true;
+          return true;
         }
         final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
         final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
@@ -143,54 +140,37 @@ public class TradeProvider implements TradeService {
         return percentage >= 66L;
       }
       return false;
-    }).map(trade -> {
+    }).forEach(indexTrade -> {
+      final Trade trade = this.getTradeRepository().findById(tradesIds[indexTrade]).orElseThrow();
       trade.setActivate(true);
-      return trade;
-    }).toList();
-    return this.getTradeRepository().saveAll(collection).stream().sorted(Comparator.comparingDouble(Trade::getBalance)).map(trade -> this.getTradeMapper().toDto(trade)).toList();
+      this.getTradeRepository().save(trade);
+    });
+    log.info("Trades managed successfully");
   }
 
   @Override
-  public @NotNull Stream<TradeDto> initOrdersByTrade(final @NotNull Map<LocalDateTime, Set<CandlestickDto>> tickByCandlesticks, final @NotNull List<TickDto> ticks) {
-    final SymbolDto symbolDto = ticks.getFirst().symbol();
-    log.info("Starting initOrders({})", symbolDto.currencyPair().name());
-
-    final Map<UUID, Map<DayOfWeek, List<Trade>>> tradesMap = this.getTradeRepository().findByScope_Symbol_Id(symbolDto.id()).stream()
-        .collect(Collectors.groupingBy(trade -> trade.getScope().getId(), Collectors.groupingBy(Trade::getSlotWeek)));
-
-    final Collection<Trade> trades = tickByCandlesticks.entrySet().parallelStream()
-        .map(entry -> {
-          final var timestamp = entry.getKey();
-          final var tickDto = ticks.stream().filter(tick -> !tick.timestamp().isBefore(timestamp)).findFirst().orElse(null);
-          return new SimpleEntry<>(tickDto, entry.getValue());
-        }).flatMap(entry -> {
-          final Tick tick = this.getTickMapper().toEntity(entry.getKey());
-          return entry.getValue().parallelStream().flatMap(candlestickDto -> {
-            final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
-
-            return tradesMap.get(candlestickDto.scope().id()).get(tick.getTimestamp().getDayOfWeek()).parallelStream()
-                .filter(trade -> !tick.getTimestamp().toLocalTime().isBefore(trade.getSlotStart()) && !tick.getTimestamp().toLocalTime().isAfter(trade.getSlotEnd()) && trade.getSpreadMax() >= tick.getSpread())
-                .map(trade -> {
-                  final Order order = new Order();
-                  order.setOpenTick(tick);
-                  order.setCloseTick(tick);
-                  order.setOrderType(orderType);
-                  order.setOrderStatus(OrderStatus.OPEN);
-                  final double profit = OrderUtils.getProfit(order);
-                  order.setProfit(profit);
-                  order.setTrade(trade);
-                  return order;
-                });
-          });
-        }).collect(Collectors.groupingBy(Order::getTrade)).entrySet().parallelStream().map(entry -> {
-      final var trade = entry.getKey();
-      final var orders = entry.getValue();
+  public UUID[] batchInitOrdersByTrade(final @NotNull Map<UUID, Map<TickDto, Set<OrderType>>> ordersMap) {
+    return ordersMap.entrySet().parallelStream().flatMap(tradeByTicks -> {
+      final Trade trade = this.getTradeRepository().findById(tradeByTicks.getKey()).orElseThrow();
+      return tradeByTicks.getValue().entrySet().parallelStream().flatMap(tickByOrderTypes -> {
+        final Tick tick = this.getTickMapper().toEntity(tickByOrderTypes.getKey());
+        return tickByOrderTypes.getValue().parallelStream().map(orderType -> {
+          final Order order = new Order();
+          order.setOpenTick(tick);
+          order.setCloseTick(tick);
+          order.setOrderType(orderType);
+          order.setOrderStatus(OrderStatus.OPEN);
+          final double profit = OrderUtils.getProfit(order);
+          order.setProfit(profit);
+          order.setTrade(trade);
+          return order;
+        });
+      });
+    }).collect(Collectors.groupingBy(Order::getTrade)).entrySet().stream().map(tradeByOrders -> {
+      final Trade trade = tradeByOrders.getKey();
+      final List<Order> orders = tradeByOrders.getValue();
       trade.setOrders(orders);
-      return trade;
-    }).toList();
-
-    log.info("Ending initOrders({})", symbolDto.currencyPair().name());
-    return this.getTradeRepository().saveAll(trades).parallelStream().map(trade -> this.getTradeMapper().toDto(trade));
-
+      return this.getTradeRepository().save(trade).getId();
+    }).toArray(UUID[]::new);
   }
 }

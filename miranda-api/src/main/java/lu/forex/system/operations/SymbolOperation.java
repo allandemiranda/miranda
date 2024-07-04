@@ -31,5 +31,5 @@ public interface SymbolOperation {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Transactional
-  Collection<TradeDto> addSymbol(final @RequestBody @Valid NewSymbolDto newSymbolDto);
+  void addSymbol(final @RequestBody @Valid NewSymbolDto newSymbolDto);
 }

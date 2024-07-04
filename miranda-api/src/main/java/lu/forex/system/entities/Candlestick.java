@@ -75,12 +75,12 @@ public class Candlestick implements Serializable {
   private CandlestickBody body;
 
   @Exclude
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "candlestick_id")
   private Set<MovingAverage> movingAverages = new LinkedHashSet<>();
 
   @Exclude
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinColumn(name = "candlestick_id")
   private Set<TechnicalIndicator> technicalIndicators = new LinkedHashSet<>();
 

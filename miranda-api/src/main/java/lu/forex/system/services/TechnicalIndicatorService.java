@@ -42,6 +42,6 @@ public interface TechnicalIndicatorService {
   }
 
   @Transactional
-  void calculateTechnicalIndicator(final @NotNull List<@NotNull CandlestickDto> candlestickDtos);
+  void calculateTechnicalIndicator(final @NotNull CandlestickDto @NotNull [] candlesticksDesc);
 
 }

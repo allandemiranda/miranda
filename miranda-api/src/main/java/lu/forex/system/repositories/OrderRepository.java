@@ -1,5 +1,6 @@
 package lu.forex.system.repositories;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import lu.forex.system.entities.Order;
@@ -13,4 +14,6 @@ import org.springframework.stereotype.Repository;
 public interface OrderRepository extends JpaRepository<Order, UUID>, JpaSpecificationExecutor<Order> {
 
   List<Order> findByOpenTick_Symbol_IdAndOrderStatusOrderByOpenTick_TimestampAsc(@NonNull UUID id, @NonNull OrderStatus orderStatus);
+
+  Collection<Order> findByOpenTick_Symbol_Id(@NonNull UUID id);
 }

@@ -3,9 +3,7 @@ package lu.forex.system.providers;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
@@ -77,38 +75,35 @@ public class MovingAverageConvergenceDivergenceProvider implements TechnicalIndi
   }
 
   @Override
-  public void calculateTechnicalIndicator(final @NotNull List<CandlestickDto> candlestickDtos) {
-    final List<TechnicalIndicatorDto> technicalIndicatorDtos = candlestickDtos.stream()
-        .limit(IntStream.of(this.getFastPeriod(), this.getSlowPeriod(), this.getPeriod()).max().getAsInt()).map(
-            c -> c.technicalIndicators().stream().filter(i -> this.getIndicator().equals(i.indicator())).findFirst()
-                .orElseThrow(() -> new TechnicalIndicatorNotFoundException(candlestickDtos.getFirst().scope().toString()))).toList();
-    final TechnicalIndicatorDto currentTechnicalIndicatorDto = technicalIndicatorDtos.getFirst();
-    final Set<MovingAverageDto> currentMovingAverageDtos = candlestickDtos.getFirst().movingAverages();
+  public void calculateTechnicalIndicator(final @NotNull CandlestickDto @NotNull [] candlesticksDesc) {
+    final TechnicalIndicatorDto[] technicalIndicatorDtos = IntStream.range(0, candlesticksDesc.length < this.getPeriod() ? 1 : this.getPeriod())
+        .mapToObj(i -> candlesticksDesc[i].technicalIndicators().stream()
+            .filter(cIndicator -> this.getIndicator().equals(cIndicator.indicator())).findFirst()
+            .orElseThrow(() -> new TechnicalIndicatorNotFoundException(candlesticksDesc[i].scope().toString())))
+        .toArray(TechnicalIndicatorDto[]::new);
 
-    final MovingAverageDto emaFast = currentMovingAverageDtos.stream()
+    final MovingAverageDto emaFast = candlesticksDesc[0].movingAverages().stream()
         .filter(ema -> ema.period() == this.getFastPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value())).findFirst()
         .orElse(null);
 
-    final MovingAverageDto emaSlow = currentMovingAverageDtos.stream()
+    final MovingAverageDto emaSlow = candlesticksDesc[0].movingAverages().stream()
         .filter(ema -> ema.period() == this.getSlowPeriod() && this.getEmaApply().equals(ema.priceType()) && Objects.nonNull(ema.value())).findFirst()
         .orElse(null);
 
     if (Objects.nonNull(emaFast) && Objects.nonNull(emaSlow)) {
       final double macd = MathUtils.getSubtract(emaFast.value(), emaSlow.value());
-      currentTechnicalIndicatorDto.data().put(KEY_MACD, macd);
+      technicalIndicatorDtos[0].data().put(KEY_MACD, macd);
 
-      final Collection<TechnicalIndicatorDto> technicalIndicatorLimitPeriod = technicalIndicatorDtos.stream().limit(this.getPeriod()).toList();
-      final Collection<Double> collectionMacd = technicalIndicatorLimitPeriod.stream()
-          .filter(tiDto -> Objects.nonNull(tiDto.data().get(KEY_MACD))).map(tiDto -> tiDto.data().get(KEY_MACD)).toList();
-      if (collectionMacd.size() == this.getPeriod()) {
+      if (technicalIndicatorDtos.length == this.getPeriod() && IntStream.range(0, this.getPeriod()).noneMatch(i -> Objects.isNull(technicalIndicatorDtos[i].data().get(KEY_MACD)))) {
+        final Collection<Double> collectionMacd = IntStream.range(0, this.getPeriod()).parallel().mapToObj(i -> technicalIndicatorDtos[i].data().get(KEY_MACD)).toList();
         final double signal = MathUtils.getMed(collectionMacd);
-        currentTechnicalIndicatorDto.data().put(KEY_SIGNAL, signal);
+        technicalIndicatorDtos[0].data().put(KEY_SIGNAL, signal);
       }
     }
 
-    final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(currentTechnicalIndicatorDto);
-    if(technicalIndicatorDtos.size() >= 2) {
-      technicalIndicator.setSignal(this.processingSignal(currentTechnicalIndicatorDto, technicalIndicatorDtos.get(1)));
+    final TechnicalIndicator technicalIndicator = this.getTechnicalIndicatorMapper().toEntity(technicalIndicatorDtos[0]);
+    if(technicalIndicatorDtos.length >= 2) {
+      technicalIndicator.setSignal(this.processingSignal(technicalIndicatorDtos[0], technicalIndicatorDtos[1]));
     } else {
       technicalIndicator.setSignal(SignalIndicator.NEUTRAL);
     }

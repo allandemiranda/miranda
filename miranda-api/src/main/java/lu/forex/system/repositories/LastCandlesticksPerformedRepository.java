@@ -9,9 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lu.forex.system.entities.Candlestick;
+import lu.forex.system.exceptions.CandlestickNotFoundException;
 import lu.forex.system.services.TechnicalIndicatorService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -53,9 +55,11 @@ public class LastCandlesticksPerformedRepository {
   }
 
   @NotNull
-  public List<Candlestick> getLastCandlesticks(final @NotNull UUID scopeId) {
-    return this.getLastCandlesticksMap().getOrDefault(scopeId, new LinkedList<>()).stream()
-        .map(uuid -> this.getCandlestickRepository().findById(uuid).orElseThrow()).toList();
+  public Candlestick[] getLastCandlesticks(final @NotNull UUID scopeId) {
+    final List<UUID> list = this.getLastCandlesticksMap().getOrDefault(scopeId, new LinkedList<>());
+    final Candlestick[] candlesticks = new Candlestick[list.size()];
+    IntStream.range(0, candlesticks.length).parallel().forEach(i -> candlesticks[i] = this.getCandlestickRepository().findById(list.get(i)).orElseThrow(CandlestickNotFoundException::new));
+    return candlesticks;
   }
 
   @NotNull
@@ -64,11 +68,11 @@ public class LastCandlesticksPerformedRepository {
     return candlesticks.isEmpty() ? Optional.empty() : Optional.of(candlesticks.getFirst());
   }
 
-  public void addNextCandlestick(final @NotNull UUID candlestickId, final @NotNull UUID scopeId) {
-    final var candlesticks = this.getLastCandlesticksMap().getOrDefault(scopeId, new LinkedList<>());
+  public void addNextCandlestick(final @NotNull Candlestick candlestick) {
+    final var candlesticks = this.getLastCandlesticksMap().getOrDefault(candlestick.getScope().getId(), new LinkedList<>());
     if (!candlesticks.isEmpty()) {
       candlesticks.removeLast();
-      candlesticks.addFirst(candlestickId);
+      candlesticks.addFirst(candlestick.getId());
     }
   }
 }

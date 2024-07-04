@@ -6,11 +6,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,9 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class TickProvider implements TickService {
 
+  public static final String TIME_CONCAT = "T";
+  public static final String TARGET = ".";
+  public static final String REPLACEMENT = "-";
   private final TickRepository tickRepository;
   private final TickMapper tickMapper;
   private final SymbolMapper symbolMapper;
@@ -45,10 +49,9 @@ public class TickProvider implements TickService {
   @NotNull
   @Override
   public TickDto addTickBySymbol(@NotNull final NewTickDto newTickDto, final @NotNull SymbolDto symbolDto) {
-    final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
-    final boolean valid = this.getLastTickPerformedRepository().getLastTick(symbol.getId())
-        .map(tick -> tick.getTimestamp().isBefore(newTickDto.timestamp())).orElse(true);
+    final boolean valid = this.getLastTickPerformedRepository().getLastTick(symbolDto.id()).map(tick -> tick.getTimestamp().isBefore(newTickDto.timestamp())).orElse(true);
     if (valid) {
+      final Symbol symbol = this.getSymbolMapper().toEntity(symbolDto);
       final Tick tick = this.getTickMapper().toEntity(newTickDto, symbol);
       final Tick saved = this.getTickRepository().save(tick);
       return this.getTickMapper().toDto(saved);
@@ -63,25 +66,19 @@ public class TickProvider implements TickService {
   }
 
   @Override
-  public @NotNull Optional<@NotNull TickDto> getLestTickBySymbolName(final @NotNull SymbolDto symbolDto) {
-    return this.getLastTickPerformedRepository().getLastTick(symbolDto.id()).map(this.getTickMapper()::toDto);
-  }
-
-  @Override
   public void addLastTickPerformed(final @NotNull TickDto tickDto) {
     final var tick = this.getTickMapper().toEntity(tickDto);
     this.getLastTickPerformedRepository().addLastTick(tick);
   }
 
   @Override
-  public @NotNull List<TickDto> readPreDataBase(final @NotNull SymbolDto symbolDto, final @NotNull File inputFile) {
-    log.info("Starting readPreDataBase({}, {})", symbolDto.currencyPair().name(), inputFile.getAbsolutePath());
+  public @NotNull TickDto @NotNull [] batchReadPreDataBase(final @NotNull SymbolDto symbolDto, final @NotNull File inputFile) {
+    log.info("Reading file to generate ticks");
     final var symbol = this.getSymbolMapper().toEntity(symbolDto);
+    ArrayList<Tick> ticks;
     try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
-
       final double[] tmpBidAsk = new double[]{0D, 0D};
-
-      final var ticks = StreamSupport.stream(csvParser.spliterator(), false)
+      ticks = StreamSupport.stream(csvParser.spliterator(), false)
         .map(csvRecord -> {
           try {
             return this.getDataTick(csvRecord, symbol);
@@ -110,23 +107,23 @@ public class TickProvider implements TickService {
        .filter(tick -> tick.getBid() > 0D && tick.getAsk() > 0D && tick.getAsk() >= tick.getBid())
        .collect(Collectors.toMap(Tick::getTimestamp, tick -> tick, (t, t2) -> t))
        .values().stream().sorted(Comparator.comparing(Tick::getTimestamp))
-       .toList();
-
-      log.info("Ending readPreDataBase({}, {})", symbolDto.currencyPair().name(), inputFile.getAbsolutePath());
-      return this.getTickRepository().saveAll(ticks).stream().sorted(Comparator.comparing(Tick::getTimestamp)).map(tick -> this.getTickMapper().toDto(tick)).toList();
+       .collect(Collectors.toCollection(ArrayList::new));
     } catch (IOException e) {
-      log.error("Error reading pre data base", e);
-      return List.of();
+      log.error("Error read file", e);
+      return new TickDto[0];
     }
+    log.info("Saving, sorting and mapping ticks");
+    return this.getTickRepository().saveAll(ticks).parallelStream().map(tick -> this.getTickMapper().toDto(tick)).toList()
+        .stream().sorted(Comparator.comparing(TickDto::timestamp)).collect(Collectors.toCollection(ArrayList::new)).toArray(TickDto[]::new);
   }
 
   private @NotNull Tick getDataTick(final @NotNull CSVRecord csvRecord, final @NotNull Symbol symbol) {
     final var tick = new Tick();
     tick.setSymbol(symbol);
 
-    final var date = csvRecord.get(0).replace(".", "-");
+    final var date = csvRecord.get(0).replace(TARGET, REPLACEMENT);
     final var time = csvRecord.get(1);
-    final var dataTime = date.concat("T").concat(time);
+    final var dataTime = date.concat(TIME_CONCAT).concat(time);
     final var localDateTime = LocalDateTime.parse(dataTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     final var bid = csvRecord.get(2).isEmpty() ? 0D : Double.parseDouble(csvRecord.get(2));
     final var ask = csvRecord.get(3).isEmpty() ? 0D : Double.parseDouble(csvRecord.get(3));
@@ -137,5 +134,4 @@ public class TickProvider implements TickService {
 
     return tick;
   }
-
 }
