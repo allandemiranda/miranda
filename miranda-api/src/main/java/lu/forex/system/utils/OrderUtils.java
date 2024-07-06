@@ -21,9 +21,11 @@ public class OrderUtils {
   public static SignalIndicator getSignalIndicator(final @NotNull Collection<TechnicalIndicator> technicalIndicators) {
     final long powerBull = technicalIndicators.stream().filter(technicalIndicator -> SignalIndicator.BULLISH.equals(technicalIndicator.getSignal())).count();
     final long powerBear = technicalIndicators.stream().filter(technicalIndicator -> SignalIndicator.BEARISH.equals(technicalIndicator.getSignal())).count();
-    if(powerBull == 2){
+    final long powerNeutral = technicalIndicators.stream().filter(technicalIndicator -> SignalIndicator.NEUTRAL.equals(technicalIndicator.getSignal())).count();
+
+    if(powerBull == 3 || powerBull == 2 && powerNeutral == 1 /*|| powerBull == 2 && powerBear == 1 || powerBull == 1 && powerNeutral == 2*/) {
       return SignalIndicator.BULLISH;
-    } else if (powerBear == 2) {
+    } else if(powerBear == 3 || powerBear == 2 && powerNeutral == 1 /*|| powerBear == 2 && powerBull == 1 || powerBear == 1 && powerNeutral == 2*/) {
       return SignalIndicator.BEARISH;
     } else {
       return SignalIndicator.NEUTRAL;
