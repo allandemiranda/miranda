@@ -65,9 +65,12 @@ public class CandlestickProvider implements CandlestickService {
 
   @Override
   public @NotNull CandlestickDto @NotNull [] findCandlesticksDescLimited(final @NotNull UUID scopeId) {
-    final Candlestick[] lastCandlesticks = this.getLastCandlesticksPerformedRepository().getLastCandlesticks(scopeId);
-    final CandlestickDto[] lastCandlesticksDto = new CandlestickDto[lastCandlesticks.length];
-    IntStream.range(0, lastCandlesticks.length).parallel().forEach(i -> lastCandlesticksDto[i] = this.getCandlestickMapper().toDto(lastCandlesticks[i]));
+    final UUID[] lastCandlesticksId = this.getLastCandlesticksPerformedRepository().getLastCandlesticksNotIncludingFirst(scopeId);
+    final CandlestickDto[] lastCandlesticksDto = new CandlestickDto[lastCandlesticksId.length];
+    IntStream.range(0, lastCandlesticksId.length).parallel().forEach(i -> {
+      final Candlestick candlestick = this.getCandlestickRepository().findById(lastCandlesticksId[i]).orElseThrow(CandlestickNotFoundException::new);
+      lastCandlesticksDto[i] = this.getCandlestickMapper().toDto(candlestick);
+    });
     return lastCandlesticksDto;
   }
 
@@ -85,7 +88,7 @@ public class CandlestickProvider implements CandlestickService {
     final Candlestick candlestick = this.getCandlestickRepository().getFirstByScope_IdAndTimestamp(scope.getId(), candlestickTimestamp).orElseGet(() -> this.createCandlestick(price, scope, candlestickTimestamp));
     candlestick.getBody().setClose(price);
     final Candlestick savedCandlestick = this.getCandlestickRepository().save(candlestick);
-    this.getLastCandlesticksPerformedRepository().getLastCandlestickId(savedCandlestick.getScope().getId()).ifPresent(lastCandlestickId -> {
+    this.getLastCandlesticksPerformedRepository().getRealLastCandlestickId(savedCandlestick.getScope().getId()).ifPresent(lastCandlestickId -> {
       if(!lastCandlestickId.equals(savedCandlestick.getId())) {
         this.getLastCandlesticksPerformedRepository().addNextCandlestick(savedCandlestick);
       }
