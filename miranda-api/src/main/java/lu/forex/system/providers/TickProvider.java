@@ -6,7 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -74,10 +74,9 @@ public class TickProvider implements TickService {
   public @NotNull TickDto @NotNull [] batchReadPreDataBase(final @NotNull SymbolDto symbolDto, final @NotNull File inputFile) {
     log.info("Reading file to generate ticks");
     final var symbol = this.getSymbolMapper().toEntity(symbolDto);
-    ArrayList<Tick> ticks;
     try (final var fileReader = new FileReader(inputFile); final var csvParser = CSVFormat.TDF.builder().build().parse(fileReader)) {
       final double[] tmpBidAsk = new double[]{0D, 0D};
-      ticks = StreamSupport.stream(csvParser.spliterator(), false)
+      final Collection<Tick> ticks = StreamSupport.stream(csvParser.spliterator(), false)
         .map(csvRecord -> {
           try {
             return this.getDataTick(csvRecord, symbol);
@@ -104,16 +103,14 @@ public class TickProvider implements TickService {
           return tick;
         })
        .filter(tick -> tick.getBid() > 0D && tick.getAsk() > 0D && tick.getAsk() >= tick.getBid())
-       .collect(Collectors.toMap(Tick::getTimestamp, tick -> tick, (t, t2) -> t))
-       .values().stream().sorted(Comparator.comparing(Tick::getTimestamp))
-       .collect(Collectors.toCollection(ArrayList::new));
+       .collect(Collectors.toMap(Tick::getTimestamp, tick -> tick, (t, t2) -> t)).values();
+      log.info("Saving, sorting and mapping ticks");
+      return this.getTickRepository().saveAll(ticks).stream().map(tick -> this.getTickMapper().toDto(tick)).sorted(Comparator.comparing(TickDto::timestamp)).toArray(TickDto[]::new);
     } catch (IOException e) {
       log.error("Error read file", e);
       return new TickDto[0];
     }
-    log.info("Saving, sorting and mapping ticks");
-    return this.getTickRepository().saveAll(ticks).parallelStream().map(tick -> this.getTickMapper().toDto(tick)).toList()
-        .stream().sorted(Comparator.comparing(TickDto::timestamp)).collect(Collectors.toCollection(ArrayList::new)).toArray(TickDto[]::new);
+
   }
 
   private @NotNull Tick getDataTick(final @NotNull CSVRecord csvRecord, final @NotNull Symbol symbol) {

@@ -94,8 +94,7 @@ public class TradeController implements TradeOperation {
       for (int i=0; i<matrixSL.length; ++i){
         for(int j=0; j<matrixSL[i].length; ++j){
           final var filtro = mapTradesAll.get(weeksHeader.get(j)).get(timesColumn.get(i)).stream().flatMap(tradeDto -> tradeDto.orders().stream())
-              .collect(Collectors.groupingBy(orderDto -> orderDto.openTick())).entrySet().stream().map(tickDtoListEntry ->
-                  tickDtoListEntry.getValue().stream().reduce((orderDto, orderDto2) -> orderDto.profit() >= orderDto2.profit() ? orderDto : orderDto2).orElseThrow()).toList();
+              .collect(Collectors.groupingBy(OrderDto::openTick)).values().stream().map(orderDtos -> orderDtos.stream().reduce((orderDto, orderDto2) -> orderDto.profit() >= orderDto2.profit() ? orderDto : orderDto2).orElseThrow()).toList();
           final long tpSum = filtro.stream().filter(order -> order.orderStatus().equals(OrderStatus.TAKE_PROFIT)).count();
           final long slSun = filtro.stream().filter(order -> order.orderStatus().equals(OrderStatus.STOP_LOSS)).count();
           final long closeSun = filtro.stream().filter(order -> !order.orderStatus().equals(OrderStatus.OPEN)).count();
