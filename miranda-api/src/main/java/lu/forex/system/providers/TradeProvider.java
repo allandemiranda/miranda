@@ -23,6 +23,7 @@ import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.entities.Order;
 import lu.forex.system.entities.Tick;
 import lu.forex.system.entities.Trade;
+import lu.forex.system.enums.Frame;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.TimeFrame;
@@ -32,6 +33,7 @@ import lu.forex.system.mappers.TradeMapper;
 import lu.forex.system.repositories.TradeRepository;
 import lu.forex.system.services.TradeService;
 import lu.forex.system.utils.OrderUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -130,23 +132,31 @@ public class TradeProvider implements TradeService {
   @Override
   public void batchInitManagementTrades(final @NotNull UUID @NotNull [] tradesIds) {
     log.info("Initializing management trades");
-    IntStream.range(0, tradesIds.length).parallel().filter(indexTrade -> {
-      final Trade trade = this.getTradeRepository().findById(tradesIds[indexTrade]).orElseThrow();
-      if (trade.getOrders().size() > 1 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
-        if (trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
-          return true;
+    final Collection<Trade> collection = IntStream.range(0, tradesIds.length).parallel().mapToObj(indexTrade -> this.getTradeRepository().findById(tradesIds[indexTrade]).orElseThrow())
+    .filter(trade -> {
+      if(trade.getScope().getTimeFrame().equals(TimeFrame.D1)) {
+        return trade.getOrders().stream().anyMatch(order -> order.getOrderStatus().equals(OrderStatus.TAKE_PROFIT)) && trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()));
+      } else {
+        if (trade.getOrders().size() >= 3 && (trade.getBalance() - trade.getOrders().stream().filter(order -> OrderStatus.OPEN.equals(order.getOrderStatus())).mapToDouble(Order::getProfit).sum()) > 0) {
+          if(trade.getOrders().size() == 3) {
+            return trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()));
+          }
+          if (trade.getOrders().stream().noneMatch(order -> OrderStatus.STOP_LOSS.equals(order.getOrderStatus()))) {
+            return true;
+          }
+          final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
+          final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
+          final long percentage = (totalOrdersTP * 100L) / totalOrdersClose;
+          return percentage >= 66L;
         }
-        final long totalOrdersClose = trade.getOrders().stream().filter(order -> !OrderStatus.OPEN.equals(order.getOrderStatus())).count();
-        final long totalOrdersTP = trade.getOrders().stream().filter(order -> OrderStatus.TAKE_PROFIT.equals(order.getOrderStatus())).count();
-        final long percentage = (totalOrdersTP * 100L) / totalOrdersClose;
-        return percentage >= 66L;
+        return false;
       }
-      return false;
-    }).forEach(indexTrade -> {
-      final Trade trade = this.getTradeRepository().findById(tradesIds[indexTrade]).orElseThrow();
+    }).map(trade -> {
       trade.setActivate(true);
-      this.getTradeRepository().save(trade);
-    });
+      return trade;
+    }).toList();
+    log.info("Trades managed saving");
+    this.getTradeRepository().saveAll(collection);
     log.info("Trades managed successfully");
   }
 
