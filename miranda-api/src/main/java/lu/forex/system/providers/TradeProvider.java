@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,24 +45,13 @@ public class TradeProvider implements TradeService {
   private final TradeMapper tradeMapper;
   private final ScopeMapper scopeMapper;
   private final TickMapper tickMapper;
-  @Value("${trade.slot.minutes:15}")
-  private int slotMinutes;
+  @Value("#{${trade.slot.minutes}}")
+  private Map<String, Integer> slotMinutes;
   @Value("#{${trade.slot.config}}")
   private Map<String, Map<String, List<Integer>>> tradeConfig;
 
   @Override
   public @NotNull Collection<TradeDto> generateTrades(final @NotNull Set<ScopeDto> scopeDtos) {
-
-    final int subTime = 1440 / this.getSlotMinutes();
-    final Collection<LocalTime[]> localTimes = IntStream.range(0, subTime).mapToObj(i -> {
-      final int hourInitial = (i * this.getSlotMinutes()) / 60;
-      final int minuteInitial = (i * this.getSlotMinutes()) % 60;
-      final LocalTime initialTime = LocalTime.of(hourInitial, minuteInitial);
-      final int hourFinal = ((i + 1) * this.getSlotMinutes()) / 60;
-      final int minuteFinal = ((i + 1) * this.getSlotMinutes()) % 60;
-      final LocalTime initialFinal = hourFinal == 24 ? LocalTime.of(23, 59, 59) : LocalTime.of(hourFinal, minuteFinal).minusSeconds(1);
-      return new LocalTime[]{initialTime, initialFinal};
-    }).toList();
 
     final Map<TimeFrame, Collection<LocalTime[]>> mapTimeFrames = Arrays.stream(TimeFrame.values()).parallel().map(timeFrame -> {
       final int mintConverted = switch (timeFrame.getFrame()) {
@@ -70,6 +59,19 @@ public class TradeProvider implements TradeService {
         case HOUR -> 60;
         case DAY -> 1440;
       };
+      final int subTime = 1440 / this.getSlotMinutes().get(timeFrame.name());
+      final ArrayList<LocalTime[]> localTimes = IntStream.range(0, subTime <= 1 ? 0 : subTime).mapToObj(i -> {
+        final int hourInitial = (i * this.getSlotMinutes().get(timeFrame.name())) / 60;
+        final int minuteInitial = (i * this.getSlotMinutes().get(timeFrame.name())) % 60;
+        final LocalTime initialTime = LocalTime.of(hourInitial, minuteInitial);
+        final int hourFinal = ((i + 1) * this.getSlotMinutes().get(timeFrame.name())) / 60;
+        final int minuteFinal = ((i + 1) * this.getSlotMinutes().get(timeFrame.name())) % 60;
+        final LocalTime initialFinal = hourFinal == 24 ? LocalTime.of(23, 59, 59) : LocalTime.of(hourFinal, minuteFinal).minusSeconds(1);
+        return new LocalTime[]{initialTime, initialFinal};
+      }).collect(Collectors.toCollection(ArrayList::new));
+      if(localTimes.isEmpty()) {
+        localTimes.add(new LocalTime[]{LocalTime.of(0, 0), LocalTime.of(23, 59, 59)});
+      }
       final LocalTime initialTime = LocalTime.of(0,0,0);
       final Collection<LocalTime> times = IntStream.range(0, (1440/mintConverted)/timeFrame.getTimeValue()).mapToObj(minute -> initialTime.plusMinutes((long) mintConverted * timeFrame.getTimeValue() * minute)).toList();
       final Collection<LocalTime[]> toOpenTime = times.stream().flatMap(candlestickTime -> localTimes.stream().filter(timePair -> !timePair[0].isAfter(candlestickTime) && !timePair[1].isBefore(candlestickTime))).distinct().toList();
