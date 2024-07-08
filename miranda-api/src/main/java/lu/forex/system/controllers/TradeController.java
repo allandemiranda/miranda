@@ -81,8 +81,9 @@ public class TradeController implements TradeOperation {
         });
       });
 
-      final Map<DayOfWeek, Map<Pair<LocalTime, LocalTime>, List<TradeDto>>> mapTradesAll = trades.stream().collect(Collectors.groupingBy(TradeDto::slotWeek, Collectors.groupingBy(tradeDto -> Pair.of(tradeDto.slotStart(), tradeDto.slotEnd()))));
-      final Sheet sheetMapTradesAll = workbook.createSheet("map_trades_ALL");
+      Arrays.stream(TimeFrame.values()).forEach(timeFrame -> {
+      final Map<DayOfWeek, Map<Pair<LocalTime, LocalTime>, List<TradeDto>>> mapTradesAll = trades.stream().filter(tradeDto -> tradeDto.scope().timeFrame().equals(timeFrame)).collect(Collectors.groupingBy(TradeDto::slotWeek, Collectors.groupingBy(tradeDto -> Pair.of(tradeDto.slotStart(), tradeDto.slotEnd()))));
+      final Sheet sheetMapTradesAll = workbook.createSheet("map_trades_ALL_" + timeFrame.name());
       final List<Pair<LocalTime, LocalTime>> timesColumn = mapTradesAll.values().stream().flatMap(pairListMap -> pairListMap.keySet().stream()).distinct().sorted(Entry.comparingByKey()).toList();
       final List<DayOfWeek> weeksHeader = mapTradesAll.keySet().stream().sorted().toList();
       final long[][] matrixSL = new long[timesColumn.size()][weeksHeader.size()];
@@ -99,10 +100,11 @@ public class TradeController implements TradeOperation {
         }
       }
       final List<long[][]> matrixs = List.of(matrixTP, matrixSL, matrixCLOSE);
+      final String[] namesA = new String[]{"TP", "SL", "CLOSE"};
       for(int k=0; k<3; ++k){
         final int rowNumHeader = (timesColumn.size() + 2) * k;
         final Row headerK = sheetMapTradesAll.createRow(rowNumHeader);
-        headerK.createCell(0).setCellValue("Start");
+        headerK.createCell(0).setCellValue("Start " + namesA[k]);
         headerK.createCell(1).setCellValue("End");
         for(int j=2; j<weeksHeader.size()+2; ++j){
           headerK.createCell(j).setCellValue(weeksHeader.get(j-2).toString());
@@ -121,6 +123,7 @@ public class TradeController implements TradeOperation {
           }
         }
       }
+      });
 
 //      mappingTrades.forEach((timeFrame, entryValue) -> {
 //
