@@ -106,7 +106,7 @@ public class TickController implements TickOperation {
           final OrderType orderType = SignalIndicator.BULLISH.equals(candlestickDto.signalIndicator()) ? OrderType.BUY : OrderType.SELL;
           final Map<TimeFrame, List<TradeDto>> mapCollection = this.getTradeService().getTradesForOpenPositionActivated(candlestickDto.scope(), tickDto).stream()
               .collect(Collectors.groupingBy(tradeDto -> tradeDto.scope().timeFrame()));
-          if(mapCollection.size() >= 2 || mapCollection.keySet().stream().allMatch(TimeFrame.D1::equals)) {
+          if(!mapCollection.isEmpty() && (mapCollection.size() >= 2 || mapCollection.keySet().stream().allMatch(TimeFrame.D1::equals))) {
             // A new indicator: need be more than X number of timeframes requesting to open the position
 
             final TradeDto tradeSelect = mapCollection.values().stream().flatMap(Collection::stream).reduce((tradeDto, tradeDto2) ->
@@ -121,8 +121,8 @@ public class TickController implements TickOperation {
                 tradeSelect.stopLoss());
           } else {
             log.warn("Have trades, but not open with {} TimeFrames and {} orders", mapCollection.keySet().size(), mapCollection.values().size());
-            return "";
           }
+          return "";
         })
         .reduce("", (a, b) -> {
           if (a.isEmpty()) {
