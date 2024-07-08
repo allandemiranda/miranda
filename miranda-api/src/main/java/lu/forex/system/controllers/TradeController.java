@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lu.forex.system.dtos.OrderDto;
 import lu.forex.system.dtos.TradeDto;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.TimeFrame;
@@ -51,22 +52,23 @@ public class TradeController implements TradeOperation {
     final UUID symbolId = this.getSymbolService().getSymbol(symbolName).id();
     final List<TradeDto> trades = new ArrayList<>(this.getTradeService().getTrades(symbolId));
 
-    final Map<TimeFrame, Map<Triple<Integer, Integer, Integer>, Map<DayOfWeek, Map<Pair<LocalTime, LocalTime>, TradeDto>>>> mappingTrades = trades.stream()
-        .collect(Collectors.groupingBy(t -> t.scope().timeFrame(), Collectors.groupingBy(t -> Triple.of(t.stopLoss(), t.takeProfit(), t.spreadMax()),
-            Collectors.groupingBy(TradeDto::slotWeek, Collectors.toMap(t -> Pair.of(t.slotStart(), t.slotEnd()), t -> t)))));
+//    final Map<TimeFrame, Map<Triple<Integer, Integer, Integer>, Map<DayOfWeek, Map<Pair<LocalTime, LocalTime>, TradeDto>>>> mappingTrades = trades.stream()
+//        .collect(Collectors.groupingBy(t -> t.scope().timeFrame(), Collectors.groupingBy(t -> Triple.of(t.stopLoss(), t.takeProfit(), t.spreadMax()),
+//            Collectors.groupingBy(TradeDto::slotWeek, Collectors.toMap(t -> Pair.of(t.slotStart(), t.slotEnd()), t -> t)))));
     try (final Workbook workbook = new XSSFWorkbook()) {
       final Sheet sheet = workbook.createSheet("trades_ALL");
       final Row header = sheet.createRow(0);
       final String[] headerNames = new String[]{"ID", "TimeFrame", "Stop Loss", "Take Profit", "Spread Max", "Slot Week", "Slot Time Start",
-          "Slot Time End", "Balance", "Number of Stop Loss", "Number of Take Profit", "Number of Close Orders", "Number of Orders", "Is Activate"};
+          "Slot Time End", "Balance", "Number of Stop Loss", "Number of Take Profit", "Number of Close Orders", "Is Activate"};
       IntStream.range(0, headerNames.length).forEach(i -> header.createCell(i).setCellValue(headerNames[i]));
       IntStream.range(1, trades.size()+1).forEach(i -> {
         final var tradeDto = trades.get(i-1);
         final Object[] data = new Object[]{tradeDto.id().toString(),tradeDto.scope().timeFrame().name(), tradeDto.stopLoss(), tradeDto.takeProfit(), tradeDto.spreadMax(),
-            tradeDto.slotWeek().toString(), tradeDto.slotStart().toString(), tradeDto.slotEnd().toString(), tradeDto.balance(),
+            tradeDto.slotWeek().toString(), tradeDto.slotStart().toString(), tradeDto.slotEnd().toString(),
+            tradeDto.balance() - tradeDto.orders().stream().filter(orderDto -> OrderStatus.OPEN.equals(orderDto.orderStatus())).mapToDouble(OrderDto::profit).sum(),
             tradeDto.orders().stream().filter(orderDto -> OrderStatus.STOP_LOSS.equals(orderDto.orderStatus())).count(),
             tradeDto.orders().stream().filter(orderDto -> OrderStatus.TAKE_PROFIT.equals(orderDto.orderStatus())).count(),
-            tradeDto.orders().stream().filter(orderDto -> !OrderStatus.OPEN.equals(orderDto.orderStatus())).count(), tradeDto.orders().size(),
+            tradeDto.orders().stream().filter(orderDto -> !OrderStatus.OPEN.equals(orderDto.orderStatus())).count(),
             String.valueOf(tradeDto.isActivate())};
         final Row row = sheet.createRow(i);
         IntStream.range(0, data.length).forEach(j -> {
@@ -91,9 +93,12 @@ public class TradeController implements TradeOperation {
       final long[][] matrixCLOSE = new long[timesColumn.size()][weeksHeader.size()];
       for (int i=0; i<matrixSL.length; ++i){
         for(int j=0; j<matrixSL[i].length; ++j){
-          final long tpSum = mapTradesAll.get(weeksHeader.get(j)).get(timesColumn.get(i)).stream().mapToLong(tradeDto -> tradeDto.orders().stream().filter(order -> order.orderStatus().equals(OrderStatus.TAKE_PROFIT)).count()).sum();
-          final long slSun = mapTradesAll.get(weeksHeader.get(j)).get(timesColumn.get(i)).stream().mapToLong(tradeDto -> tradeDto.orders().stream().filter(order -> order.orderStatus().equals(OrderStatus.STOP_LOSS)).count()).sum();
-          final long closeSun = mapTradesAll.get(weeksHeader.get(j)).get(timesColumn.get(i)).stream().mapToLong(tradeDto -> tradeDto.orders().stream().filter(order -> !order.orderStatus().equals(OrderStatus.OPEN)).count()).sum();
+          final var filtro = mapTradesAll.get(weeksHeader.get(j)).get(timesColumn.get(i)).stream().flatMap(tradeDto -> tradeDto.orders().stream())
+              .collect(Collectors.groupingBy(orderDto -> orderDto.openTick())).entrySet().stream().map(tickDtoListEntry ->
+                  tickDtoListEntry.getValue().stream().reduce((orderDto, orderDto2) -> orderDto.profit() >= orderDto2.profit() ? orderDto : orderDto2).orElseThrow()).toList();
+          final long tpSum = filtro.stream().filter(order -> order.orderStatus().equals(OrderStatus.TAKE_PROFIT)).count();
+          final long slSun = filtro.stream().filter(order -> order.orderStatus().equals(OrderStatus.STOP_LOSS)).count();
+          final long closeSun = filtro.stream().filter(order -> !order.orderStatus().equals(OrderStatus.OPEN)).count();
           matrixTP[i][j] = tpSum;
           matrixSL[i][j] = slSun;
           matrixCLOSE[i][j] = closeSun;
