@@ -1,11 +1,9 @@
 package lu.forex.system.controllers;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -20,7 +18,6 @@ import lu.forex.system.dtos.SymbolDto;
 import lu.forex.system.dtos.TechnicalIndicatorDto;
 import lu.forex.system.dtos.TickDto;
 import lu.forex.system.dtos.TradeDto;
-import lu.forex.system.entities.Order;
 import lu.forex.system.enums.OrderStatus;
 import lu.forex.system.enums.OrderType;
 import lu.forex.system.enums.SignalIndicator;
@@ -123,9 +120,10 @@ public class TickController implements TickOperation {
                 tradeSelect.takeProfit(),
                 tradeSelect.stopLoss());
           } else {
+            log.warn("Have trades, but not open with {} TimeFrames and {} orders", mapCollection.keySet().size(), mapCollection.values().size());
             return "";
           }
-        }).filter(s -> !s.isEmpty() && !s.isBlank())
+        })
         .reduce("", (a, b) -> {
           if (a.isEmpty()) {
             return b;
