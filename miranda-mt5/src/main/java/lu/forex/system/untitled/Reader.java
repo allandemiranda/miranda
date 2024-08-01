@@ -36,11 +36,12 @@ public class Reader {
   final AtomicBoolean printMsgPercentage = new AtomicBoolean(false);
 
   @SneakyThrows
-  public void start(final String symbol) {
+  public void start() {
+    final String symbol = "EURUSD";
     final String root = "C:\\Users\\AllanDeMirandaSilva\\Downloads\\processing\\";
-    final var fileName = root + symbol + CSV;
-    log.info("[{}] Reading file {}",LocalDateTime.now(),fileName);
-    final var inputFile = new File(fileName);
+    final var fileName = "EURUSD_202403040001_202405032358.csv";
+    final var inputFile = new File(root, fileName);
+    log.info("[{}] Reading file {}",LocalDateTime.now(),inputFile);
     final var bidH = new AtomicReference<>(0D);
     final var askH = new AtomicReference<>(0D);
     final var lastUpdate = new AtomicReference<>(LocalDateTime.MIN);
@@ -121,19 +122,20 @@ public class Reader {
 
   @SneakyThrows
   private synchronized void sent(final String symbol, @NotNull final Tick tick, final @NotNull HttpClient httpClient) {
-    final var body = "{\n  \"timestamp\": \"" + tick.getTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n  \"bid\": " + tick.getBid() + ",\n  \"ask\": " + tick.getAsk() + "\n}";
-    final var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/api/v1/ticks/" + symbol))
+    final var body = "{\n  \"symbol\": \"EURUSD\",\n  \"timestamp\": \"" + tick.getTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n  \"bid\": " + tick.getBid() + ",\n  \"ask\": " + tick.getAsk() + "\n}";
+    final var request = HttpRequest.newBuilder().uri(URI.create("http://localhost:8080/ticks"))
         .header("Content-Type", "application/json")
         .header("User-Agent", "insomnia/9.0.0")
-        .POST(HttpRequest.BodyPublishers.ofString(body))
+        .PUT(HttpRequest.BodyPublishers.ofString(body))
         .build();
     final var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     switch (response.statusCode()) {
-      case 200: {
-        log.warn("[{}] Return 200 not expected", LocalDateTime.now());
+      case 201: {
+        log.warn("[{}] Return 201 not expected", LocalDateTime.now());
+        log.info(response.body());
         break;
       }
-      case 201: {
+      case 200: {
         if (!response.body().isEmpty()) {
           log.info("[{}] --> Received order: {}", LocalDateTime.now(), response.body());
           final Collection<Order> orders = Arrays.stream(response.body().split(","))
