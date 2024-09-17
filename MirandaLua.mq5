@@ -5,19 +5,44 @@
 //+------------------------------------------------------------------+
 #property copyright "Allan de Miranda"
 #property link      "https://github.com/allandemiranda/"
-#property version   "1.05"
+#property version   "1.09"
 
 //+------------------------------------------------------------------+
-//| Expert initialization function                                   |
+//| Definição de ENUMs para Timeframes e Intervalos de Hora          |
+//+------------------------------------------------------------------+
+enum ENUM_ALLOWED_TIMEFRAMES
+{
+   M15 = PERIOD_M15,
+   M30 = PERIOD_M30,
+   H1 = PERIOD_H1
+};
+
+enum ENUM_TIME_INTERVALS
+{
+   Interval_00_04 = 0,
+   Interval_04_08,
+   Interval_08_12,
+   Interval_12_16,
+   Interval_16_20,
+   Interval_20_24
+};
+
+//+------------------------------------------------------------------+
+//| Inputs do robô                                                   |
 //+------------------------------------------------------------------+
 input string symbol = "EURUSD";    // Símbolo
-input ENUM_TIMEFRAMES timeframe = PERIOD_H1; // Timeframe
-input double lotSize = 0.01; // Tamanho do lote
+
+// Lista de seleção dos timeframes permitidos
+input ENUM_ALLOWED_TIMEFRAMES allowedTimeframe = H1; // Seleção de timeframes permitidos
 
 // Definição do dia da semana e intervalo de horas permitidos
-input ENUM_DAY_OF_WEEK tradingDay = MONDAY;   // Dia da semana para negociação
-input int StartHour = 4;                      // Hora de início para o dia configurado
-input int EndHour = 8;                        // Hora de término para o dia configurado
+input ENUM_DAY_OF_WEEK tradingDay = MONDAY;   // Dia da semana para negociação (valores em maiúsculo)
+
+// Lista de intervalos de horas permitidos
+input ENUM_TIME_INTERVALS timeInterval = Interval_04_08; // Intervalo de horas permitidos
+
+// Tamanho do lote
+input double lotSize = 0.01; // Tamanho do lote para negociação
 
 // Parâmetros do ADX
 input int adxPeriod = 14;
@@ -36,11 +61,26 @@ input int stopLoss = 70;    // SL em pontos
 int lastBar = 0;
 
 //+------------------------------------------------------------------+
-//| Expert tick function                                             |
+//| Função para converter ENUM_ALLOWED_TIMEFRAMES para ENUM_TIMEFRAMES|
+//+------------------------------------------------------------------+
+ENUM_TIMEFRAMES ConvertAllowedTimeframe(ENUM_ALLOWED_TIMEFRAMES inputTimeframe)
+{
+   switch(inputTimeframe)
+   {
+      case M15: return PERIOD_M15;
+      case M30: return PERIOD_M30;
+      case H1: return PERIOD_H1;
+      default: return PERIOD_H1; // Valor padrão caso algo dê errado
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Função OnTick                                                    |
 //+------------------------------------------------------------------+
 void OnTick()
 {
     static int currentBar = 0;  // Local static variable for bar tracking
+    ENUM_TIMEFRAMES timeframe = ConvertAllowedTimeframe(allowedTimeframe); // Converte o timeframe permitido para ENUM_TIMEFRAMES
 
     // Only update if there's a new bar
     currentBar = iBars(symbol, timeframe);
@@ -70,30 +110,33 @@ void OnTick()
     {
         if (buySignal)
         {
-            OpenTrade(ORDER_TYPE_BUY);
+            OpenTrade(ORDER_TYPE_BUY, timeframe);
         }
         else if (sellSignal)
         {
-            OpenTrade(ORDER_TYPE_SELL);
+            OpenTrade(ORDER_TYPE_SELL, timeframe);
         }
     }
 }
+
 //+------------------------------------------------------------------+
 //| Função para obter o dia da semana                                |
 //+------------------------------------------------------------------+
 int TimeDayOfWeek(datetime time) {
    MqlDateTime mt;
-   bool turn=TimeToStruct(time,mt);
+   TimeToStruct(time,mt);
    return(mt.day_of_week);
 }
+
 //+------------------------------------------------------------------+
 //| Função para obter a hora do dia                                  |
 //+------------------------------------------------------------------+
 int TimeHour(datetime time) {
    MqlDateTime mt;
-   bool turn=TimeToStruct(time,mt);
+   TimeToStruct(time,mt);
    return(mt.hour);
 }
+
 //+------------------------------------------------------------------+
 //| Função para verificar se o horário é permitido                   |
 //+------------------------------------------------------------------+
@@ -103,16 +146,34 @@ bool IsTradingTimeAllowed()
     int currentDay = TimeDayOfWeek(currentTime);
     int currentHour = TimeHour(currentTime);
 
-    // Verificar se o dia e o horário atual correspondem ao intervalo permitido
-    if (currentDay == tradingDay)
-        return (currentHour >= StartHour && currentHour < EndHour);
+    // Verifica se o dia é permitido
+    if (currentDay != tradingDay)
+        return false;
 
-    return false; // Não permitido em outros dias ou horários
+    // Verifica o intervalo de horas permitido com base no input `timeInterval`
+    switch (timeInterval)
+    {
+        case Interval_00_04:
+            return (currentHour >= 0 && currentHour < 4);
+        case Interval_04_08:
+            return (currentHour >= 4 && currentHour < 8);
+        case Interval_08_12:
+            return (currentHour >= 8 && currentHour < 12);
+        case Interval_12_16:
+            return (currentHour >= 12 && currentHour < 16);
+        case Interval_16_20:
+            return (currentHour >= 16 && currentHour < 20);
+        case Interval_20_24:
+            return (currentHour >= 20 && currentHour < 24);
+        default:
+            return false;
+    }
 }
+
 //+------------------------------------------------------------------+
 //| Função para abrir uma operação                                   |
 //+------------------------------------------------------------------+
-void OpenTrade(int orderType)
+void OpenTrade(int orderType, ENUM_TIMEFRAMES timeframe)
 {
     MqlTradeRequest request;
     MqlTradeResult result;
@@ -133,11 +194,11 @@ void OpenTrade(int orderType)
         tp = price - takeProfit * _Point;
     }
 
-    // Fill the trade request structure
+    // Preenche a estrutura do pedido de negociação
     ZeroMemory(request);
     request.action = TRADE_ACTION_DEAL;
     request.symbol = symbol;
-    request.volume = lotSize;
+    request.volume = lotSize; // Usa o tamanho do lote configurado no input
     request.type = orderType;
     request.price = price;
     request.sl = sl;
@@ -145,17 +206,38 @@ void OpenTrade(int orderType)
     request.deviation = 2;
     request.comment = (orderType == ORDER_TYPE_BUY) ? "Buy Order" : "Sell Order";
 
-    // Send the trade request
+    // Envia o pedido de negociação
     if (!OrderSend(request, result))
     {
         Print("Error opening order: ", result.retcode);
     }
     else
     {
-        // Determinar o dia e intervalo para o print
-        string day = EnumToString(tradingDay);
-        string timeRange = IntegerToString(StartHour) + "h-" + IntegerToString(EndHour) + "h";
+        // Converte o intervalo de tempo para uma string legível
+        string timeRange = "";
+        switch (timeInterval)
+        {
+            case Interval_00_04:
+                timeRange = "00:00h-03:59h";
+                break;
+            case Interval_04_08:
+                timeRange = "04:00h-07:59h";
+                break;
+            case Interval_08_12:
+                timeRange = "08:00h-11:59h";
+                break;
+            case Interval_12_16:
+                timeRange = "12:00h-15:59h";
+                break;
+            case Interval_16_20:
+                timeRange = "16:00h-19:59h";
+                break;
+            case Interval_20_24:
+                timeRange = "20:00h-23:59h";
+                break;
+        }
 
-        Print("Order opened successfully. Ticket: ", result.order, ", Symbol: ", symbol, ", TimeFrame: ", EnumToString(timeframe), ", Day: ", day, ", Time Range: ", timeRange);
+        // Mensagem de sucesso ao abrir a ordem
+        Print("Order opened successfully. Ticket: ", result.order, ", Symbol: ", symbol, ", LotSize: ", DoubleToString(lotSize, 2), ", TimeFrame: ", EnumToString(timeframe), ", Day: ", EnumToString(tradingDay), ", Time Range: ", timeRange);
     }
 }
