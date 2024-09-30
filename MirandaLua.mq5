@@ -61,8 +61,10 @@ input bool adxReverse = false;
 // Parâmetros do RSI
 input bool rsiActivate = true;
 input int rsiPeriod = 14;
-input double rsiOverbought = 70;
-input double rsiOversold = 30;
+//input double rsiOverbought = 70;
+input double rsiOverbought = 50;
+//input double rsiOversold = 30;
+input double rsiOversold = 50;
 input ENUM_APPLIED_PRICE rsiAppliedPrice = PRICE_CLOSE;
 input bool rsiReverse = false;
 
@@ -221,26 +223,63 @@ void OnTick(void) {
       if(IsTradingTimeAllowed(lastCandleTime)) {
          ENUM_SIGNAL_INDICATOR signals[] = {getAdxSignal(), getRsiSignal(), getAcSignal(), getMacdSignal(), getStochasticSignal(), getWPRSignal(), getCCISignal(), getRVISignal()};
 
-         ENUM_SIGNAL_INDICATOR finalSignal = NEUTRAL;
-         for(int i = 0; i < ArraySize(signals); i++) {
-            if(signals[i] != DISABLE) {
-               if(signals[i] == NEUTRAL) {
-                  finalSignal = NEUTRAL;
-                  break;
-               }
+         int neutralSignal = 0;
+         int buySignal = 0;
+         int sellSignal = 0;
 
-               if(finalSignal == NEUTRAL) {
-                  finalSignal = signals[i];
-               } else if(finalSignal != signals[i]) {
-                  finalSignal = NEUTRAL;
-                  break;
-               }
+         for(int i = 0; i < ArraySize(signals); i++) {
+            switch(signals[i]) {
+            case BUY:
+               buySignal++;
+               break;
+            case SELL:
+               sellSignal++;
+               break;
+            case NEUTRAL:
+               neutralSignal++;
+               break;
             }
          }
 
-         if(finalSignal != NEUTRAL) {
-            OpenTrade(finalSignal);
+         int totalSignal = neutralSignal + buySignal + sellSignal;
+
+         switch(totalSignal) {
+         case 1:
+         case 2:
+         case 3:
+            if(neutralSignal == 0) {
+               if(buySignal == 0) {
+                  OpenTrade(SELL);
+               } else if(sellSignal == 0) {
+                  OpenTrade(BUY);
+               }
+            }
+            break;
+         case 4:
+         case 5:
+            if(buySignal == 3) {
+               OpenTrade(BUY);
+            } else if(sellSignal == 3) {
+               OpenTrade(SELL);
+            }
+            break;
+         case 6:
+            if(buySignal == 4) {
+               OpenTrade(BUY);
+            } else if(sellSignal == 4) {
+               OpenTrade(SELL);
+            }
+            break;
+         case 7:
+         case 8:
+            if(buySignal == 5) {
+               OpenTrade(BUY);
+            } else if(sellSignal == 5) {
+               OpenTrade(SELL);
+            }
+            break;
          }
+
       }
 
    }
@@ -603,33 +642,87 @@ void OnDeinit(const int reason) {
 }
 
 //+------------------------------------------------------------------+
-//| Função OnTester                                                  |
+//| Tester function                                                  |
 //+------------------------------------------------------------------+
-double OnTester() {
-   // Obter o número total de negociações
-   int total_trades = HistoryDealsTotal();
-
-   // Contador para negociações lucrativas
+double OnTester()
+  {
+   //--- get trade results to the array
+   double array[];
+   double trades_volume;
+   GetTradeResultsToArray(array, trades_volume);
+   
+   int trades = ArraySize(array);
    int profitable_trades = 0;
-
-   // Iterar sobre todas as negociações e contar as lucrativas
-   for(int i = 0; i < total_trades; i++) {
-      ulong deal_ticket = HistoryDealGetTicket(i);
-      double profit = HistoryDealGetDouble(deal_ticket, DEAL_PROFIT);
-
-      // Se o lucro for maior que zero, conta como negociação lucrativa
-      if(profit > 0) {
+   
+   //--- if there are no trades, return 0
+   if (trades == 0)
+      return 0;
+   
+   //--- count the number of profitable trades
+   for (int i = 0; i < trades; i++)
+     {
+      if (array[i] > 0) // lucro positivo
          profitable_trades++;
-      }
-   }
+     }
 
-   // Calcular a porcentagem de negociações lucrativas
-   double win_rate = 0;
-   if(total_trades > 0) {
-      win_rate = (double)profitable_trades / total_trades * 100.0;
-   }
+   //--- calculate the percentage of profitable trades (win rate)
+   double win_rate = (double)profitable_trades / trades * 100.0;
 
-   // Retornar o valor da porcentagem de negociações lucrativas para o relatório
+   //--- display the message for the single-test mode
+   if (MQLInfoInteger(MQL_TESTER) && !MQLInfoInteger(MQL_OPTIMIZATION))
+      PrintFormat("%s: Trades=%d, Profitable trades=%d, Win rate=%.2f%%", __FUNCTION__, trades, profitable_trades, win_rate);
+   
+   //--- return the win rate as the custom optimization criterion
    return win_rate;
-}
+  }
+  
 //+------------------------------------------------------------------+
+//| Get the array of profits/losses from deals                       |
+//+------------------------------------------------------------------+
+bool GetTradeResultsToArray(double &pl_results[], double &volume)
+  {
+   //--- request the complete trading history
+   if (!HistorySelect(0, TimeCurrent()))
+      return (false);
+   
+   uint total_deals = HistoryDealsTotal();
+   volume = 0;
+   
+   //--- set the initial size of the array with a margin - by the number of deals in history
+   ArrayResize(pl_results, total_deals);
+   
+   //--- counter of deals that fix the trading result - profit or loss
+   int counter = 0;
+   ulong ticket_history_deal = 0;
+   
+   //--- go through all deals
+   for (uint i = 0; i < total_deals; i++)
+     {
+      //--- select a deal 
+      if ((ticket_history_deal = HistoryDealGetTicket(i)) > 0)
+        {
+         ENUM_DEAL_ENTRY deal_entry  = (ENUM_DEAL_ENTRY)HistoryDealGetInteger(ticket_history_deal, DEAL_ENTRY);
+         long            deal_type   = HistoryDealGetInteger(ticket_history_deal, DEAL_TYPE);
+         double          deal_profit = HistoryDealGetDouble(ticket_history_deal, DEAL_PROFIT);
+         double          deal_volume = HistoryDealGetDouble(ticket_history_deal, DEAL_VOLUME);
+         
+         //--- we are only interested in trading operations        
+         if ((deal_type != DEAL_TYPE_BUY) && (deal_type != DEAL_TYPE_SELL))
+            continue;
+         
+         //--- only deals that fix profits/losses
+         if (deal_entry != DEAL_ENTRY_IN)
+           {
+            //--- write the trading result to the array and increase the counter of deals
+            pl_results[counter] = deal_profit;
+            volume += deal_volume;
+            counter++;
+           }
+        }
+     }
+   
+   //--- set the final size of the array
+   ArrayResize(pl_results, counter);
+   return (true);
+  }
+
